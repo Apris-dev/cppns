@@ -298,3 +298,6 @@ struct TContainerTraits<TArray<TType, TSize>> {
 	constexpr static bool bIsForwardOnly = false;
 	constexpr static bool bIsLimitedSize = true;
 };
+
+template <typename TType, typename... TArgs>
+TArray(TType, TArgs...) -> TArray<typename sstl::EnforceConvertible<TType, TArgs...>::Type, sizeof...(TArgs) + 1>;

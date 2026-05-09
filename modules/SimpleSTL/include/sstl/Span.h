@@ -67,3 +67,12 @@ private:
 
     TForwardList<std::reference_wrapper<const TTrueType>> m_Container;
 };
+
+template <typename TContainerType>
+TSpan(const TSequenceContainer<TContainerType>&) -> TSpan<typename TContainerTraits<TContainerType>::Type>;
+
+template <typename TContainerType>
+TSpan(const TAssociativeContainer<TContainerType>&) -> TSpan<typename TContainerTraits<TContainerType>::KeyType, typename TContainerTraits<TContainerType>::ValueType>;
+
+template <typename TContainerType>
+TSpan(const TSelfAssociativeContainer<TContainerType>&) -> TSpan<typename TContainerTraits<TContainerType>::Type>;
