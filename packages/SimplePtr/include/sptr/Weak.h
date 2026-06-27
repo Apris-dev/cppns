@@ -3,11 +3,6 @@
 #include "sptr/Common.h"
 #include "sptr/Shared.h"
 
-namespace sstl {
-	template <typename TType>
-	struct is_managed;
-}
-
 template <typename TType>
 struct TWeak {
 
@@ -295,6 +290,13 @@ private:
 	friend struct TFrail;
 
 	std::weak_ptr<TType> m_ptr;
+};
+
+template <typename TType>
+struct TUnfurled<TWeak<TType>> {
+	using Type = TType;
+	constexpr static bool isManaged = true;
+	constexpr static auto get = &TWeak<TType>::get;
 };
 
 #ifndef USING_SIMPLEARCHIVE

@@ -8,11 +8,6 @@
 
 #include "sptr/Common.h"
 
-namespace sstl {
-	template <typename TType>
-	struct is_managed;
-}
-
 template <typename>
 struct TWeak;
 
@@ -287,6 +282,25 @@ private:
 
 	std::shared_ptr<TType> m_ptr = nullptr;
 
+};
+
+template <typename TType>
+struct TUnfurled<TShared<TType>> {
+	using Type = TType;
+	constexpr static bool isManaged = true;
+	constexpr static auto get = &TShared<TType>::get;
+
+	template <typename TOtherType = TType, typename... TArgs,
+		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
+	>
+	_CONSTEXPR23 static TShared<TType> create(TArgs&&... args)
+#ifdef __cpp_lib_is_nothrow_convertible
+	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
+#else
+	noexcept {
+#endif
+		return TShared<TOtherType>(std::forward<TArgs>(args)...);
+	}
 };
 
 #ifndef USING_SIMPLEARCHIVE

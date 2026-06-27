@@ -5,11 +5,6 @@
 #include "sptr/Weak.h"
 #include "sptr/Unique.h"
 
-namespace sstl {
-	template <typename TType>
-	struct is_managed;
-}
-
 template <typename TType>
 struct TFrail {
 
@@ -259,6 +254,13 @@ private:
 	friend struct TFrail;
 
 	TType* m_ptr = nullptr;
+};
+
+template <typename TType>
+struct TUnfurled<TFrail<TType>> {
+	using Type = TType;
+	constexpr static bool isManaged = true;
+	constexpr static auto get = &TFrail<TType>::get;
 };
 
 template <typename TType>

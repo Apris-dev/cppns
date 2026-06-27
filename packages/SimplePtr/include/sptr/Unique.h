@@ -8,11 +8,6 @@
 
 #include "sptr/Common.h"
 
-namespace sstl {
-	template <typename TType>
-	struct is_managed;
-}
-
 template <typename TType>
 struct TUnique {
 
@@ -234,6 +229,25 @@ private:
 
 	std::unique_ptr<TType, sstl::delayed_deleter<TType>> m_ptr = nullptr;
 
+};
+
+template <typename TType>
+struct TUnfurled<TUnique<TType>> {
+	using Type = TType;
+	constexpr static bool isManaged = true;
+	constexpr static auto get = &TUnique<TType>::get;
+
+	template <typename TOtherType = TType, typename... TArgs,
+		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
+	>
+	_CONSTEXPR23 static TUnique<TType> create(TArgs&&... args)
+#ifdef __cpp_lib_is_nothrow_convertible
+	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
+#else
+	noexcept {
+#endif
+		return TUnique<TOtherType>(std::forward<TArgs>(args)...);
+	}
 };
 
 #ifndef USING_SIMPLEARCHIVE
