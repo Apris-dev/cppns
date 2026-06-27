@@ -4,6 +4,8 @@
 
 # Src Files
 !*.cpp
+!*.hpp
+!*.c
 !*.h
 
 # Scripts
@@ -17,6 +19,7 @@
 # Cmake files
 !CMakeLists.txt
 !*.cmake
+!*.in
 
 # Git
 !.git*

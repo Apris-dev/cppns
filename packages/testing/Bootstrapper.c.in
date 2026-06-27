@@ -1,0 +1,179 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <string.h>
+
+#if defined(_WIN32)
+    #include <windows.h>
+    #include <libloaderapi.h>
+#elif defined(__linux__)
+    #include <dlfcn.h>
+    #include <unistd.h>
+    #include <dirent.h>
+    #include <errno.h>
+
+    #ifndef PATH_MAX
+        #define PATH_MAX 4096
+    #endif
+#endif
+
+#define LIB_ALLOC_CAPACITY 10
+
+typedef int (*mainfunc_t)();
+
+int main() {
+
+#if defined(_WIN32)
+
+    char executablePath[MAX_PATH];
+    const DWORD len = GetModuleFileNameA(NULL, executablePath, sizeof(executablePath));
+    if (len == 0) {
+        const DWORD err = GetLastError();
+        fprintf(stderr, "GetModuleFileNameA failed, Error code: %lu\r\n", err);
+        return 1;
+    }
+
+    if (len >= sizeof(executablePath)) {
+        fprintf(stderr, "GetModuleFileNameA failed, module path is greater than MAX_PATH.\r\n");
+        return 2;
+    }
+
+    char* slash = strrchr(executablePath, '\\');
+    if (slash) *slash = '\0';
+
+    char searchPath[MAX_PATH];
+    snprintf(searchPath, MAX_PATH, "%s\\*.dll", executablePath);
+
+    WIN32_FIND_DATAA fd;
+    const HANDLE hFind = FindFirstFileA(searchPath, &fd);
+
+    if (hFind == INVALID_HANDLE_VALUE) {
+        const DWORD err = GetLastError();
+        fprintf(stderr, "FindFirstFileA failed, Error code: %lu\n", err);
+        return 3;
+    }
+
+    do {
+        char libraryPath[MAX_PATH];
+        snprintf(libraryPath, MAX_PATH, "%s\\%s", executablePath, fd.cFileName);
+
+        char sanitizedName[MAX_PATH];
+        strcpy_s(sanitizedName, MAX_PATH, fd.cFileName);
+        // Remove *.dll
+        sanitizedName[strlen(sanitizedName) - 4] = '\0';
+#if !defined(_MSC_VER)
+        // Remove lib*
+        memmove(sanitizedName, sanitizedName + 3, strlen(sanitizedName) - 3 + 1);
+#endif
+
+        printf("Bootstrapper: Attempting to load library '%s'\r\n", sanitizedName);
+
+        if (GetModuleHandleA(libraryPath) != NULL) {
+            printf("Bootstrapper: Library '%s' is already loaded!\r\n", sanitizedName);
+            continue;
+        }
+
+        if (LoadLibraryA(libraryPath) == NULL) {
+            const DWORD err = GetLastError();
+            fprintf(stderr, "LoadLibraryA failed, Error code: %lu\r\n", err);
+            return 4;
+        }
+
+        printf("Bootstrapper: Successfully loaded library '%s'\r\n", sanitizedName);
+    } while (FindNextFileA(hFind, &fd) != 0);
+
+    const HMODULE entrancePoint = GetModuleHandleA(NULL);
+
+    if (entrancePoint == NULL) {
+        const DWORD err = GetLastError();
+        fprintf(stderr, "GetModuleHandleA failed, Error code: %lu\r\n", err);
+        return 5;
+    }
+
+    const mainfunc_t mainFunc = (mainfunc_t)GetProcAddress(entrancePoint, "run");
+
+    if (mainFunc == NULL) {
+        const DWORD err = GetLastError();
+        fprintf(stderr, "Could not get entrance point: GetProcAddress failed, Error code: %lu\r\n", err);
+        return 6;
+    }
+
+    return mainFunc();
+
+#elif defined(__linux__)
+
+    char executablePath[PATH_MAX];
+    const ssize_t len = readlink("/proc/self/exe", executablePath, PATH_MAX);
+    if (len == -1) {
+        const int err = errno;
+        fprintf(stderr, "readlink failed, Error code: %u\n", err);
+        return 1;
+    }
+
+    executablePath[len] = '\0';
+
+    char* slash = strrchr(executablePath, '/');
+    if (slash) *slash = '\0';
+
+    DIR* dir = opendir(executablePath);
+    if (!dir) {
+        const int err = errno;
+        fprintf(stderr, "opendir failed, Error code: %u\n", err);
+        return 3;
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL) {
+        const char* name = entry->d_name;
+
+        const size_t n = strlen(name);
+
+        if (n > 3 && strcmp(name + n - 3, ".so") == 0) {
+            char libraryPath[PATH_MAX];
+            snprintf(libraryPath, PATH_MAX, "%s/%s", executablePath, name);
+
+            char sanitizedName[PATH_MAX];
+            strcpy(sanitizedName, name);
+            // Remove *.so
+            sanitizedName[strlen(sanitizedName) - 3] = '\0';
+            // Remove lib*
+            memmove(sanitizedName, sanitizedName + 3, strlen(sanitizedName) - 3 + 1);
+
+            printf("Bootstrapper: Attempting to load library '%s'\n", sanitizedName);
+
+            if (dlopen(libraryPath, RTLD_NOW | RTLD_NOLOAD) != NULL) {
+                printf("Bootstrapper: Library '%s' is already loaded!\n", sanitizedName);
+                continue;
+            }
+
+            if (dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL) == NULL) {
+                const char* message = dlerror();
+                fprintf(stderr, "dlopen failed: %s\n", message);
+                return 4;
+            }
+
+            printf("Bootstrapper: Successfully loaded library '%s'\n", sanitizedName);
+        }
+    }
+
+    closedir(dir);
+
+    void* entrancePoint = dlopen(NULL, RTLD_NOW | RTLD_NOLOAD);
+
+    if (entrancePoint == NULL) {
+        const char* message = dlerror();
+        fprintf(stderr, "dlopen NOLOAD failed: %s\n", message);
+        return 5;
+    }
+
+    const mainfunc_t mainFunc = dlsym(entrancePoint, "run");
+
+    if (mainFunc == NULL) {
+        const char* message = dlerror();
+        fprintf(stderr, "Could not get entrance point: dlsym failed: %s\n", message);
+        return 6;
+    }
+
+    return mainFunc();
+#endif
+}

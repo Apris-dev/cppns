@@ -15,7 +15,7 @@
 #include <unistd.h>
 #endif
 
-inline std::string gTempPath = std::filesystem::temp_directory_path().string();
+//inline std::string gTempPath = std::filesystem::temp_directory_path().string();
 
 inline std::string gExecutablePath = []() -> std::string {
     std::string path;

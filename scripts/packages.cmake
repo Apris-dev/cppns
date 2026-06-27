@@ -1,3 +1,6 @@
+# The bootstrapper gives package executables the ability to dynamically load all dlls before launching
+option(USE_BOOTSTRAPPER "" OFF)
+
 function(define_project
         PROJECT_NAME
         CXX_VERSION
@@ -24,45 +27,94 @@ function(define_project
     set(CURRENT_SCOPE_PROJECT ${PROJECT_NAME} PARENT_SCOPE)
 endfunction()
 
-# Function for creating packages
-macro(_add_package_impl TARGET_NAME LIBRARY_TYPE)
+function(_ensure_project_scope)
     # Ensure we are in project scope
     if (NOT DEFINED CURRENT_SCOPE_PROJECT)
-        message(FATAL_ERROR "Package ${TARGET_NAME} was not created in the scope of a project!")
+        message(FATAL_ERROR "${MESSAGE}")
     endif ()
+endfunction()
 
-    # Ensure we are NOT in package scope
+function(project_message MESSAGE)
+    if (ARGC GREATER 1)
+        set(TYPE ${MESSAGE})
+        set(MESSAGE ${ARGV1})
+    else ()
+        set(TYPE STATUS)
+    endif ()
+    _ensure_project_scope("Cannot print project message outside of project scope")
+    message(${TYPE} "${CURRENT_SCOPE_PROJECT}: ${MESSAGE}")
+endfunction()
+
+function(_ensure_package_scope MESSAGE)
+    # Ensure we are in package scope
+    if (NOT DEFINED CURRENT_SCOPE_PACKAGE)
+        project_message(FATAL_ERROR ${MESSAGE})
+    endif ()
+endfunction()
+
+function(_ensure_not_package_scope MESSAGE)
+    # Ensure we are in package scope
     if (DEFINED CURRENT_SCOPE_PACKAGE)
-        message(FATAL_ERROR "${CURRENT_SCOPE_PROJECT}: Package ${TARGET_NAME} was created in the scope of another package!")
+        project_message(FATAL_ERROR ${MESSAGE})
     endif ()
+endfunction()
 
-    # Get project packages
+function(package_message MESSAGE)
+    if (ARGC GREATER 1)
+        set(TYPE ${MESSAGE})
+        set(MESSAGE ${ARGV1})
+    else ()
+        set(TYPE STATUS)
+    endif ()
+    _ensure_package_scope("Cannot print package message outside of package scope")
+    message(${TYPE} "${CURRENT_SCOPE_PROJECT} - ${CURRENT_SCOPE_PACKAGE}: ${MESSAGE}")
+endfunction()
+
+function(_ensure_test_scope MESSAGE)
+    # Ensure we are in test scope
+    if (NOT DEFINED CURRENT_SCOPE_TEST)
+        project_message(FATAL_ERROR ${MESSAGE})
+    endif ()
+endfunction()
+
+function(_ensure_is_package LIBRARY_NAME MESSAGE)
+    # Get Packages
     get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT} PACKAGES)
 
-    # Ensure package does not already exist
-    if (${TARGET_NAME} IN_LIST PROJECT_PACKAGES)
-        message(FATAL_ERROR "${CURRENT_SCOPE_PROJECT}: Package ${TARGET_NAME} already exists!")
-        return()
+    # Ensure target package is part of the same project
+    if (NOT ${LIBRARY_NAME} IN_LIST PROJECT_PACKAGES)
+        project_message(FATAL_ERROR ${MESSAGE})
     endif ()
+endfunction()
 
-    # Create library with headers and sources
-    add_library(${TARGET_NAME} ${LIBRARY_TYPE}
-            ${ARGN}
-    )
+function(_ensure_is_not_package LIBRARY_NAME MESSAGE)
+    # Get Packages
+    get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT} PACKAGES)
 
+    # Ensure target package is part of the same project
+    if (${LIBRARY_NAME} IN_LIST PROJECT_PACKAGES)
+        project_message(FATAL_ERROR ${MESSAGE})
+    endif ()
+endfunction()
+
+# Set target properties and other sorts of variables
+macro (_set_target_defaults TARGET_NAME)
     # Ensure target is using CXX
     set_target_properties(${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
     # Get cpp version from project and set target properties
     get_target_property(CXX_VERSION ${CURRENT_SCOPE_PROJECT} CXX_STANDARD)
+
+    # Set default presets to hidden for MSVC-like behavior
     set_target_properties(${TARGET_NAME} PROPERTIES
+            CXX_VISIBILITY_PRESET hidden
+            C_VISIBILITY_PRESET hidden
+            VISIBILITY_INLINES_HIDDEN YES
             CXX_STANDARD ${CXX_VERSION}
             CXX_STANDARD_REQUIRED ON
     )
 
     # This tells other libraries that this target has been linked downstream to enable cross-package compatibility without hard requirements
-    string(TOUPPER ${TARGET_NAME} UPPER_TARGET_NAME)
-    target_compile_definitions(${TARGET_NAME} INTERFACE USING_${UPPER_TARGET_NAME})
     string(TOUPPER ${CURRENT_SCOPE_PROJECT} UPPER_PROJECT_NAME)
     target_compile_definitions(${TARGET_NAME} INTERFACE USING_${UPPER_PROJECT_NAME})
 
@@ -80,6 +132,25 @@ macro(_add_package_impl TARGET_NAME LIBRARY_TYPE)
 
     # Get the top level binary directory, can be used to determine the where the binary is and where the source is.
     target_compile_definitions(${TARGET_NAME} INTERFACE DEBUG_BINARY_ROOT_DIR="${DEBUG_BINARY_ROOT_DIR}")
+endmacro()
+
+# Function for creating packages
+macro(_add_package_impl TARGET_NAME LIBRARY_TYPE)
+    _ensure_project_scope("Package ${TARGET_NAME} was not created in the scope of a project!")
+    _ensure_not_package_scope("Package ${TARGET_NAME} was created in the scope of another package!")
+    _ensure_is_not_package(${TARGET_NAME} "Package ${TARGET_NAME} already exists!")
+
+    # Create library with headers and sources
+    add_library(${TARGET_NAME} ${LIBRARY_TYPE}
+            ${ARGN}
+    )
+
+    # This tells other libraries that this target has been linked downstream to enable cross-package compatibility without hard requirements
+    string(TOUPPER ${TARGET_NAME} UPPER_TARGET_NAME)
+    target_compile_definitions(${TARGET_NAME} INTERFACE USING_${UPPER_TARGET_NAME})
+
+    # Set defaults for targets
+    _set_target_defaults(${TARGET_NAME})
 
     # Add to list of project packages
     # Prepend to ensure that the lowest dependency is at the bottom
@@ -119,34 +190,65 @@ function(add_shared_package TARGET_NAME)
     )
 endfunction()
 
+# Create an executable for a package.
+function(add_package_executable TARGET_NAME)
+    _ensure_project_scope("Executable ${TARGET_NAME} was not created in the scope of a project!")
+    _ensure_not_package_scope("Executable ${TARGET_NAME} was created in the scope of another package!")
+    _ensure_is_not_package(${TARGET_NAME} "Executable ${TARGET_NAME} already exists!")
+
+    # MinGW doesn't export symbols from executables even with ENABLE_EXPORTS set to ON, it is unsupported
+    if (USE_BOOTSTRAPPER)
+        if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC" AND CMAKE_SYSTEM_NAME MATCHES "Windows")
+            project_message(WARNING "Cannot use Bootstrapper with MinGW, either use MSVC or disable the bootstrapper in the future")
+        else ()
+            # Create the bootstrapper for the executable
+            configure_file(
+                    ${CMAKE_CURRENT_SOURCE_DIR}/Bootstrapper.c.in
+                    ${CMAKE_BINARY_DIR}/Bootstrapper.c
+                    @ONLY
+            )
+
+            # Add exec with bootstrapper
+            add_executable(${TARGET_NAME}
+                    ${ARGN}
+                    ${CMAKE_BINARY_DIR}/Bootstrapper.c
+            )
+            set_target_properties(${TARGET_NAME} PROPERTIES
+                    ENABLE_EXPORTS ON
+            )
+        endif ()
+    endif ()
+
+    # If target was not created above, make a simple executable
+    if (NOT TARGET ${TARGET_NAME})
+        # Add exec with original files
+        add_executable(${TARGET_NAME}
+                ${ARGN}
+        )
+    endif ()
+
+    # Set defaults for targets
+    _set_target_defaults(${TARGET_NAME})
+
+    # Add to list of project packages
+    # Prepend to ensure that the lowest dependency is at the bottom
+    set_property(TARGET ${CURRENT_SCOPE_PROJECT} APPEND PROPERTY PACKAGES ${TARGET_NAME})
+
+    # Set the package of the current scope
+    set(CURRENT_SCOPE_PACKAGE ${TARGET_NAME} PARENT_SCOPE)
+endfunction()
+
 # Quickly link two packages together with safety
 function(link_package LINK_LIBRARY_TYPE LINK_LIBRARY_NAME)
-    # Ensure we are in project scope
-    if (NOT DEFINED CURRENT_SCOPE_PROJECT)
-        message(FATAL_ERROR "Attempted to link package while not in the scope of a project!")
-    endif ()
-
-    get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT} PACKAGES)
-
-    # Ensure target package is part of the same project (TODO: should I do this?)
-    if (NOT ${LINK_LIBRARY_NAME} IN_LIST PROJECT_PACKAGES)
-        message(FATAL_ERROR "${CURRENT_SCOPE_PROJECT}: Cannot link ${CURRENT_SCOPE_PACKAGE} to ${LINK_LIBRARY_NAME}, Package ${LINK_LIBRARY_NAME} does not exist!")
-    endif ()
-
-    # Ensure target package is a valid target
-    if (NOT TARGET ${LINK_LIBRARY_NAME})
-        message(FATAL_ERROR "${CURRENT_SCOPE_PROJECT}: Cannot link ${CURRENT_SCOPE_PACKAGE} to ${LINK_LIBRARY_NAME}, Package ${LINK_LIBRARY_NAME} is not a target!")
-    endif()
+    _ensure_package_scope("Attempted to link package while not in the scope of a package!")
+    _ensure_is_package(${LINK_LIBRARY_NAME} "Cannot link ${CURRENT_SCOPE_PACKAGE} to ${LINK_LIBRARY_NAME}, Package ${LINK_LIBRARY_NAME} does not exist!")
 
     target_link_libraries(${CURRENT_SCOPE_PACKAGE} ${LINK_LIBRARY_TYPE} ${LINK_LIBRARY_NAME})
 endfunction()
 
 # Quickly adds a test for packages
 function(add_test TEST_NAME)
-    # Ensure we are in package scope
-    if (NOT DEFINED CURRENT_SCOPE_PACKAGE)
-        message(FATAL_ERROR "Tried to add test ${TEST_NAME} while not inside package scope.")
-    endif ()
+    _ensure_package_scope("Tried to add test ${TEST_NAME} while not inside package scope.")
 
     # Add test as executable and link to package
     add_executable(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME}
@@ -160,28 +262,8 @@ endfunction()
 
 # Quickly link a test to another package
 function(link_test LIBRARY_NAME)
-    # Ensure we are in project scope
-    if (NOT DEFINED CURRENT_SCOPE_PROJECT)
-        message(FATAL_ERROR "Attempted to link test while not in the scope of a project!")
-    endif ()
-
-    # Get Packages
-    get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT} PACKAGES)
-
-    # Ensure we are in test scope
-    if (NOT DEFINED CURRENT_SCOPE_TEST)
-        message(FATAL_ERROR "${CURRENT_SCOPE_PROJECT}: Tried to link test to library ${LIBRARY_NAME} while not inside test scope.")
-    endif ()
-
-    # Ensure target package is part of the same project (TODO: should I do this?)
-    if (NOT ${LIBRARY_NAME} IN_LIST PROJECT_PACKAGES)
-        message(FATAL_ERROR "${CURRENT_SCOPE_PROJECT}: Cannot link test ${CURRENT_SCOPE_TEST} to ${LIBRARY_NAME}, Package ${LIBRARY_NAME} does not exist!")
-    endif ()
-
-    # Ensure the target package is a test
-    if (NOT TARGET ${LIBRARY_NAME})
-        message(FATAL_ERROR "${CURRENT_SCOPE_PROJECT}: Cannot link test ${CURRENT_SCOPE_TEST} to ${LIBRARY_NAME}, Package ${LIBRARY_NAME} is not a target!")
-    endif()
+    _ensure_test_scope("Tried to link test to library ${LIBRARY_NAME} while not inside test scope.")
+    _ensure_is_package(${LIBRARY_NAME} "Cannot link test ${CURRENT_SCOPE_TEST} to ${LIBRARY_NAME}, Package ${LIBRARY_NAME} does not exist!")
 
     target_link_libraries(${CURRENT_SCOPE_PACKAGE}-${CURRENT_SCOPE_TEST} ${LIBRARY_NAME})
 
@@ -193,11 +275,13 @@ function(link_test LIBRARY_NAME)
 endfunction()
 
 # Quickly add an option with a message to a package
-function(simplecpp_option TARGET_NAME OPTION_NAME OPTION_DESCRIPTION OPTION_DEFAULT)
+function(package_option OPTION_NAME OPTION_DESCRIPTION OPTION_DEFAULT)
+    _ensure_package_scope("Attempted to create a package option while not in the scope of a package!")
+
     option(${OPTION_NAME} ${OPTION_DESCRIPTION} ${OPTION_DEFAULT})
 
     if(${OPTION_NAME})
-        message(STATUS "${CURRENT_SCOPE_PROJECT} - ${TARGET_NAME}: ${OPTION_NAME} Is On")
-        target_compile_definitions(${TARGET_NAME} INTERFACE ${OPTION_NAME})
+        package_message(STATUS "${OPTION_NAME} Is On")
+        target_compile_definitions(${CURRENT_SCOPE_PACKAGE} INTERFACE ${OPTION_NAME})
     endif()
 endfunction()
