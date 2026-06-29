@@ -241,7 +241,7 @@ endfunction()
 # Quickly link two packages together with safety
 function(link_package LINK_LIBRARY_TYPE LINK_LIBRARY_NAME)
     _ensure_package_scope("Attempted to link package while not in the scope of a package!")
-    _ensure_is_package(${LINK_LIBRARY_NAME} "Cannot link ${CURRENT_SCOPE_PACKAGE} to ${LINK_LIBRARY_NAME}, Package ${LINK_LIBRARY_NAME} does not exist!")
+    #_ensure_is_package(${LINK_LIBRARY_NAME} "Cannot link ${CURRENT_SCOPE_PACKAGE} to ${LINK_LIBRARY_NAME}, Package ${LINK_LIBRARY_NAME} does not exist!")
 
     target_link_libraries(${CURRENT_SCOPE_PACKAGE} ${LINK_LIBRARY_TYPE} ${LINK_LIBRARY_NAME})
 endfunction()
