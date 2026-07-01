@@ -1,5 +1,5 @@
 # The bootstrapper gives package executables the ability to dynamically load all dlls before launching
-option(USE_BOOTSTRAPPER "" OFF)
+option(USE_BOOTSTRAPPER "" ${SIMPLECPP_TEST})
 
 function(define_project
         PROJECT_NAME
@@ -226,6 +226,14 @@ function(add_package_executable TARGET_NAME)
                 ${ARGN}
         )
     endif ()
+
+    # Get Packages
+    get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT}-Settings PACKAGES)
+
+    # Ensure all packages get compiled regardless of link status
+    foreach (PACKAGE IN LISTS PROJECT_PACKAGES)
+        add_dependencies(${TARGET_NAME} ${PACKAGE})
+    endforeach ()
 
     # Set defaults for targets
     _set_target_defaults(${TARGET_NAME})

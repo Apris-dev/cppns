@@ -25,5 +25,4 @@ block()
     )
 
     link_package(PUBLIC TestTrueMain)
-    add_dependencies(TestBootstrap TestLib)
 endblock()

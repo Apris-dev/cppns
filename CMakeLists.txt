@@ -8,8 +8,6 @@ project(
         LANGUAGES CXX C
 )
 
-include(scripts/packages.cmake)
-
 # Enable testing if a top level project, otherwise it can be enabled optionally
 option(SIMPLECPP_TEST "Enable testing SimpleCPP features" ${PROJECT_IS_TOP_LEVEL})
 
@@ -28,6 +26,8 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 message(STATUS "SimpleCPP: Using CXX version ${CMAKE_CXX_STANDARD}")
+
+include(scripts/packages.cmake)
 
 # Project Definition
 define_project(
