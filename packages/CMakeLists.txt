@@ -4,6 +4,6 @@ add_subdirectory(SimpleSTL)
 add_subdirectory(SimpleArchive)
 add_subdirectory(SimpleDG)
 
-if (SIMPLECPP_TEST)
+if (CPPNS_TEST)
     add_subdirectory(testing)
 endif ()

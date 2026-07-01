@@ -15,4 +15,4 @@ package_option(SIMPLEPTR_DESTROY "Enable the auto destroy ability" On)
 # Initially disabled unless for testing, Release can be dangerous if used unknowingly, should only be enabled if you know what it does
 # Allows you to specify a release function in the memory's types, which removes all deletion capability from the pointer,
 # giving the ability to self-release the memory.  Can cause memory leaks if used improperly.
-package_option(SIMPLEPTR_RELEASE "Enable the release auto function ability" ${SIMPLECPP_TEST})
+package_option(SIMPLEPTR_RELEASE "Enable the release auto function ability" ${CPPNS_TEST})

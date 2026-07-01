@@ -1,11 +1,11 @@
 # The bootstrapper gives package executables the ability to dynamically load all dlls before launching
-option(USE_BOOTSTRAPPER "" ${SIMPLECPP_TEST})
+option(USE_BOOTSTRAPPER "" ${CPPNS_TEST})
 
 function(define_project
         PROJECT_NAME
         CXX_VERSION
 )
-    # Keep Packages as child of target, SimpleCPP is project do some other stuff like versioning and CXX version etc here
+    # Keep Packages as child of target, cppns is project do some other stuff like versioning and CXX version etc here
     # CXX VS C Project
 
     # Create a library using this project
