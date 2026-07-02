@@ -1,4 +1,4 @@
-add_interface_package(util
+add_interface_package(cppns-util
         include/cppns/util/PlatformDefinition.h
         include/cppns/util/Comparison.h
         include/cppns/util/InitializerList.h

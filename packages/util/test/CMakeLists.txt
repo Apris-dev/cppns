@@ -2,5 +2,5 @@
         ThreadedTest.cpp
 )
 
-link_test(container)
-link_test(memory)
+link_test(cppns-container)
+link_test(cppns-memory)

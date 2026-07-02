@@ -44,16 +44,3 @@ get_target_property(CPPNS_PACKAGES cppns-settings PACKAGES)
 foreach (PACKAGE IN LISTS CPPNS_PACKAGES)
     target_link_libraries(cppns INTERFACE ${PACKAGE})
 endforeach ()
-
-# Enable testing for each package if requested
-# We do this after creating the packages so the tests dont need to be ordered
-if (CPPNS_TEST)
-    foreach (PACKAGE IN LISTS CPPNS_PACKAGES)
-        if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/packages/${PACKAGE}/test")
-            # Ensure scope is set for tests
-            set(CURRENT_SCOPE_PACKAGE ${PACKAGE})
-            add_subdirectory(packages/${PACKAGE}/test)
-            unset(CURRENT_SCOPE_PACKAGE)
-        endif()
-    endforeach()
-endif()

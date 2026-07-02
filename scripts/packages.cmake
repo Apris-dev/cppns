@@ -77,9 +77,9 @@ function(_ensure_test_scope MESSAGE)
     endif ()
 endfunction()
 
-function(_ensure_is_package PROJECT_NAME LIBRARY_NAME MESSAGE)
+function(_ensure_is_package LIBRARY_NAME MESSAGE)
     # Get Packages
-    get_target_property(PROJECT_PACKAGES ${PROJECT_NAME}-settings PACKAGES)
+    get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT}-settings PACKAGES)
 
     # Ensure target package is part of the same project
     if (NOT ${LIBRARY_NAME} IN_LIST PROJECT_PACKAGES)
@@ -87,9 +87,9 @@ function(_ensure_is_package PROJECT_NAME LIBRARY_NAME MESSAGE)
     endif ()
 endfunction()
 
-function(_ensure_is_not_package PROJECT_NAME LIBRARY_NAME MESSAGE)
+function(_ensure_is_not_package LIBRARY_NAME MESSAGE)
     # Get Packages
-    get_target_property(PROJECT_PACKAGES ${PROJECT_NAME}-settings PACKAGES)
+    get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT}-settings PACKAGES)
 
     # Ensure target package is part of the same project
     if (${LIBRARY_NAME} IN_LIST PROJECT_PACKAGES)
@@ -138,19 +138,19 @@ endmacro()
 macro(_add_package_impl TARGET_NAME LIBRARY_TYPE)
     _ensure_project_scope("Package ${TARGET_NAME} was not created in the scope of a project!")
     _ensure_not_package_scope("Package ${TARGET_NAME} was created in the scope of another package!")
-    _ensure_is_not_package(${CURRENT_SCOPE_PROJECT} ${TARGET_NAME} "Package ${TARGET_NAME} already exists!")
+    _ensure_is_not_package(${TARGET_NAME} "Package ${TARGET_NAME} already exists!")
 
     # Create library with headers and sources
-    add_library(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME} ${LIBRARY_TYPE}
+    add_library(${TARGET_NAME} ${LIBRARY_TYPE}
             ${ARGN}
     )
 
     # This tells other libraries that this target has been linked downstream to enable cross-package compatibility without hard requirements
-    string(TOUPPER ${CURRENT_SCOPE_PROJECT}_${TARGET_NAME} MACRO_NAME)
-    target_compile_definitions(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME} INTERFACE USING_${MACRO_NAME})
+    string(TOUPPER ${CURRENT_SCOPE_PROJECT}_${TARGET_NAME} UPPER_TARGET_NAME)
+    target_compile_definitions(${TARGET_NAME} INTERFACE USING_${UPPER_TARGET_NAME})
 
     # Set defaults for targets
-    _set_target_defaults(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME})
+    _set_target_defaults(${TARGET_NAME})
 
     # Add to list of project packages
     # Prepend to ensure that the lowest dependency is at the bottom
@@ -164,7 +164,7 @@ function(add_interface_package TARGET_NAME)
     _add_package_impl(${TARGET_NAME} INTERFACE ${ARGN})
 
     # Include Headers for this package
-    target_include_directories(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME} INTERFACE
+    target_include_directories(${TARGET_NAME} INTERFACE
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
             "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
     )
@@ -174,7 +174,7 @@ function(add_static_package TARGET_NAME)
     _add_package_impl(${TARGET_NAME} STATIC ${ARGN})
 
     # Include Headers for this package
-    target_include_directories(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME} PUBLIC
+    target_include_directories(${TARGET_NAME} PUBLIC
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
             "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
     )
@@ -184,7 +184,7 @@ function(add_shared_package TARGET_NAME)
     _add_package_impl(${TARGET_NAME} SHARED ${ARGN})
 
     # Include Headers for this package
-    target_include_directories(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME} PUBLIC
+    target_include_directories(${TARGET_NAME} PUBLIC
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
             "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
     )
@@ -194,7 +194,7 @@ endfunction()
 function(add_package_executable TARGET_NAME)
     _ensure_project_scope("Executable ${TARGET_NAME} was not created in the scope of a project!")
     _ensure_not_package_scope("Executable ${TARGET_NAME} was created in the scope of another package!")
-    _ensure_is_not_package(${CURRENT_SCOPE_PROJECT} ${TARGET_NAME} "Executable ${TARGET_NAME} already exists!")
+    _ensure_is_not_package(${TARGET_NAME} "Executable ${TARGET_NAME} already exists!")
 
     # MinGW doesn't export symbols from executables even with ENABLE_EXPORTS set to ON, it is unsupported
     if (USE_BOOTSTRAPPER)
@@ -209,20 +209,20 @@ function(add_package_executable TARGET_NAME)
             )
 
             # Add exec with bootstrapper
-            add_executable(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME}
+            add_executable(${TARGET_NAME}
                     ${ARGN}
                     ${CMAKE_BINARY_DIR}/Bootstrapper.c
             )
-            set_target_properties(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME} PROPERTIES
+            set_target_properties(${TARGET_NAME} PROPERTIES
                     ENABLE_EXPORTS ON
             )
         endif ()
     endif ()
 
     # If target was not created above, make a simple executable
-    if (NOT TARGET ${CURRENT_SCOPE_PROJECT}-${TARGET_NAME})
+    if (NOT TARGET ${TARGET_NAME})
         # Add exec with original files
-        add_executable(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME}
+        add_executable(${TARGET_NAME}
                 ${ARGN}
         )
     endif ()
@@ -232,11 +232,11 @@ function(add_package_executable TARGET_NAME)
 
     # Ensure all packages get compiled regardless of link status
     foreach (PACKAGE IN LISTS PROJECT_PACKAGES)
-        add_dependencies(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME} ${CURRENT_SCOPE_PROJECT}-${PACKAGE})
+        add_dependencies(${TARGET_NAME} ${PACKAGE})
     endforeach ()
 
     # Set defaults for targets
-    _set_target_defaults(${CURRENT_SCOPE_PROJECT}-${TARGET_NAME})
+    _set_target_defaults(${TARGET_NAME})
 
     # Add to list of project packages
     # Prepend to ensure that the lowest dependency is at the bottom
@@ -247,26 +247,11 @@ function(add_package_executable TARGET_NAME)
 endfunction()
 
 # Quickly link two packages together with safety
-# Can put a project, otherwise infers own project
 function(link_package LINK_LIBRARY_TYPE LINK_LIBRARY_NAME)
-    if (ARGC GREATER 2)
-        set(LINK_PROJECT_NAME ${LINK_LIBRARY_NAME})
-        set(LINK_LIBRARY_NAME ${ARGV2})
-    else ()
-        set(LINK_PROJECT_NAME ${CURRENT_SCOPE_PROJECT})
-    endif ()
-
     _ensure_package_scope("Attempted to link package while not in the scope of a package!")
-    _ensure_is_package(${LINK_PROJECT_NAME} ${LINK_LIBRARY_NAME} "Cannot link ${CURRENT_SCOPE_PACKAGE} to ${LINK_LIBRARY_NAME}, Package ${LINK_LIBRARY_NAME} does not exist!")
+    #_ensure_is_package(${LINK_LIBRARY_NAME} "Cannot link ${CURRENT_SCOPE_PACKAGE} to ${LINK_LIBRARY_NAME}, Package ${LINK_LIBRARY_NAME} does not exist!")
 
-    target_link_libraries(${CURRENT_SCOPE_PROJECT}-${CURRENT_SCOPE_PACKAGE} ${LINK_LIBRARY_TYPE} ${LINK_PROJECT_NAME}-${LINK_LIBRARY_NAME})
-endfunction()
-
-# Quickly link an external package safely
-function(link_package_external LINK_LIBRARY_TYPE LINK_LIBRARY_NAME)
-    _ensure_package_scope("Attempted to link package while not in the scope of a package!")
-
-    target_link_libraries(${CURRENT_SCOPE_PROJECT}-${CURRENT_SCOPE_PACKAGE} ${LINK_LIBRARY_TYPE} ${LINK_LIBRARY_NAME})
+    target_link_libraries(${CURRENT_SCOPE_PACKAGE} ${LINK_LIBRARY_TYPE} ${LINK_LIBRARY_NAME})
 endfunction()
 
 # Quickly adds a test for packages
@@ -274,10 +259,10 @@ function(add_test TEST_NAME)
     _ensure_package_scope("Tried to add test ${TEST_NAME} while not inside package scope.")
 
     # Add test as executable and link to package
-    add_executable(${CURRENT_SCOPE_PROJECT}-${CURRENT_SCOPE_PACKAGE}-${TEST_NAME}
+    add_executable(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME}
             ${ARGN}
     )
-    target_link_libraries(${CURRENT_SCOPE_PROJECT}-${CURRENT_SCOPE_PACKAGE}-${TEST_NAME} ${CURRENT_SCOPE_PROJECT}-${CURRENT_SCOPE_PACKAGE})
+    target_link_libraries(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME} ${CURRENT_SCOPE_PACKAGE})
 
     # Set the test of the current scope
     set(CURRENT_SCOPE_TEST ${TEST_NAME} PARENT_SCOPE)
@@ -285,31 +270,16 @@ endfunction()
 
 # Quickly link a test to another package
 function(link_test LIBRARY_NAME)
-    if (ARGC GREATER 1)
-        set(PROJECT_NAME ${LIBRARY_NAME})
-        set(LIBRARY_NAME ${ARGV1})
-     else ()
-        set(PROJECT_NAME ${CURRENT_SCOPE_PROJECT})
-    endif ()
-
     _ensure_test_scope("Tried to link test to library ${LIBRARY_NAME} while not inside test scope.")
-    _ensure_is_package(${PROJECT_NAME} ${LIBRARY_NAME} "Cannot link test ${CURRENT_SCOPE_TEST} to ${LIBRARY_NAME}, Package ${LIBRARY_NAME} does not exist!")
+    _ensure_is_package(${LIBRARY_NAME} "Cannot link test ${CURRENT_SCOPE_TEST} to ${LIBRARY_NAME}, Package ${LIBRARY_NAME} does not exist!")
 
-    target_link_libraries(${CURRENT_SCOPE_PROJECT}-${CURRENT_SCOPE_PACKAGE}-${CURRENT_SCOPE_TEST} ${PROJECT_NAME}-${LIBRARY_NAME})
-    if (CURRENT_SCOPE_PROJECT EQUAL PROJECT_NAME)
-        # Add test directory of the target package as an include directory
-        if (EXISTS "${CMAKE_SOURCE_DIR}/packages/${LIBRARY_NAME}/test")
-            target_include_directories(${CURRENT_SCOPE_PROJECT}-${CURRENT_SCOPE_PACKAGE}-${CURRENT_SCOPE_TEST} PRIVATE "${CMAKE_SOURCE_DIR}/packages/${LIBRARY_NAME}/test")
-        endif()
-    endif ()
+    target_link_libraries(${CURRENT_SCOPE_PACKAGE}-${CURRENT_SCOPE_TEST} ${LIBRARY_NAME})
 
-endfunction()
+    # Add test directory of the target package as an include directory
+    if (EXISTS "${CMAKE_SOURCE_DIR}/packages/${LIBRARY_NAME}/test")
+        target_include_directories(${CURRENT_SCOPE_PACKAGE}-${CURRENT_SCOPE_TEST} PRIVATE "${CMAKE_SOURCE_DIR}/packages/${LIBRARY_NAME}/test")
+    endif()
 
-# Quickly link an external package safely
-function(link_test_external LIBRARY_NAME)
-    _ensure_test_scope("Tried to link test to library ${LIBRARY_NAME} while not inside test scope.")
-
-    target_link_libraries(${CURRENT_SCOPE_PROJECT}-${CURRENT_SCOPE_PACKAGE}-${CURRENT_SCOPE_TEST} ${LIBRARY_NAME})
 endfunction()
 
 # Quickly add an option with a message to a package
@@ -320,6 +290,6 @@ function(package_option OPTION_NAME OPTION_DESCRIPTION OPTION_DEFAULT)
 
     if(${OPTION_NAME})
         package_message(STATUS "${OPTION_NAME} Is On")
-        target_compile_definitions(${CURRENT_SCOPE_PROJECT}-${CURRENT_SCOPE_PACKAGE} INTERFACE ${OPTION_NAME})
+        target_compile_definitions(${CURRENT_SCOPE_PACKAGE} INTERFACE ${OPTION_NAME})
     endif()
 endfunction()

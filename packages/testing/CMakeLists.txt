@@ -5,7 +5,7 @@ block()
             TestTrueMain.cpp
     )
 
-    link_package(PUBLIC util)
+    link_package(PUBLIC cppns-util)
 endblock()
 
 # TestLib block

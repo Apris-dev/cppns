@@ -2,4 +2,4 @@ add_test(ArchTest
         ArchTest.cpp
 )
 
-link_test(container)
+link_test(cppns-container)

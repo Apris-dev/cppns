@@ -2,6 +2,6 @@
         Test.cpp
 )
 
-link_test(archive)
-link_test(memory)
-link_test(container)
+link_test(cppns-archive)
+link_test(cppns-memory)
+link_test(cppns-container)

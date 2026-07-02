@@ -1,6 +1,6 @@
-﻿add_interface_package(dependencyGraph
+﻿add_interface_package(cppns-dependencyGraph
         # Base Dependency Graph
         include/cppns/dg/DependencyGraph.h
 )
 
-link_package(INTERFACE util)
+link_package(INTERFACE cppns-util)

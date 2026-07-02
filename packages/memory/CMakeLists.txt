@@ -1,10 +1,10 @@
-add_interface_package(memory
+add_interface_package(cppns-memory
         include/cppns/memory/Memory.h
         include/cppns/memory/Shared.h
         include/cppns/memory/Unique.h
 )
 
-link_package(INTERFACE util)
+link_package(INTERFACE cppns-util)
 
 # Automatically call init on a type when created
 package_option(MEMORY_INIT "Enable the auto init ability" On)

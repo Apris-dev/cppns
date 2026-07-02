@@ -1,4 +1,4 @@
-﻿add_interface_package(container
+﻿add_interface_package(cppns-container
         # Base Classes
         include/cppns/container/Container.h
 
@@ -33,4 +33,4 @@
         include/cppns/container/Span.h
 )
 
-link_package(INTERFACE util)
+link_package(INTERFACE cppns-util)
