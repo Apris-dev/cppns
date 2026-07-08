@@ -63,25 +63,19 @@ struct TFrail {
 		return *this;
 	}
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
+	template <typename TOtherType>
 	TFrail(const TFrail<TOtherType>& otr) = delete;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
+	template <typename TOtherType>
 	TFrail(TFrail<TOtherType>& otr) = delete;
 
 	/*
 	 * Allow copies of same type
 	 */
 
-	TFrail(const TFrail& otr) noexcept
-	: m_ptr(otr.m_ptr) {}
+	TFrail(const TFrail& otr) noexcept = default;
 
-	TFrail(TFrail& otr) noexcept
-	: m_ptr(otr.m_ptr) {}
+	TFrail(TFrail& otr) noexcept = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
@@ -94,29 +88,19 @@ struct TFrail {
 #endif
 	: m_ptr(std::move(otr.m_ptr)) {}
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
+	template <typename TOtherType>
 	TFrail& operator=(const TFrail<TOtherType>& otr) = delete;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
+	template <typename TOtherType>
 	TFrail& operator=(TFrail<TOtherType>& otr) = delete;
 
 	/*
 	 * Allow copies of same type
 	 */
 
-	TFrail& operator=(const TFrail& otr) noexcept {
-		this->m_ptr = otr.m_ptr;
-		return *this;
-	}
+	TFrail& operator=(const TFrail& otr) noexcept = default;
 
-	TFrail& operator=(TFrail& otr) noexcept {
-		this->m_ptr = otr.m_ptr;
-		return *this;
-	}
+	TFrail& operator=(TFrail& otr) noexcept = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
