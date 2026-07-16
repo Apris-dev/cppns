@@ -165,7 +165,8 @@ function(add_interface_package TARGET_NAME)
     _add_package_impl(${TARGET_NAME} INTERFACE ${ARGN})
 
     # Include Headers for this package
-    target_include_directories(${TARGET_NAME} INTERFACE
+    target_include_directories(${TARGET_NAME}
+        INTERFACE
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
             "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
     )
@@ -175,9 +176,12 @@ function(add_static_package TARGET_NAME)
     _add_package_impl(${TARGET_NAME} STATIC ${ARGN})
 
     # Include Headers for this package
-    target_include_directories(${TARGET_NAME} PUBLIC
+    target_include_directories(${TARGET_NAME}
+        PUBLIC
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
             "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/src"
     )
 endfunction()
 
@@ -185,9 +189,12 @@ function(add_shared_package TARGET_NAME)
     _add_package_impl(${TARGET_NAME} SHARED ${ARGN})
 
     # Include Headers for this package
-    target_include_directories(${TARGET_NAME} PUBLIC
+    target_include_directories(${TARGET_NAME}
+        PUBLIC
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
             "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/src"
     )
 endfunction()
 
