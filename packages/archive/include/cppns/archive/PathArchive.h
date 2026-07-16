@@ -18,6 +18,14 @@ public:
         return str;
     }
 
+    [[nodiscard]] std::string getFilename() const {
+        const auto loc = str.find_last_of(PATH_SEPARATOR, str.size() - 2);
+        if (loc == std::string::npos) {
+            return "";
+        }
+        return str.substr(loc + 1, str.size() - loc - 1);
+    }
+
     void previous() {
         const auto loc = str.find_last_of(PATH_SEPARATOR, str.size() - 2);
         if (loc == std::string::npos) {

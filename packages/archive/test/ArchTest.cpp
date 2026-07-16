@@ -12,6 +12,7 @@ int main() {
     path << "input.dat";
 
     std::cout << path.get() << std::endl;
+    std::cout << path.getFilename() << std::endl;
 
     {
         CFileArchive<EOpenType::BINARY_WRITE> fileArchive(path);
