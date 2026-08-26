@@ -1,5 +1,9 @@
 # The bootstrapper gives package executables the ability to dynamically load all dlls before launching
-option(USE_BOOTSTRAPPER "" ${CPPNS_TEST})
+if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC" AND CMAKE_SYSTEM_NAME MATCHES "Windows")
+    option(USE_BOOTSTRAPPER "" OFF)
+else ()
+    option(USE_BOOTSTRAPPER "" ${CPPNS_TEST})
+endif ()
 
 function(define_project
         PROJECT_NAME
@@ -206,6 +210,7 @@ function(add_package_executable TARGET_NAME)
 
     # MinGW doesn't export symbols from executables even with ENABLE_EXPORTS set to ON, it is unsupported
     if (USE_BOOTSTRAPPER)
+        message(STATUS "cppns: Bootstrapper is ENABLED on project ${TARGET_NAME}")
         if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC" AND CMAKE_SYSTEM_NAME MATCHES "Windows")
             project_message(WARNING "Cannot use Bootstrapper with MinGW, either use MSVC or disable the bootstrapper in the future")
         else ()
@@ -225,6 +230,8 @@ function(add_package_executable TARGET_NAME)
                     ENABLE_EXPORTS ON
             )
         endif ()
+    else ()
+        message(STATUS "cppns: Bootstrapper is DISABLED on project ${TARGET_NAME}")
     endif ()
 
     # If target was not created above, make a simple executable
