@@ -36,6 +36,13 @@ int main() {
         std::cout << v << std::endl;
         std::cout << s << std::endl;
         std::cout << s2 << std::endl;
+
+        CHashArchive hasher;
+        hasher << v;
+        hasher << s;
+        hasher << s2;
+
+        std::cout << "Hash: " << hasher.get() << std::endl;
     }
 
     return 0;

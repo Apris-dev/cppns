@@ -1,7 +1,5 @@
 #pragma once
 
-#include <type_traits>
-#include <cstring>
 #include <limits>
 
 #ifdef __cpp_lib_bitops

@@ -14,11 +14,11 @@ protected:
 
 	[[nodiscard]] virtual std::string get() const = 0;
 
-	virtual size_t write(const std::string& inValue) = 0;
+	virtual largest write(const std::string& inValue) = 0;
 
-	virtual size_t read(std::string& outValue) = 0;
+	virtual largest read(std::string& outValue) = 0;
 
-	virtual size_t read(size_t amount) = 0;
+	virtual largest read(size_t amount) = 0;
 
 public:
 

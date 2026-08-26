@@ -1,9 +1,6 @@
 #pragma once
 
 #include <cassert>
-#include <cstdint>
-#include <cstring>
-#include <map>
 
 #include "PathArchive.h"
 
