@@ -1,8 +1,13 @@
 # The bootstrapper gives package executables the ability to dynamically load all dlls before launching
-if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC" AND CMAKE_SYSTEM_NAME MATCHES "Windows")
-    option(USE_BOOTSTRAPPER "" OFF)
+if (${CPPNS_TEST})
+    if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC" AND CMAKE_SYSTEM_NAME MATCHES "Windows")
+        message(STATUS "cppns: Bootstrapper is disabled on MinGW by default when testing.")
+        option(USE_BOOTSTRAPPER "" OFF)
+    else ()
+        option(USE_BOOTSTRAPPER "" ON)
+    endif ()
 else ()
-    option(USE_BOOTSTRAPPER "" ${CPPNS_TEST})
+    option(USE_BOOTSTRAPPER "" OFF)
 endif ()
 
 function(define_project
