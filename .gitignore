@@ -18,6 +18,7 @@
 
 # Cmake files
 !CMakeLists.txt
+!CMakePresets.json
 !*.cmake
 !*.in
 

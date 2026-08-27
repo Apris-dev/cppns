@@ -1,0 +1,105 @@
+{
+  "version": 9,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 31,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/bin/${presetName}"
+    },
+    {
+      "name": "Debug-MSVC",
+      "inherits": "base",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "MSVC"
+        },
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [
+            "Windows"
+          ]
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "Debug-MinGW",
+      "inherits": "base",
+      "generator": "Ninja",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "MinGW"
+        },
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [
+            "Windows"
+          ]
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "Debug-Clang",
+      "inherits": "base",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "Clang"
+        },
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [
+            "Windows",
+            "Linux",
+            "macOS"
+          ]
+        }
+      },
+	  "environment": {
+        "CC": "clang",
+        "CXX": "clang++"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Debug-GCC",
+      "inherits": "base",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "GCC"
+        },
+		"microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [
+            "Linux",
+            "macOS"
+          ]
+        }
+      },
+	  "environment": {
+        "CC": "gcc",
+        "CXX": "g++"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ]
+}
