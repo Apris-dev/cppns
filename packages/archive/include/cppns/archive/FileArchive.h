@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "PathArchive.h"
+#include "cppns/util/ErrorHandling.h"
 
 #ifdef USING_CPPNS_CONTAINER
 #include "cppns/container/Vector.h"
@@ -24,6 +25,10 @@ enum class EOpenType : uint8_t {
 
 constexpr bool operator&(const EOpenType& fst, const EOpenType& snd) {
 	return (static_cast<uint8_t>(fst) & static_cast<uint8_t>(snd)) != 0;
+}
+
+namespace Error::File {
+		CREATE_ERROR_TYPE(OpenException, "File Open Exception", "Couldn't open File!", Error::Runtime);
 }
 
 // An archive that can process files, uses standard c since it is faster
