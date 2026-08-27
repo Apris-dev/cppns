@@ -55,7 +55,11 @@ public:
 #else
 		mFile = fopen(inFilePath.c_str(), mode.c_str());
 #endif
-		if (mFile) mIsOpen = true;
+		if (mFile == nullptr) {
+			const char* message = strerror(errno);
+			throw Error::File::OpenException(message);
+		}
+		mIsOpen = true;
 	}
 
 	[[nodiscard]] constexpr static bool isBinary() { return TOpenType & EOpenType::BINARY; }

@@ -14,9 +14,7 @@ int main() {
     std::cout << path.get() << std::endl;
     std::cout << path.getFilename() << std::endl;
 
-    throw Error::File::OpenException("Hello World!");
-
-    /*{
+    {
         CFileArchive<EOpenType::BINARY_WRITE> fileArchive(path);
 
         const size_t v = 5;
@@ -45,7 +43,7 @@ int main() {
         hasher << s2;
 
         std::cout << "Hash: " << hasher.get() << std::endl;
-    }*/
+    }
 
     return 0;
 }

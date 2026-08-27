@@ -11,25 +11,39 @@
 		explicit type(const std::string_view inMessage) : BaseClass(name, desc, inMessage) {} \
 	}
 
+#define throw_if(condition, error) \
+	if (!(condition)) throw error
+
 namespace Error {
 	class Runtime : std::exception {
 	public:
 
 		virtual ~Runtime() = default;
 
-		Runtime() = delete;
-
-		explicit Runtime(const std::string_view inErrorName, const std::string_view inErrorDescription, const std::string_view inError) : std::exception(convertToMessage(inErrorName, inErrorDescription, inError).c_str()) {
+		Runtime(const std::string_view inErrorName, const std::string_view inErrorDescription, const std::string_view inError) : std::exception(convertToMessage(inErrorName, inErrorDescription, inError).c_str()) {
 			std::cerr << exception::what() << "\n";
 		}
 
-		explicit Runtime(const std::string_view inErrorName, const std::string_view inErrorDescription) : Runtime(inErrorName, inErrorDescription, "Unknown Error") {}
+		Runtime(const std::string_view inErrorName, const std::string_view inErrorDescription) : Runtime(inErrorName, inErrorDescription, getGenericMessage()) {}
 
 	private:
 		static std::string convertToMessage(const std::string_view inErrorName, const std::string_view inErrorDescription, const std::string_view inError) {
 			std::stringstream s;
 			s << "A " << inErrorName << " Occurred! " << inErrorDescription << " Error: " << inError << "\n";
 			return s.str();
+		}
+
+		static std::string getGenericMessage() {
+			int error = errno;
+			if (error <= 0)
+				return "Unknown Error Occurred!";
+#ifdef _MSC_VER
+			char buffer[256];
+			strerror_s(buffer, sizeof(buffer), error);
+			return buffer;
+#else
+			return strerror(error);
+#endif
 		}
 	};
 }
