@@ -15,7 +15,7 @@
 	if (!(condition)) throw error
 
 namespace Error {
-	class Runtime : std::exception {
+	class Runtime : public std::exception {
 	public:
 
 		virtual ~Runtime() = default;
@@ -29,12 +29,12 @@ namespace Error {
 	private:
 		static std::string convertToMessage(const std::string_view inErrorName, const std::string_view inErrorDescription, const std::string_view inError) {
 			std::stringstream s;
-			s << "A " << inErrorName << " Occurred! " << inErrorDescription << " Error: " << inError << "\n";
+			s << "A " << inErrorName << " Occurred! " << inErrorDescription << " Error: " << inError;
 			return s.str();
 		}
 
 		static std::string getGenericMessage() {
-			int error = errno;
+			const int error = errno;
 			if (error <= 0)
 				return "Unknown Error Occurred!";
 #ifdef _MSC_VER
