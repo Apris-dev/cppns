@@ -7,14 +7,20 @@
 
 // TODO: support more than linux, windows, and macOS.  Would need help from outside to support mobile platforms and etc.
 
-#if !defined(_MSC_VER) && defined(__linux__)
-#include "bits/c++config.h"
 #ifndef _CONSTEXPR20
-#define _CONSTEXPR20 _GLIBCXX20_CONSTEXPR
+    # if __cplusplus >= 202002L
+        #define _CONSTEXPR20 constexpr
+    #else
+        #define CONSTEXPR20
+    #endif
 #endif
+
 #ifndef _CONSTEXPR23
-#define _CONSTEXPR23 _GLIBCXX23_CONSTEXPR
-#endif
+    # if __cplusplus >= 202100L
+    #  define _CONSTEXPR23 constexpr
+    # else
+    #  define _CONSTEXPR23
+    # endif
 #endif
 
 #ifdef _WIN32
@@ -44,7 +50,7 @@ using int16 = std::int16_t;
 using int32 = std::int32_t;
 using int64 = std::int64_t;
 using smallest = uint8;
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__apple__)
 using largest = size_t;
 #else
 using largest = std::size_t;
