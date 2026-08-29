@@ -115,7 +115,7 @@ int main() {
         std::cerr << "-- Bootstrapper: Could not get entrance point: GetProcAddress failed, Error: " << GetLastErrorMessage() << std::endl;
         return 6;
     }
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 
     char executablePathBuf[PATH_MAX];
     const ssize_t len = readlink("/proc/self/exe", executablePathBuf, PATH_MAX);

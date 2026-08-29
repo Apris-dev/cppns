@@ -1,9 +1,9 @@
 #pragma once
 
-#ifndef _MSC_VER
-#include <bits/unique_ptr.h>
-#else
+#if defined(_MSC_VER) || defined(__APPLE__)
 #include <memory>
+#else
+#include <bits/unique_ptr.h>
 #endif
 
 #include "Common.h"

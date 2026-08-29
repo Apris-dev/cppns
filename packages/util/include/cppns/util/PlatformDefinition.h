@@ -50,7 +50,7 @@ using int16 = std::int16_t;
 using int32 = std::int32_t;
 using int64 = std::int64_t;
 using smallest = uint8;
-#if defined(_WIN32) || defined(__apple__)
+#if defined(_WIN32) || defined(__APPLE__)
 using largest = size_t;
 #else
 using largest = std::size_t;
