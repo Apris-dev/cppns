@@ -7,7 +7,7 @@
 
 // TODO: support more than linux, windows, and macOS.  Would need help from outside to support mobile platforms and etc.
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && defined(__linux__)
 #include "bits/c++config.h"
 #ifndef _CONSTEXPR20
 #define _CONSTEXPR20 _GLIBCXX20_CONSTEXPR

@@ -6,6 +6,8 @@
 #include <bit>
 #endif
 
+#include <cstring>
+
 #include "Archive.h"
 
 class CHashArchive : public COutputArchive {

@@ -7,7 +7,11 @@
 
 #include "TestShared.h"
 
+#ifdef USING_BOOTSTRAPPER
 EXPORTC int run() {
+#else
+int main() {
+#endif
 
 	/*{
 		CWorker worker;

@@ -142,7 +142,12 @@ void testSpan(const TSpan<int>& span) {
 	}
 }
 
+#ifdef USING_BOOTSTRAPPER
 EXPORTC int run() {
+#else
+int main() {
+#endif
+
 	/*DO_ASSOCIATIVE_TEST(TSet)
 	DO_ASSOCIATIVE_TEST(TMultiSet)
 	DO_ASSOCIATIVE_TEST(TPrioritySet)

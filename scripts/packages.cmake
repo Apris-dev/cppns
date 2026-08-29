@@ -229,6 +229,9 @@ function(_add_exec TARGET_NAME)
             set_target_properties(${TARGET_NAME} PROPERTIES
                     ENABLE_EXPORTS ON
             )
+
+            # Tell the project we are using the bootstrapper, especially useful when testing
+            target_compile_definitions(${TARGET_NAME} PRIVATE USING_BOOTSTRAPPER)
         endif ()
     else ()
         message(STATUS "cppns: Bootstrapper is DISABLED on project ${TARGET_NAME}")

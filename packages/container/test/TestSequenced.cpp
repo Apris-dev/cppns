@@ -209,7 +209,12 @@ void testSpan(const TSpan<int>& span) {
 	}
 }
 
+#ifdef USING_BOOTSTRAPPER
 EXPORTC int run() {
+#else
+int main() {
+#endif
+
 	/*DO_TEST(TVector)
 	DO_TEST(TMaxHeap)
 	DO_TEST(TMinHeap)
