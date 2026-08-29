@@ -113,7 +113,6 @@
   "buildPresets": [
     {
       "name": "ninja-debug",
-      "hidden": true,
       "configurePreset": "ninja-multi",
       "displayName": "Build (Debug)",
       "description": "Build with Ninja (Debug)",
@@ -121,7 +120,6 @@
     },
     {
       "name": "ninja-release",
-      "hidden": true,
       "configurePreset": "ninja-multi",
       "displayName": "Build (Release)",
       "description": "Build with Ninja (Release)",
