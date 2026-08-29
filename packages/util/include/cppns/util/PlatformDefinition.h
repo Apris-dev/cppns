@@ -31,6 +31,8 @@
 #define EXPORT __attribute__((visibility("default")))
 #endif
 
+#define EXPORTC extern "C" EXPORT
+
 #include <cstdint>
 
 using uint8 = std::uint8_t;

@@ -134,7 +134,7 @@ struct TestCommandBuffer {
     mutable TRWDependencyGraph<TShared<SObject>, TShared<SResource>, TKahnTopologicalSort> dependencyGraph;
 };
 
-int main() {
+EXPORTC int run() {
 
     {
         TestCommandBuffer cmd{};

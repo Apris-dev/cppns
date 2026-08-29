@@ -29,7 +29,7 @@ void func(const TSequenceContainer<TContainerType>& val) {
     { x<int, 4> val; val.push(1); val.push(5); val.push(2); val.push(3); func(val); } \
     std::cout << std::endl;
 
-int main() {
+EXPORTC int run() {
 
     DO_TEST(TVector)
     DO_TEST(TMaxHeap)
@@ -41,13 +41,11 @@ int main() {
     DO_TEST(TStack)
     DO_TEST(TQueue)
 
-    TForwardList<int> test;
+    TForwardList test{0, 1};
 
     auto itr = test.begin();
 
     ++itr;
-
-
 
     return 0;
 }

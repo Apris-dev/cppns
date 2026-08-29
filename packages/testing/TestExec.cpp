@@ -2,7 +2,7 @@
 
 #include "TestTrueMain.h"
 
-extern "C" EXPORT int run() {
+EXPORTC int run() {
     std::cout << "TestExec Called" << std::endl;
 
     std::cout << "Loaded Modules:" << std::endl;

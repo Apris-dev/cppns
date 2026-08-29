@@ -142,7 +142,7 @@ void testSpan(const TSpan<int>& span) {
 	}
 }
 
-int main() {
+EXPORTC int run() {
 	/*DO_ASSOCIATIVE_TEST(TSet)
 	DO_ASSOCIATIVE_TEST(TMultiSet)
 	DO_ASSOCIATIVE_TEST(TPrioritySet)

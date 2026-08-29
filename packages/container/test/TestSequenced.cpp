@@ -209,7 +209,7 @@ void testSpan(const TSpan<int>& span) {
 	}
 }
 
-int main() {
+EXPORTC int run() {
 	/*DO_TEST(TVector)
 	DO_TEST(TMaxHeap)
 	DO_TEST(TMinHeap)

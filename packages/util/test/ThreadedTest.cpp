@@ -7,7 +7,7 @@
 
 #include "TestShared.h"
 
-int main() {
+EXPORTC int run() {
 
 	/*{
 		CWorker worker;

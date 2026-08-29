@@ -3,7 +3,7 @@
 
 #include "cppns/memory/Memory.h"
 
-int main() {
+EXPORTC int run() {
 
     struct Releaser {
 

@@ -217,7 +217,7 @@ void testSpan(const TSpan<MapEnum, int>& span) {
 	}
 }
 
-int main() {
+EXPORTC int run() {
 	/*DO_MAP_TEST(TMap)
 	DO_MAP_TEST(TMultiMap)
 	DO_MAP_TEST(TPriorityMap)
