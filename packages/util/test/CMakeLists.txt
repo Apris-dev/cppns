@@ -1,6 +1,6 @@
-﻿add_test(ThreadedTest
+﻿add_package_test(ThreadedTest
         ThreadedTest.cpp
 )
 
-link_test(cppns-container)
-link_test(cppns-memory)
+link_package_test(cppns-container)
+link_package_test(cppns-memory)

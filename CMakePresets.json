@@ -7,147 +7,160 @@
   },
   "configurePresets": [
     {
-      "name": "base",
-      "hidden": true,
-      "binaryDir": "${sourceDir}/bin/${presetName}"
-    },
-    {
-      "name": "Debug-MSVC",
-      "inherits": "base",
-      "vendor": {
-        "jetbrains.com/clion": {
-          "toolchain": "MSVC"
-        },
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "hostOS": [
-            "Windows"
-          ]
-        }
-      },
+      "name": "ninja-multi-msvc",
+      "binaryDir": "${sourceDir}/bin/${presetName}",
+      "displayName": "Ninja Multi-Config (MSVC)",
+      "generator": "Ninja Multi-Config",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe"
       },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "external"
       }
     },
     {
-      "name": "Debug-MinGW",
-      "inherits": "base",
-      "generator": "Ninja",
-      "vendor": {
-        "jetbrains.com/clion": {
-          "toolchain": "MinGW"
-        },
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "hostOS": [
-            "Windows"
-          ]
-        }
-      },
+      "name": "ninja-multi-mingw",
+      "binaryDir": "${sourceDir}/bin/${presetName}",
+      "displayName": "Ninja Multi-Config (MinGW)",
+      "generator": "Ninja Multi-Config",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
+        "CMAKE_C_COMPILER": "gcc.exe",
+        "CMAKE_CXX_COMPILER": "g++.exe"
       }
     },
     {
-      "name": "Debug-Clang",
-      "inherits": "base",
-      "vendor": {
-        "jetbrains.com/clion": {
-          "toolchain": "Clang"
-        },
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "hostOS": [
-            "Windows",
-            "Linux",
-            "macOS"
-          ]
-        }
-      },
-	  "environment": {
-        "CC": "clang",
-        "CXX": "clang++"
-      },
+      "name": "ninja-multi-gcc",
+      "binaryDir": "${sourceDir}/bin/${presetName}",
+      "displayName": "Ninja Multi-Config (GCC)",
+      "generator": "Ninja Multi-Config",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
       }
     },
     {
-      "name": "Debug-GCC",
-      "inherits": "base",
-      "vendor": {
-        "jetbrains.com/clion": {
-          "toolchain": "GCC"
-        },
-		"microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "hostOS": [
-            "Linux",
-            "macOS"
-          ]
-        }
-      },
-	  "environment": {
-        "CC": "gcc",
-        "CXX": "g++"
-      },
+      "name": "ninja-multi-clang",
+      "binaryDir": "${sourceDir}/bin/${presetName}",
+      "displayName": "Ninja Multi-Config (Clang)",
+      "generator": "Ninja Multi-Config",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
       }
-    },
-    {
-      "name": "ninja-multi",
-      "inherits": "base",
-      "displayName": "Ninja Multi-Config",
-      "description": "A Preset specifically for the github action",
-      "generator": "Ninja Multi-Config"
     }
   ],
   "buildPresets": [
     {
-      "name": "ninja-debug",
-      "configurePreset": "ninja-multi",
-      "displayName": "Build (Debug)",
-      "description": "Build with Ninja (Debug)",
+      "name": "ninja-debug-msvc",
+      "configurePreset": "ninja-multi-msvc",
+      "displayName": "Build (MSVC-Debug)",
+      "description": "Build with Ninja (MSVC-Debug)",
       "configuration": "Debug"
     },
     {
-      "name": "ninja-release",
-      "configurePreset": "ninja-multi",
-      "displayName": "Build (Release)",
-      "description": "Build with Ninja (Release)",
+      "name": "ninja-release-msvc",
+      "configurePreset": "ninja-multi-msvc",
+      "displayName": "Build (MSVC-Release)",
+      "description": "Build with Ninja (MSVC-Release)",
+      "configuration": "Release"
+    },
+    {
+      "name": "ninja-debug-mingw",
+      "configurePreset": "ninja-multi-mingw",
+      "displayName": "Build (MinGW-Debug)",
+      "description": "Build with Ninja (MinGW-Debug)",
+      "configuration": "Debug"
+    },
+    {
+      "name": "ninja-release-mingw",
+      "configurePreset": "ninja-multi-mingw",
+      "displayName": "Build (MinGW-Release)",
+      "description": "Build with Ninja (MinGW-Release)",
+      "configuration": "Release"
+    },
+    {
+      "name": "ninja-debug-gcc",
+      "configurePreset": "ninja-multi-gcc",
+      "displayName": "Build (GCC-Debug)",
+      "description": "Build with Ninja (GCC-Debug)",
+      "configuration": "Debug"
+    },
+    {
+      "name": "ninja-release-gcc",
+      "configurePreset": "ninja-multi-gcc",
+      "displayName": "Build (GCC-Release)",
+      "description": "Build with Ninja (GCC-Release)",
+      "configuration": "Release"
+    },
+    {
+      "name": "ninja-debug-clang",
+      "configurePreset": "ninja-multi-clang",
+      "displayName": "Build (Clang-Debug)",
+      "description": "Build with Ninja (Clang-Debug)",
+      "configuration": "Debug"
+    },
+    {
+      "name": "ninja-release-clang",
+      "configurePreset": "ninja-multi-clang",
+      "displayName": "Build (Clang-Release)",
+      "description": "Build with Ninja (Clang-Release)",
       "configuration": "Release"
     }
   ],
   "testPresets": [
     {
-      "name": "test-ninja",
-      "configurePreset": "ninja-multi",
-      "hidden": true
+      "name": "test-msvc-debug",
+      "configurePreset": "ninja-multi-msvc",
+      "displayName": "Test (MSVC-Debug)",
+      "configuration": "Debug"
     },
     {
-      "name": "test-debug",
-      "description": "Test (Debug)",
-      "displayName": "Test (Debug)",
-      "configuration": "Debug",
-      "inherits": [
-        "test-ninja"
-      ]
+      "name": "test-msvc-release",
+      "configurePreset": "ninja-multi-msvc",
+      "displayName": "Test (MSVC-Release)",
+      "configuration": "Release"
     },
     {
-      "name": "test-release",
-      "description": "Test (Release)",
-      "displayName": "Test (Release)",
-      "configuration": "Release",
-      "inherits": [
-        "test-ninja"
-      ]
+      "name": "test-mingw-debug",
+      "configurePreset": "ninja-multi-mingw",
+      "displayName": "Test (MinGW-Debug)",
+      "configuration": "Debug"
+    },
+    {
+      "name": "test-mingw-release",
+      "configurePreset": "ninja-multi-mingw",
+      "displayName": "Test (MinGW-Release)",
+      "configuration": "Release"
+    },
+    {
+      "name": "test-gcc-debug",
+      "configurePreset": "ninja-multi-gcc",
+      "displayName": "Test (GCC-Debug)",
+      "configuration": "Debug"
+    },
+    {
+      "name": "test-gcc-release",
+      "configurePreset": "ninja-multi-gcc",
+      "displayName": "Test (GCC-Release)",
+      "configuration": "Release"
+    },
+    {
+      "name": "test-clang-debug",
+      "configurePreset": "ninja-multi-clang",
+      "displayName": "Test (Clang-Debug)",
+      "configuration": "Debug"
+    },
+    {
+      "name": "test-clang-release",
+      "configurePreset": "ninja-multi-clang",
+      "displayName": "Test (Clang-Release)",
+      "configuration": "Release"
     }
   ]
 }

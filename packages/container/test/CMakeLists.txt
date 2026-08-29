@@ -1,34 +1,34 @@
-﻿add_test(TestSequenced
+﻿add_package_test(TestSequenced
         TestShared.h
         TestSequenced.cpp
 )
 
-link_test(cppns-archive)
-link_test(cppns-memory)
+link_package_test(cppns-archive)
+link_package_test(cppns-memory)
 
-add_test(TestAssociative
+add_package_test(TestAssociative
         TestShared.h
         TestAssociative.cpp
 )
 
-link_test(cppns-archive)
-link_test(cppns-memory)
+link_package_test(cppns-archive)
+link_package_test(cppns-memory)
 
-add_test(TestSelfAssociative
+add_package_test(TestSelfAssociative
         TestShared.h
         TestSelfAssociative.cpp
 )
 
-link_test(cppns-archive)
-link_test(cppns-memory)
+link_package_test(cppns-archive)
+link_package_test(cppns-memory)
 
-add_test(ReleaseTest
+add_package_test(ReleaseTest
         TestShared.h
         ReleaseTest.cpp
 )
 
-link_test(cppns-memory)
+link_package_test(cppns-memory)
 
-add_test(TestItr
+add_package_test(TestItr
         TestItr.cpp
 )

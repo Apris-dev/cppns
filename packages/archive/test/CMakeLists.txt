@@ -1,5 +1,5 @@
-add_test(ArchTest
+add_package_test(ArchTest
         ArchTest.cpp
 )
 
-link_test(cppns-container)
+link_package_test(cppns-container)

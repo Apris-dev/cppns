@@ -282,19 +282,22 @@ function(link_package LINK_LIBRARY_TYPE LINK_LIBRARY_NAME)
 endfunction()
 
 # Quickly adds a test for packages
-function(add_test TEST_NAME)
+function(add_package_test TEST_NAME)
     _ensure_package_scope("Tried to add test ${TEST_NAME} while not inside package scope.")
 
     # Add test as executable and link to package
     _add_exec(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME} ${ARGN})
     target_link_libraries(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME} ${CURRENT_SCOPE_PACKAGE})
 
+    # Add CTest
+    add_test(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME} ${CURRENT_SCOPE_PACKAGE}-${TEST_NAME})
+
     # Set the test of the current scope
     set(CURRENT_SCOPE_TEST ${TEST_NAME} PARENT_SCOPE)
 endfunction()
 
 # Quickly link a test to another package
-function(link_test LIBRARY_NAME)
+function(link_package_test LIBRARY_NAME)
     _ensure_test_scope("Tried to link test to library ${LIBRARY_NAME} while not inside test scope.")
     _ensure_is_package(${LIBRARY_NAME} "Cannot link test ${CURRENT_SCOPE_TEST} to ${LIBRARY_NAME}, Package ${LIBRARY_NAME} does not exist!")
 

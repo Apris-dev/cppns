@@ -1,0 +1,83 @@
+{
+  "version": 9,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/bin/${presetName}"
+    },
+    {
+      "name": "Debug-MSVC",
+      "inherits": "base",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "MSVC"
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Debug-MinGW",
+      "inherits": "base",
+      "generator": "Ninja",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "MinGW"
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Debug-Clang",
+      "inherits": "base",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "Clang"
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Debug-GCC",
+      "inherits": "base",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "GCC"
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Debug-MUSL-Clang",
+      "inherits": "base",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "MUSL-Clang"
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Debug-MUSL-GCC",
+      "inherits": "base",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "MUSL-GCC"
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ]
+}
