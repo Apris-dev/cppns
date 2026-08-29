@@ -56,8 +56,7 @@ public:
 		mFile = fopen(inFilePath.c_str(), mode.c_str());
 #endif
 		if (mFile == nullptr) {
-			const char* message = strerror(errno);
-			throw Error::File::OpenException(message);
+			throw Error::File::OpenException();
 		}
 		mIsOpen = true;
 	}

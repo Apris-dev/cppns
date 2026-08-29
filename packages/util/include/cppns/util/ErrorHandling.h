@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <sstream>
 #include <string>
 
@@ -11,18 +12,13 @@
 		explicit type(const std::string_view inMessage) : BaseClass(name, desc, inMessage) {} \
 	}
 
-#define throw_if(condition, error) \
-	if (!(condition)) throw error
-
 namespace Error {
-	class Runtime : public std::exception {
+	class Runtime : public std::runtime_error {
 	public:
 
 		virtual ~Runtime() = default;
 
-		Runtime(const std::string_view inErrorName, const std::string_view inErrorDescription, const std::string_view inError) : std::exception(convertToMessage(inErrorName, inErrorDescription, inError).c_str()) {
-			std::cerr << exception::what() << "\n";
-		}
+		Runtime(const std::string_view inErrorName, const std::string_view inErrorDescription, const std::string_view inError) : std::runtime_error(convertToMessage(inErrorName, inErrorDescription, inError).c_str()) {}
 
 		Runtime(const std::string_view inErrorName, const std::string_view inErrorDescription) : Runtime(inErrorName, inErrorDescription, getGenericMessage()) {}
 
@@ -42,7 +38,7 @@ namespace Error {
 			strerror_s(buffer, sizeof(buffer), error);
 			return buffer;
 #else
-			return strerror(error);
+			return std::strerror(error);
 #endif
 		}
 	};

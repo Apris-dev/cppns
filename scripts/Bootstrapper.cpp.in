@@ -1,0 +1,205 @@
+#include <cstring>
+#include <iostream>
+#include <filesystem>
+#include <cerrno>
+
+#if defined(_WIN32)
+    #include <windows.h>
+    #include <libloaderapi.h>
+#elif defined(__linux__)
+    #include <dlfcn.h>
+    #include <unistd.h>
+    #include <dirent.h>
+
+    #ifndef PATH_MAX
+        #define PATH_MAX 4096
+    #endif
+#endif
+
+#define LIB_ALLOC_CAPACITY 10
+
+typedef int (*mainfunc_t)();
+
+static std::string GetLastErrorMessage() {
+#if defined(_WIN32)
+    const DWORD err = GetLastError();
+
+    LPSTR buffer = nullptr;
+    FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr,
+        err,
+        0,
+        reinterpret_cast<LPSTR>(&buffer),
+        0,
+        nullptr
+    );
+
+    std::string message = buffer ? buffer : "Unknown error";
+    if (buffer) LocalFree(buffer);
+
+    return message;
+#elif defined(__linux__)
+    return strerror(errno);
+#endif
+}
+
+int main() {
+
+    std::cout << "-- Bootstrapper: Started" << std::endl;
+
+#if defined(_WIN32)
+
+    wchar_t executablePathBuf[MAX_PATH];
+    const DWORD len = GetModuleFileNameW(nullptr, executablePathBuf, sizeof(executablePathBuf));
+    if (len == 0) {
+        std::cerr << "-- Bootstrapper: GetModuleFileNameW failed, Error: " << GetLastErrorMessage() << std::endl;
+        return 1;
+    }
+
+    std::wstring executablePathStr(executablePathBuf, len);
+
+    if (const auto pos = executablePathStr.find_last_of('\\'); pos != std::wstring::npos)
+        executablePathStr.erase(pos);
+
+    const std::filesystem::path executablePath(executablePathStr);
+
+    const std::filesystem::path searchPath = executablePath / "*.dll";
+
+    WIN32_FIND_DATAW fd;
+    const HANDLE hFind = FindFirstFileW(searchPath.c_str(), &fd);
+
+    if (hFind != INVALID_HANDLE_VALUE) {
+        do {
+            std::filesystem::path libraryPath = executablePath / fd.cFileName;
+
+            std::wstring sanitizedName = fd.cFileName;
+            // Remove *.dll
+            sanitizedName.erase(sanitizedName.size() - 4);
+    #if !defined(_MSC_VER)
+            // Remove lib*
+            sanitizedName.erase(0, 3);
+    #endif
+
+            std::wcout << "-- Bootstrapper: Attempting to load library '" << sanitizedName << "'" << std::endl;
+
+            if (GetModuleHandleW(libraryPath.c_str()) != nullptr) {
+                std::wcout << "-- Bootstrapper: Library '" << sanitizedName << "' is already loaded!" << std::endl;
+                continue;
+            }
+
+            if (LoadLibraryW(libraryPath.c_str()) == nullptr) {
+                std::cerr << "-- Bootstrapper: LoadLibraryW failed, Error: " << GetLastErrorMessage() << std::endl;
+                std::cerr << "Path: " << libraryPath << std::endl;
+                return 4;
+            }
+
+            std::wcout << "-- Bootstrapper: Successfully loaded library '" << sanitizedName << "'" << std::endl;
+        } while (FindNextFileW(hFind, &fd) != 0);
+
+        FindClose(hFind);
+    }
+
+    const HMODULE entrancePoint = GetModuleHandleW(nullptr);
+
+    if (entrancePoint == nullptr) {
+        std::cerr << "-- Bootstrapper: GetModuleHandleW failed, Error: " << GetLastErrorMessage() << std::endl;
+        return 5;
+    }
+
+    const auto mainFunc = reinterpret_cast<mainfunc_t>(GetProcAddress(entrancePoint, "run"));
+
+    if (mainFunc == nullptr) {
+        std::cerr << "-- Bootstrapper: Could not get entrance point: GetProcAddress failed, Error: " << GetLastErrorMessage() << std::endl;
+        return 6;
+    }
+#elif defined(__linux__)
+
+    char executablePathBuf[PATH_MAX];
+    const ssize_t len = readlink("/proc/self/exe", executablePathBuf, PATH_MAX);
+    if (len == -1) {
+        std::cerr << "-- Bootstrapper: readlink failed, Error: " << GetLastErrorMessage() << std::endl;
+        return 1;
+    }
+
+    std::string executablePathStr(executablePathBuf, len);
+
+    if (const auto pos = executablePathStr.find_last_of('/'); pos != std::string::npos)
+        executablePathStr.erase(pos);
+
+    const std::filesystem::path executablePath(executablePathStr);
+
+    DIR* dir = opendir(executablePath.c_str());
+    if (!dir) {
+        std::cerr << "-- Bootstrapper: opendir failed, Error: " << GetLastErrorMessage() << std::endl;
+        return 3;
+    }
+
+    dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (const std::filesystem::path name = entry->d_name; name.extension() == ".so") {
+            std::filesystem::path libraryPath = executablePath / name;
+
+            std::string sanitizedName = name;
+            // Remove *.so
+            sanitizedName.erase(sanitizedName.size() - 3);
+            // Remove lib*
+            sanitizedName.erase(0, 3);
+
+            std::cout << "-- Bootstrapper: Attempting to load library '" << sanitizedName << "'" << std::endl;
+
+            if (dlopen(libraryPath.c_str(), RTLD_NOW | RTLD_NOLOAD) != nullptr) {
+                std::cout << "-- Bootstrapper: Library '" << sanitizedName << "' is already loaded!" << std::endl;
+                continue;
+            }
+
+            if (dlopen(libraryPath.c_str(), RTLD_NOW | RTLD_GLOBAL) == nullptr) {
+                const char* message = dlerror();
+                std::cerr << "-- Bootstrapper: dlopen failed: " << message << std::endl;
+                return 4;
+            }
+
+            std::cout << "-- Bootstrapper: Successfully loaded library '" << sanitizedName << "'" << std::endl;
+        }
+    }
+
+    closedir(dir);
+
+    void* entrancePoint = dlopen(nullptr, RTLD_NOW | RTLD_NOLOAD);
+
+    if (entrancePoint == nullptr) {
+        const char* message = dlerror();
+        std::cerr << "-- Bootstrapper: dlopen NOLOAD failed: " << message << std::endl;
+        return 5;
+    }
+
+    const auto mainFunc = reinterpret_cast<mainfunc_t>(dlsym(entrancePoint, "run"));
+
+    if (mainFunc == nullptr) {
+        const char* message = dlerror();
+        std::cerr << "-- Bootstrapper: Could not get entrance point: dlsym failed: " << message << std::endl;
+        return 6;
+    }
+#endif
+
+    int exitCode = -1;
+
+    // Display an error and rethrow if not caught internally
+    try {
+        exitCode = mainFunc();
+    } catch (std::exception& e) {
+        std::cerr << e.what() << "\n";
+        exitCode = errno;
+        throw;
+    }
+
+    if (exitCode == 0) {
+        std::cout << "-- Bootstrapper: Program End Reached Successfully." << std::endl;
+    } else {
+        std::cout << "-- Bootstrapper: Program End Reached With Failure. Exit Code: " << exitCode << std::endl;
+    }
+
+    return exitCode;
+}

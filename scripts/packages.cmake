@@ -7,7 +7,7 @@ if (${CPPNS_TEST})
         option(USE_BOOTSTRAPPER "" ON)
     endif ()
 else ()
-    option(USE_BOOTSTRAPPER "" OFF)
+    option(USE_BOOTSTRAPPER "" ON)
 endif ()
 
 function(define_project
@@ -207,12 +207,7 @@ function(add_shared_package TARGET_NAME)
     )
 endfunction()
 
-# Create an executable for a package.
-function(add_package_executable TARGET_NAME)
-    _ensure_project_scope("Executable ${TARGET_NAME} was not created in the scope of a project!")
-    _ensure_not_package_scope("Executable ${TARGET_NAME} was created in the scope of another package!")
-    _ensure_is_not_package(${TARGET_NAME} "Executable ${TARGET_NAME} already exists!")
-
+function(_add_exec TARGET_NAME)
     # MinGW doesn't export symbols from executables even with ENABLE_EXPORTS set to ON, it is unsupported
     if (USE_BOOTSTRAPPER)
         message(STATUS "cppns: Bootstrapper is ENABLED on project ${TARGET_NAME}")
@@ -221,15 +216,15 @@ function(add_package_executable TARGET_NAME)
         else ()
             # Create the bootstrapper for the executable
             configure_file(
-                    ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Bootstrapper.c.in
-                    ${CMAKE_BINARY_DIR}/Bootstrapper.c
+                    ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Bootstrapper.cpp.in
+                    ${CMAKE_BINARY_DIR}/Bootstrapper.cpp
                     @ONLY
             )
 
             # Add exec with bootstrapper
             add_executable(${TARGET_NAME}
                     ${ARGN}
-                    ${CMAKE_BINARY_DIR}/Bootstrapper.c
+                    ${CMAKE_BINARY_DIR}/Bootstrapper.cpp
             )
             set_target_properties(${TARGET_NAME} PROPERTIES
                     ENABLE_EXPORTS ON
@@ -246,6 +241,15 @@ function(add_package_executable TARGET_NAME)
                 ${ARGN}
         )
     endif ()
+endfunction()
+
+# Create an executable for a package.
+function(add_package_executable TARGET_NAME)
+    _ensure_project_scope("Executable ${TARGET_NAME} was not created in the scope of a project!")
+    _ensure_not_package_scope("Executable ${TARGET_NAME} was created in the scope of another package!")
+    _ensure_is_not_package(${TARGET_NAME} "Executable ${TARGET_NAME} already exists!")
+
+    _add_exec(${TARGET_NAME} ${ARGN})
 
     # Get Packages
     get_target_property(PROJECT_PACKAGES ${CURRENT_SCOPE_PROJECT}-settings PACKAGES)
@@ -279,9 +283,7 @@ function(add_test TEST_NAME)
     _ensure_package_scope("Tried to add test ${TEST_NAME} while not inside package scope.")
 
     # Add test as executable and link to package
-    add_executable(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME}
-            ${ARGN}
-    )
+    _add_exec(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME} ${ARGN})
     target_link_libraries(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME} ${CURRENT_SCOPE_PACKAGE})
 
     # Set the test of the current scope
