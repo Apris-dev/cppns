@@ -104,7 +104,6 @@
     {
       "name": "ninja-multi",
       "inherits": "base",
-      "hidden": true,
       "displayName": "Ninja Multi-Config",
       "description": "A Preset specifically for the github action",
       "generator": "Ninja Multi-Config"
