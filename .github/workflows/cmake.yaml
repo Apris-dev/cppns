@@ -1,0 +1,32 @@
+name: Multiplatform CMake Run
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.os }}-${{ github.workflow }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2022]
+    steps:
+      # Checkout project, including submodules
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      
+      # Install latest CMake & Ninja
+      - uses: lukka/get-cmake@latest
+      
+      # Optional: Setup vcpkg
+      #- name: Setup vcpkg
+      #  uses: lukka/run-vcpkg@v11
+        
+        # Run CMake Build
+      - name: Run CMake
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: 'ninja-multi'
+          buildPreset: 'ninja-release'
+          testPreset: 'test-release'

@@ -8,6 +8,9 @@
 !*.c
 !*.h
 
+# Configuration Files
+!*.yaml
+
 # Scripts
 !*.ps1
 !*.sh
@@ -29,7 +32,6 @@
 .idea/
 
 # Build files
-cmake-build-debug/
 bin/
 
 # Readme

@@ -100,6 +100,57 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
+    },
+    {
+      "name": "ninja-multi",
+      "inherits": "base",
+      "hidden": true,
+      "displayName": "Ninja Multi-Config",
+      "description": "A Preset specifically for the github action",
+      "generator": "Ninja Multi-Config"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ninja-debug",
+      "hidden": true,
+      "configurePreset": "ninja-multi",
+      "displayName": "Build (Debug)",
+      "description": "Build with Ninja (Debug)",
+      "configuration": "Debug"
+    },
+    {
+      "name": "ninja-release",
+      "hidden": true,
+      "configurePreset": "ninja-multi",
+      "displayName": "Build (Release)",
+      "description": "Build with Ninja (Release)",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "test-ninja",
+      "configurePreset": "ninja-multi",
+      "hidden": true
+    },
+    {
+      "name": "test-debug",
+      "description": "Test (Debug)",
+      "displayName": "Test (Debug)",
+      "configuration": "Debug",
+      "inherits": [
+        "test-ninja"
+      ]
+    },
+    {
+      "name": "test-release",
+      "description": "Test (Release)",
+      "displayName": "Test (Release)",
+      "configuration": "Release",
+      "inherits": [
+        "test-ninja"
+      ]
     }
   ]
 }
