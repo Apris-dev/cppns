@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 /*
  * The Class that helps define platform specific things
  * For example: path separators, line endings, and the size of 'long'

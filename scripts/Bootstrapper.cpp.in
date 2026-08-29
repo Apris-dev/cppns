@@ -46,7 +46,7 @@ static std::string GetLastErrorMessage() {
     if (buffer) LocalFree(buffer);
 
     return message;
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
     return strerror(errno);
 #endif
 }
