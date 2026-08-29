@@ -2,10 +2,10 @@
 
 #include <type_traits>
 
-#ifndef _MSC_VER
-#include <bits/stl_pair.h>
-#else
+#if defined(_MSC_VER) || defined(__APPLE__)
 #include <utility>
+#else
+#include <bits/stl_pair.h>
 #endif
 
 #ifndef _MSC_VER
