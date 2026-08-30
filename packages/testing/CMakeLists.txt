@@ -1,29 +1,31 @@
-# TestTrueMain block
-block()
-    add_shared_package(TestTrueMain
-            TestTrueMain.h
-            TestTrueMain.cpp
-    )
+if (${USE_BOOTSTRAPPER})
+    # TestTrueMain block
+    block()
+        add_shared_package(TestTrueMain
+                TestTrueMain.h
+                TestTrueMain.cpp
+        )
 
-    link_package(PUBLIC cppns-util)
-endblock()
+        link_package(PUBLIC cppns-util)
+    endblock()
 
-# TestLib block
-block()
-    add_shared_package(TestLib
-            TestLib.h
-            TestLib.cpp
-    )
+    # TestLib block
+    block()
+        add_shared_package(TestLib
+                TestLib.h
+                TestLib.cpp
+        )
 
-    link_package(PUBLIC TestTrueMain)
-endblock()
+        link_package(PUBLIC TestTrueMain)
+    endblock()
 
-# TestBootstrap block
-block()
-    add_package_executable(TestBootstrap
-            TestExec.cpp
-    )
-    add_test(TestBootstrap TestBootstrap)
+    # TestBootstrap block
+    block()
+        add_package_executable(TestBootstrap
+                TestExec.cpp
+        )
+        add_test(TestBootstrap TestBootstrap)
 
-    link_package(PUBLIC TestTrueMain)
-endblock()
+        link_package(PUBLIC TestTrueMain)
+    endblock()
+endif ()
