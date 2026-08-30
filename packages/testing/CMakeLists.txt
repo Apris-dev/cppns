@@ -23,6 +23,7 @@ block()
     add_package_executable(TestBootstrap
             TestExec.cpp
     )
+    add_test(TestBootstrap TestBootstrap)
 
     link_package(PUBLIC TestTrueMain)
 endblock()
