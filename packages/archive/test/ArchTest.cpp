@@ -29,6 +29,11 @@ int main() {
             fileArchive << "test200";
         }
 
+        if (!std::filesystem::exists(path.get())) {
+            std::cerr << "Path to file 'input.dat' does not exist." << std::endl;
+            return 1;
+        }
+
         {
             CFileArchive<EOpenType::BINARY_READ> fileArchive(path);
 

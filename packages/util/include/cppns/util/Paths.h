@@ -15,6 +15,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 //inline std::string gTempPath = std::filesystem::temp_directory_path().string();
 
 inline std::string gExecutablePath = []() -> std::string {
@@ -29,7 +33,16 @@ inline std::string gExecutablePath = []() -> std::string {
     buffer[len] = '\0';
     path = std::string(buffer);
 #elif defined(__APPLE__) //TODO: MacOS
-    std::cerr << "Not implemented" << std::endl;
+    char buffer[PATH_MAX];
+    uint32_t size = sizeof(buffer);
+
+    if (_NSGetExecutablePath(buffer, &size) == 0) {
+        char resolved[PATH_MAX];
+
+        if (realpath(buffer, resolved) != nullptr) {
+            path = std::string(resolved);
+        }
+    }
 #else
     std::cerr << "Not implemented" << std::endl;
 #endif

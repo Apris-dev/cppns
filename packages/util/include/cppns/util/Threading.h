@@ -253,6 +253,9 @@ class TThreadSafe {
 		TParent* parent;
 	};
 
+	template<typename TParent, typename TMutex>
+	safe_lock(TParent* parent, TMutex& mtx) -> safe_lock<TParent, TMutex>;
+
 public:
 
 	/*
