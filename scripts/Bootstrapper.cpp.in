@@ -216,12 +216,12 @@ int main() {
 
     dirent* entry;
     while ((entry = readdir(dir)) != nullptr) {
-        if (const std::filesystem::path name = entry->d_name; name.extension() == ".so") {
+        if (const std::filesystem::path name = entry->d_name; name.extension() == ".dylib") {
             std::filesystem::path libraryPath = executablePath / name;
 
             std::string sanitizedName = name;
-            // Remove *.so
-            sanitizedName.erase(sanitizedName.size() - 3);
+            // Remove *.dylib
+            sanitizedName.erase(sanitizedName.size() - 6);
             // Remove lib*
             sanitizedName.erase(0, 3);
 
