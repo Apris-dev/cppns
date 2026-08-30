@@ -35,5 +35,8 @@
 # Build files
 bin/
 
+# vcpkg
+!vcpkg.json
+
 # Readme
 !README.md
