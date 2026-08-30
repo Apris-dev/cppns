@@ -12,18 +12,23 @@ jobs:
         include:
           - os: ubuntu-24.04
             compiler: gcc
+            vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
 
           - os: ubuntu-24.04
             compiler: clang
+            vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
 
           - os: macos-15
             compiler: clang
+            vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
 
           - os: windows-2022
             compiler: msvc
+            vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
 
           - os: windows-2022
             compiler: mingw
+            vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
     steps:
       # Checkout project, including submodules
       - uses: actions/checkout@v4
@@ -36,7 +41,15 @@ jobs:
       # Optional: Setup vcpkg
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
-        
+        id: runvcpkg
+        with:
+          vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
+          vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
+          vcpkgJsonGlob: 'vcpkg.json'
+
+      - name: Prints output of run-vcpkg's action
+        run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}'"
+
         # Run CMake Build
       - name: Run CMake
         uses: lukka/run-cmake@v10
