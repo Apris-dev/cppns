@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: ${{ matrix.os }}-${{ matrix.compiler }}-${{ github.workflow }}
+    name: ${{ matrix.os }}-${{ matrix.compiler }}-cmake-run
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -34,8 +34,8 @@ jobs:
       - uses: lukka/get-cmake@latest
       
       # Optional: Setup vcpkg
-      #- name: Setup vcpkg
-      #  uses: lukka/run-vcpkg@v11
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
         
         # Run CMake Build
       - name: Run CMake
