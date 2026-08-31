@@ -191,7 +191,7 @@ static mainfunc_t getMainFunc() {
         throw std::runtime_error(message);
     }
 
-    return reinterpret_cast<mainfunc_t>(dlsym(entrancePoint, "run"));
+    return reinterpret_cast<mainfunc_t>(dlsym(entrancePoint, ENTRANCE_POINT));
 #endif
 }
 
@@ -217,22 +217,16 @@ int main() {
 
     const auto mainFunc = getMainFunc();
 
-    int exitCode = -1;
-
     // Display an error and rethrow if not caught internally
     try {
-        exitCode = mainFunc();
+        mainFunc();
     } catch (exception& e) {
-        cerr << e.what() << "\n";
-        exitCode = errno;
+        cerr << "-- Bootstrapper: Program End Reached With Failure:" << endl;
+        cerr << '\'' << e.what() << '\'' << "\n";
         throw;
     }
 
-    if (exitCode == 0) {
-        cout << "-- Bootstrapper: Program End Reached Successfully." << endl;
-    } else {
-        cout << "-- Bootstrapper: Program End Reached With Failure. Exit Code: " << exitCode << endl;
-    }
+    cout << "-- Bootstrapper: Program End Reached Successfully." << endl;
 
-    return exitCode;
+    return 0;
 }
