@@ -8,6 +8,7 @@
     },
     {
       "name": "Debug-MSVC",
+      "generator": "Ninja",
       "inherits": "base",
       "vendor": {
         "jetbrains.com/clion": {

@@ -133,9 +133,12 @@ macro (_set_target_defaults TARGET_NAME)
     )
 
     # Get the top level source directory, can be used to determine the executable directory from a build environment
+
+    set(DEBUG_ROOT_DIR ${CMAKE_SOURCE_DIR})
+    set(DEBUG_BINARY_ROOT_DIR ${CMAKE_BINARY_DIR})
     if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        string(REPLACE "/" "\\\\" DEBUG_ROOT_DIR "${CMAKE_SOURCE_DIR}")
-        string(REPLACE "/" "\\\\" DEBUG_BINARY_ROOT_DIR "${CMAKE_BINARY_DIR}")
+        string(REPLACE "/" "\\\\" DEBUG_ROOT_DIR "${DEBUG_ROOT_DIR}")
+        string(REPLACE "/" "\\\\" DEBUG_BINARY_ROOT_DIR "${DEBUG_BINARY_ROOT_DIR}")
     endif()
     target_compile_definitions(${TARGET_NAME} INTERFACE DEBUG_ROOT_DIR="${DEBUG_ROOT_DIR}")
 

@@ -49,7 +49,8 @@ inline std::string gExecutablePath = []() -> std::string {
 
 #ifdef USING_DEBUG
     // Change binary dir to root instead for debug builds
-    for (size_t i = 0; i < path.length(); ++i) {
+
+    for (size_t i = path.length() - 1; i > 0; --i) {
         if (path.substr(0, i) == DEBUG_BINARY_ROOT_DIR) {
             path = DEBUG_ROOT_DIR + path.substr(i);
             break;

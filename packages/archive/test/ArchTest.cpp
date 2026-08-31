@@ -12,9 +12,13 @@ EXPORTC int run() {
 int main() {
 #endif
 
-    try {
         CPathArchive path(gExecutablePath);
-        path << "hello";
+
+        if (path.get().empty()) {
+            std::cerr << "Path Archive was empty when supplied with executable path" << std::endl;
+            return 2;
+        }
+
         path << "input.dat";
 
         std::cout << path.get() << std::endl;
@@ -55,10 +59,6 @@ int main() {
 
             std::cout << "Hash: " << hasher.get() << std::endl;
         }
-    } catch (Error::File::OpenException& fileOpenException) {
-        std::cout << "Could not open file: " << fileOpenException.what() << std::endl;
-        std::cout << "Please make sure the file exists and has the right permissions" << std::endl;
-    }
 
     return 0;
 }
