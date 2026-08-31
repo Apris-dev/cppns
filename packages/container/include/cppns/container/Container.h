@@ -30,14 +30,18 @@
 
 #ifdef __cpp_lib_ranges
 #define FIND(c, x, ...) std::ranges::find_if(c, [&x](const auto& v) { return v == x; })
+#define FIND_IF(c, func, ...) std::ranges::find_if(c, func)
 #define ERASE(c, x, ...) c.erase(FIND(c, x, __VA_ARGS__))
 #define DISTANCE(c, x, ...) std::ranges::distance(c.begin(), FIND(c, x, __VA_ARGS__))
+#define DISTANCE_IF(c, func, ...) std::ranges::distance(c.begin(), FIND_IF(c, func, __VA_ARGS__))
 #define SIZE(c) std::ranges::distance(c)
 #define SHUFFLE(c, r) std::ranges::shuffle(c, r);
 #else
 #define FIND(c, x, ...) std::find(c.begin(), c.end(), x)
-#define ERASE(c, x, ...) c.erase(FIND(c, x))
-#define DISTANCE(c, x, ...) std::distance(c.begin(), FIND(c, x))
+#define FIND_IF(c, func, ...) std::find_if(c.begin(), c.end(), func)
+#define ERASE(c, x, ...) c.erase(FIND(c, x, __VA_ARGS__))
+#define DISTANCE(c, x, ...) std::distance(c.begin(), FIND(c, x, __VA_ARGS__))
+#define DISTANCE_IF(c, func, ...) std::distance(c.begin(), FIND_IF(c, func, __VA_ARGS__))
 #define SIZE(c) std::distance(c.begin(), c.end())
 #define SHUFFLE(c, r) std::shuffle(c.begin(), c.end(), r);
 #endif
@@ -49,6 +53,7 @@
 #endif
 
 #define CONTAINS(c, x, ...) FIND(c, x, __VA_ARGS__) != c.end()
+#define CONTAINS_IF(c, func, ...) FIND_IF(c, func, __VA_ARGS__) != c.end()
 
 // Makes it easy to see if a function is guaranteed or not
 #define GUARANTEED = 0;
@@ -361,6 +366,10 @@ struct TSequenceContainer : SContainer {
 	// Checks if a certain object is contained within the container
 	template <typename TOtherType>
 	[[nodiscard]] bool contains(const TOtherType& obj) const { return derived(*this).contains(obj); }
+
+	[[nodiscard]] bool contains(const std::function<bool(const TType&)>& inFunction) {
+		return derived(*this).contains(inFunction);
+	}
 
 	// Find a certain element in the container
 	template <typename TOtherType>

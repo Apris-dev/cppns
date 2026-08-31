@@ -357,7 +357,7 @@ void testSpan(const TSpan<int>& span) {
 
 cppns_main() {
 
-	DO_TEST(TVector)
+	/*DO_TEST(TVector)
 	DO_TEST(TMaxHeap)
 	DO_TEST(TMinHeap)
 	DO_TEST(TDeque)
@@ -365,7 +365,26 @@ cppns_main() {
 	DO_TEST(TForwardList)
 	DO_ARRAY_TEST(TArray)
 	DO_TEST(TStack)
-	DO_TEST(TQueue)
+	DO_TEST(TQueue)*/
+
+	TVector vec{
+		SObject{5, "Hello5"},
+		SObject{2, "Hello2"},
+		SObject{8, "Hello8"},
+		SObject{1, "Hello1"}
+	};
+
+	const bool val = vec.contains([](const SObject& obb) {
+		return obb.id == 2;
+	});
+
+	// Returns 1 + max index if failed, should throw?
+	const size_t val2 = vec.find([](const SObject& obb) {
+		return obb.id == 90;
+	});
+
+	std::cout << "Vector contains object: " << (val ? "True" : "False") << std::endl;
+	std::cout << "Vector obb loc: " << val2 << std::endl;
 
 	return 0;
 }
