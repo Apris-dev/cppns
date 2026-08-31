@@ -259,11 +259,7 @@ void testSpan(const TSpan<MapEnum, int>& span) {
 	}
 }
 
-#ifdef USING_BOOTSTRAPPER
-EXPORTC int run() {
-#else
-int main() {
-#endif
+cppns_main() {
 	DO_MAP_TEST(TMap)
 	DO_MAP_TEST(TMultiMap)
 	DO_MAP_TEST(TPriorityMap)

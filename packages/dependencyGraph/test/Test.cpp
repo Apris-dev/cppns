@@ -134,11 +134,7 @@ struct TestCommandBuffer {
     mutable TRWDependencyGraph<TShared<SObject>, TShared<SResource>, TKahnTopologicalSort> dependencyGraph;
 };
 
-#ifdef USING_BOOTSTRAPPER
-EXPORTC int run() {
-#else
-int main() {
-#endif
+cppns_main() {
 
     {
         TestCommandBuffer cmd{};

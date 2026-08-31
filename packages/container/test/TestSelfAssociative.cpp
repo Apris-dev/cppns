@@ -101,11 +101,11 @@ void appendTest(const std::string& containerName, TSelfAssociativeContainer<TCon
 			std::cout << "Set Append Test" << std::endl;
 
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)5, containerName));
-			if (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
-			if (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
-			if (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 1);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 1);
 
 			TSet<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
@@ -129,7 +129,7 @@ void appendTest(const std::string& containerName, TSelfAssociativeContainer<TCon
 			for (const TType& obb : container) {sstl::getUnfurled(obb)->print();}
 
 			// Hashed types do not guarantee order
-			if (!TContainerTraits<TContainerType>::bHasHashing) {
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) {
 				TContainerType copyOf;
 				copyOf.append(container);
 
@@ -170,11 +170,11 @@ void appendTest(const std::string& containerName, TSelfAssociativeContainer<TCon
 			std::cout << "Priority Set Append Test" << std::endl;
 
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)5, containerName));
-			if (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
-			if (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
-			if (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 1);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 1);
 
 			TPrioritySet<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
@@ -189,7 +189,7 @@ void appendTest(const std::string& containerName, TSelfAssociativeContainer<TCon
 			for (const TType& obb : container) {sstl::getUnfurled(obb)->print();}
 
 			// Hashed types do not guarantee order
-			if (!TContainerTraits<TContainerType>::bHasHashing) {
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) {
 				TContainerType copyOf;
 				copyOf.append(container);
 
@@ -249,11 +249,7 @@ void testSpan(const TSpan<int>& span) {
 	}
 }
 
-#ifdef USING_BOOTSTRAPPER
-EXPORTC int run() {
-#else
-int main() {
-#endif
+cppns_main() {
 
 	DO_ASSOCIATIVE_TEST(TSet)
 	DO_ASSOCIATIVE_TEST(TMultiSet)

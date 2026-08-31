@@ -29,11 +29,7 @@ void func(const TSequenceContainer<TContainerType>& val) {
     { x<int, 4> val; val.push(1); val.push(5); val.push(2); val.push(3); func(val); } \
     std::cout << std::endl;
 
-#ifdef USING_BOOTSTRAPPER
-EXPORTC int run() {
-#else
-int main() {
-#endif
+cppns_main() {
 
     DO_TEST(TVector)
     DO_TEST(TMaxHeap)

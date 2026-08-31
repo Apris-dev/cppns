@@ -3,11 +3,7 @@
 
 #include "cppns/memory/Memory.h"
 
-#ifdef USING_BOOTSTRAPPER
-EXPORTC int run() {
-#else
-int main() {
-#endif
+cppns_main() {
 
     struct Releaser {
 

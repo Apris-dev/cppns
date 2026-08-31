@@ -51,6 +51,9 @@ void containerTest(const std::string& containerName, TSequenceContainer<TContain
 
 	container.clear();
 
+	if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
+		assert(container.isEmpty());
+	}
 }
 
 
@@ -84,12 +87,16 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		std::cout << std::endl;
 
 		assert(from.isEmpty());
-		assert(container.getSize() == 1);
+		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
+			assert(container.getSize() == 1);
+		}
 		assert(sstl::getUnfurled(container.top())->id == 100);
 
 		container.clear();
 
-		assert(container.isEmpty());
+		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
+			assert(container.isEmpty());
+		}
 	}
 
 	{
@@ -117,12 +124,16 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		std::cout << std::endl;
 
 		assert(from.isEmpty());
-		assert(container.getSize() == 1);
+		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
+			assert(container.getSize() == 1);
+		}
 		assert(sstl::getUnfurled(container.top())->id == 100);
 
 		container.clear();
 
-		assert(container.isEmpty());
+		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
+			assert(container.isEmpty());
+		}
 	}
 }
 
@@ -186,7 +197,9 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 
 			container.clear();
 
-			assert(container.isEmpty());
+			if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
+				assert(container.isEmpty());
+			}
 		}
 
 		{
@@ -243,7 +256,9 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 
 			container.clear();
 
-			assert(container.isEmpty());
+			if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
+				assert(container.isEmpty());
+			}
 		}
 
 		{
@@ -300,7 +315,9 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 
 			container.clear();
 
-			assert(container.isEmpty());
+			if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
+				assert(container.isEmpty());
+			}
 		}
 	}
 }
@@ -338,11 +355,7 @@ void testSpan(const TSpan<int>& span) {
 	}
 }
 
-#ifdef USING_BOOTSTRAPPER
-EXPORTC int run() {
-#else
-int main() {
-#endif
+cppns_main() {
 
 	DO_TEST(TVector)
 	DO_TEST(TMaxHeap)

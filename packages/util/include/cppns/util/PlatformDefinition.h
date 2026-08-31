@@ -41,6 +41,12 @@
 
 #define EXPORTC extern "C" EXPORT
 
+#ifdef USING_BOOTSTRAPPER
+#define cppns_main EXPORTC int run
+#else
+#define cppns_main int main
+#endif
+
 #include <cstdint>
 
 using uint8 = std::uint8_t;
