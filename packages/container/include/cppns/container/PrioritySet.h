@@ -183,7 +183,13 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::set<TType> m_Container;
+	struct Comparison {
+		bool operator()(const TType& a, const TType& b) const {
+			return *sstl::getUnfurled(a) < *sstl::getUnfurled(b);
+		}
+	};
+
+	std::set<TType, Comparison> m_Container;
 };
 
 template <typename TType>

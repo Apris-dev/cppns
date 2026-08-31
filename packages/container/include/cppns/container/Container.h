@@ -206,6 +206,8 @@ struct TContainerHasher {
 	}
 };
 
+//TODO: container lambda functions
+
 // Allow subclasses to get each other's containers without public access
 struct SContainer {
 

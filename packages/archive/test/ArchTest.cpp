@@ -14,10 +14,7 @@ int main() {
 
         CPathArchive path(gExecutablePath);
 
-        if (path.get().empty()) {
-            std::cerr << "Path Archive was empty when supplied with executable path" << std::endl;
-            return 2;
-        }
+        assert(!path.get().empty());
 
         path << "input.dat";
 
@@ -33,10 +30,7 @@ int main() {
             fileArchive << "test200";
         }
 
-        if (!std::filesystem::exists(path.get())) {
-            std::cerr << "Path to file 'input.dat' does not exist." << std::endl;
-            return 1;
-        }
+        assert(std::filesystem::exists(path.get()));
 
         {
             CFileArchive<EOpenType::BINARY_READ> fileArchive(path);
@@ -52,12 +46,22 @@ int main() {
             std::cout << s << std::endl;
             std::cout << s2 << std::endl;
 
+            assert(v == 5 && s == "test" && s2 == "test200");
+
             CHashArchive hasher;
             hasher << v;
             hasher << s;
             hasher << s2;
 
+            CHashArchive hasher2;
+            hasher2 << v;
+            hasher2 << s;
+            hasher2 << s2;
+
             std::cout << "Hash: " << hasher.get() << std::endl;
+
+            assert(hasher.get() != 0 && hasher2.get() != 0);
+            assert(hasher.get() == hasher2.get());
         }
 
     return 0;

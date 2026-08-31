@@ -24,6 +24,7 @@ void containerTest(const std::string& containerName, TSequenceContainer<TContain
 	std::vector<size_t> vec;
 	for (size_t i = 0; i < 10; ++i) {
 		vec.push_back(i+500);
+		assert(vec[i] == i+500);
 	}
 
 	std::random_device rd;
@@ -39,7 +40,11 @@ void containerTest(const std::string& containerName, TSequenceContainer<TContain
 
 	const size_t size = container.getSize();
 	for (size_t i = 0; i < size; ++i) {
-		sstl::getUnfurled(container.top())->print();
+		auto parent = sstl::getUnfurled(container.top());
+		parent->print();
+		if (const auto object = dynamic_cast<const SObject*>(parent)) {
+			assert(containerName == object->name);
+		}
 		container.pop();
 	}
 	std::cout << std::endl;
@@ -66,7 +71,8 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		std::cout << "to:" << std::endl;
 		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-		//assert(from.getSize() == 1);
+		assert(from.getSize() == 1);
+		assert(sstl::getUnfurled(from.top())->id == 100);
 
 		from.transfer(container, 0);
 
@@ -77,9 +83,13 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 		std::cout << std::endl;
 
-		//assert(container.getSize() == 1);
+		assert(from.isEmpty());
+		assert(container.getSize() == 1);
+		assert(sstl::getUnfurled(container.top())->id == 100);
 
 		container.clear();
+
+		assert(container.isEmpty());
 	}
 
 	{
@@ -94,7 +104,8 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		std::cout << "to:" << std::endl;
 		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-		//assert(from.getSize() == 1);
+		assert(from.getSize() == 1);
+		assert(sstl::getUnfurled(from.top())->id == 100);
 
 		from.transfer(container, 0);
 
@@ -105,9 +116,13 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 		std::cout << std::endl;
 
-		//assert(container.getSize() == 1);
+		assert(from.isEmpty());
+		assert(container.getSize() == 1);
+		assert(sstl::getUnfurled(container.top())->id == 100);
 
 		container.clear();
+
+		assert(container.isEmpty());
 	}
 }
 
@@ -124,16 +139,54 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
+			{
+				std::vector numbers = {1, 5, 8};
+
+				for (auto& obb : container) {
+					int idd = sstl::getUnfurled(obb)->id;
+					assert(CONTAINS(numbers, idd));
+					ERASE(numbers, idd);
+				}
+
+				assert(numbers.empty());
+			}
+
 			TVector<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 
+			{
+				std::vector numbers = {10, 50, 80};
+
+				for (auto& obb : from) {
+					int idd = sstl::getUnfurled(obb)->id;
+					assert(CONTAINS(numbers, idd));
+					ERASE(numbers, idd);
+				}
+
+				assert(numbers.empty());
+			}
+
 			container.append(from);
 
 			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
+			{
+				std::vector numbers = {1, 5, 8, 10, 50, 80};
+
+				for (auto& obb : container) {
+					int idd = sstl::getUnfurled(obb)->id;
+					assert(CONTAINS(numbers, idd));
+					ERASE(numbers, idd);
+				}
+
+				assert(numbers.empty());
+			}
+
 			container.clear();
+
+			assert(container.isEmpty());
 		}
 
 		{
@@ -143,16 +196,54 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
+			{
+				std::vector numbers = {1, 5, 8};
+
+				for (auto& obb : container) {
+					int idd = sstl::getUnfurled(obb)->id;
+					assert(CONTAINS(numbers, idd));
+					ERASE(numbers, idd);
+				}
+
+				assert(numbers.empty());
+			}
+
 			TList<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 
+			{
+				std::vector numbers = {10, 50, 80};
+
+				for (auto& obb : from) {
+					int idd = sstl::getUnfurled(obb)->id;
+					assert(CONTAINS(numbers, idd));
+					ERASE(numbers, idd);
+				}
+
+				assert(numbers.empty());
+			}
+
 			container.append(from);
 
 			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
+			{
+				std::vector numbers = {1, 5, 8, 10, 50, 80};
+
+				for (auto& obb : container) {
+					int idd = sstl::getUnfurled(obb)->id;
+					assert(CONTAINS(numbers, idd));
+					ERASE(numbers, idd);
+				}
+
+				assert(numbers.empty());
+			}
+
 			container.clear();
+
+			assert(container.isEmpty());
 		}
 
 		{
@@ -162,16 +253,54 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
+			{
+				std::vector numbers = {1, 5, 8};
+
+				for (auto& obb : container) {
+					int idd = sstl::getUnfurled(obb)->id;
+					assert(CONTAINS(numbers, idd));
+					ERASE(numbers, idd);
+				}
+
+				assert(numbers.empty());
+			}
+
 			TForwardList<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 
+			{
+				std::vector numbers = {10, 50, 80};
+
+				for (auto& obb : from) {
+					int idd = sstl::getUnfurled(obb)->id;
+					assert(CONTAINS(numbers, idd));
+					ERASE(numbers, idd);
+				}
+
+				assert(numbers.empty());
+			}
+
 			container.append(from);
 
 			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
+			{
+				std::vector numbers = {1, 5, 8, 10, 50, 80};
+
+				for (auto& obb : container) {
+					int idd = sstl::getUnfurled(obb)->id;
+					assert(CONTAINS(numbers, idd));
+					ERASE(numbers, idd);
+				}
+
+				assert(numbers.empty());
+			}
+
 			container.clear();
+
+			assert(container.isEmpty());
 		}
 	}
 }
@@ -215,7 +344,7 @@ EXPORTC int run() {
 int main() {
 #endif
 
-	/*DO_TEST(TVector)
+	DO_TEST(TVector)
 	DO_TEST(TMaxHeap)
 	DO_TEST(TMinHeap)
 	DO_TEST(TDeque)
@@ -223,20 +352,7 @@ int main() {
 	DO_TEST(TForwardList)
 	DO_ARRAY_TEST(TArray)
 	DO_TEST(TStack)
-	DO_TEST(TQueue)*/
-
-	TList<int> vec;
-
-	vec.push(20);
-	vec.push(52);
-	vec.push(73);
-	vec.push(4);
-
-	vec.sort();
-
-	//for (auto& i : vec) { std::cout << i << std::endl; }
-
-	testSpan(vec);
+	DO_TEST(TQueue)
 
 	return 0;
 }
