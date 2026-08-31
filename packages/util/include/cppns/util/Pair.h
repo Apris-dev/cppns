@@ -1,12 +1,7 @@
 ﻿#pragma once
 
 #include <type_traits>
-
-#if defined(_MSC_VER) || defined(__APPLE__)
 #include <utility>
-#else
-#include <bits/stl_pair.h>
-#endif
 
 #ifndef _MSC_VER
 template <typename TType>

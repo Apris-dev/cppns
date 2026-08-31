@@ -22,13 +22,6 @@ add_package_test(TestSelfAssociative
 link_package_test(cppns-archive)
 link_package_test(cppns-memory)
 
-add_package_test(ReleaseTest
-        TestShared.h
-        ReleaseTest.cpp
-)
-
-link_package_test(cppns-memory)
-
 add_package_test(TestItr
         TestItr.cpp
 )

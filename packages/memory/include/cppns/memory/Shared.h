@@ -1,11 +1,6 @@
 #pragma once
 
-#if defined(_MSC_VER) || defined(__APPLE__)
 #include <memory>
-#else
-#include <bits/shared_ptr.h>
-#endif
-
 #include "Common.h"
 
 template <typename>

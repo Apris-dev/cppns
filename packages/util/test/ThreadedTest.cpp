@@ -86,5 +86,9 @@ int main() {
 
 	vec->clear();
 
+	TPair pair{0, 50};
+
+	std::cout << "pair first: " << pair.first() << "pair second: " << pair.second() << std::endl;
+
 	return 0;
 }
