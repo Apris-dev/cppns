@@ -54,7 +54,7 @@
 #define SHUFFLE(c, r) std::shuffle(c.begin(), c.end(), r);
 #endif
 
-#ifdef __cpp_lib_generic_associative_lookup
+#if __cplusplus >= 202002L
 #define ASSOCIATIVE_CONTAINS(c, x) c.contains(x)
 #else
 #define ASSOCIATIVE_CONTAINS(c, x) c.find(x) != c.end()
