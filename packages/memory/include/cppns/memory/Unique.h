@@ -143,7 +143,7 @@ struct TUnique {
 	}
 
 	template <typename TOtherType,
-		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+		std::enable_if_t<!sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator<(const TUnique& fst, const TOtherType& otr) noexcept {
 		return *fst < otr;
@@ -157,7 +157,7 @@ struct TUnique {
 	}
 
 	template <typename TOtherType,
-		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+		std::enable_if_t<!sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator<=(const TUnique& fst, const TOtherType& otr) noexcept {
 		return *fst <= otr;
@@ -171,7 +171,7 @@ struct TUnique {
 	}
 
 	template <typename TOtherType,
-		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+		std::enable_if_t<!sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator>(const TUnique& fst, const TOtherType& otr) noexcept {
 		return *fst > otr;
@@ -185,7 +185,7 @@ struct TUnique {
 	}
 
 	template <typename TOtherType,
-		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+		std::enable_if_t<!sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator>=(const TUnique& fst, const TOtherType& otr) noexcept {
 		return *fst >= otr;
@@ -199,7 +199,7 @@ struct TUnique {
 	}
 
 	template <typename TOtherType,
-		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+		std::enable_if_t<!sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator==(const TUnique& fst, const TOtherType& otr) noexcept {
 		return *fst == otr;
@@ -223,7 +223,7 @@ struct TUnique {
 	}
 
 	template <typename TOtherType,
-		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+		std::enable_if_t<!sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator!=(const TUnique& fst, const TOtherType& otr) noexcept {
 		return *fst != otr;
