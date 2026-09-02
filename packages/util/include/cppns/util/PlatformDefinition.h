@@ -13,7 +13,7 @@
     # if __cplusplus >= 202002L
         #define _CONSTEXPR20 constexpr
     #else
-        #define CONSTEXPR20
+        #define _CONSTEXPR20
     #endif
 #endif
 
