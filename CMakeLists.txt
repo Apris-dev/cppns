@@ -16,7 +16,9 @@ if(CPPNS_TEST)
     enable_testing()
 
     # Set default CXX_STANDARD if testing
-    set(CMAKE_CXX_STANDARD 23)
+    if (NOT CMAKE_CXX_STANDARD)
+        set(CMAKE_CXX_STANDARD 23)
+    endif ()
 endif()
 
 # If CXX Standard is not defined, fallback to c++17
