@@ -4,49 +4,38 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: ${{ matrix.os }}-${{ matrix.compiler }}-cmake-run
+    name: ${{ matrix.name }}-${{ matrix.compiler }}-c++${{ matrix.cxx_standard }}-cmake-run
     runs-on: ${{ matrix.os }}
     env:
       vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-24.04
-          - macos-15
-          - windows-2022
-
-        compiler:
-          - gcc
-          - clang
-          - msvc
-          - mingw
-
         cxx_standard:
           - 17
           - 20
           - 23
 
-        exclude:
-          # macOS
-          - os: macos-15
-            compiler: gcc
-          - os: macos-15
-            compiler: msvc
-          - os: macos-15
-            compiler: mingw
-
-          # Ubuntu
+        include:
           - os: ubuntu-24.04
-            compiler: msvc
-          - os: ubuntu-24.04
-            compiler: mingw
-
-          # Windows
-          - os: windows-2022
+            name: linux
             compiler: gcc
-          - os: windows-2022
+
+          - os: ubuntu-24.04
+            name: linux
             compiler: clang
+
+          - os: macos-15
+            name: macos
+            compiler: clang
+
+          - os: windows-2022
+            name: windows
+            compiler: msvc
+
+          - os: windows-2022
+            name: windows
+            compiler: mingw
     steps:
       # Checkout project, including submodules
       - uses: actions/checkout@v4
