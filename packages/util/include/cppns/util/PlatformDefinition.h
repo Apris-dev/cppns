@@ -9,27 +9,65 @@
 
 // TODO: support more than linux, windows, and macOS.  Would need help from outside to support mobile platforms and etc.
 
-#if __cplusplus >= 202002L
-    #define USING_CXX20
+#define USING_CXX20 (__cplusplus >= 202002L)
+#define USING_CXX23 (__cplusplus >= 202100L)
+
+#ifdef _WIN32
+    #define USING_WINDOWS 1
+#else
+    #define USING_WINDOWS 0
 #endif
 
-#if __cplusplus >= 202100L
-    #define USING_CXX23
+#ifdef __linux__
+    #define USING_LINUX 1
+#else
+    #define USING_LINUX 0
 #endif
 
-#ifdef USING_CXX20
+#ifdef __APPLE__
+    #define USING_APPLE 1
+#else
+    #define USING_APPLE 0
+#endif
+
+#if USING_WINDOWS
+    // On Windows, only two compilers are supported
+    #ifdef _MSC_VER
+        #define USING_MSVC 1
+        #define USING_MINGW 0
+    #else
+        #define USING_MSVC 0
+        // MinGW can use either GCC or Clang under the hood, so multiple may seem to be enabled
+        #define USING_MINGW 1
+    #endif
+#endif
+
+#ifdef __clang__
+    #define USING_CLANG 1
+#else
+    #define USING_CLANG 0
+#endif
+
+#if ((defined(__GNUC__) || defined(__GNUG__)) && !defined(USING_CLANG))
+    #define USING_GCC 1
+#else
+    #define USING_GCC 0
+#endif
+
+
+#if USING_CXX20
     #define constexpr_20 constexpr
 #else
     #define constexpr_20
 #endif
 
-#ifdef USING_CXX23
+#if USING_CXX23
     #define constexpr_23 constexpr
 #else
     #define constexpr_23
 #endif
 
-#ifdef _WIN32
+#if USING_WINDOWS
 #define PATH_SEPARATOR '\\'
 #define LINE_ENDING "\r\n"
 #else
@@ -37,7 +75,7 @@
 #define LINE_ENDING "\n"
 #endif
 
-#ifdef _MSC_VER
+#if USING_MSVC
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT __attribute__((visibility("default")))
@@ -62,7 +100,7 @@ using int16 = std::int16_t;
 using int32 = std::int32_t;
 using int64 = std::int64_t;
 using smallest = uint8;
-#if defined(_WIN32) || defined(__APPLE__)
+#if USING_WINDOWS || USING_APPLE
 using largest = size_t;
 #else
 using largest = std::size_t;

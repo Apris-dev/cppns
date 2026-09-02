@@ -6,16 +6,16 @@
 
 #include "cppns/util/PlatformDefinition.h"
 
-#ifdef _WIN32
+#if USING_WINDOWS
 #include <windows.h>
 #include <libloaderapi.h>
 #endif
 
-#ifdef __linux__
+#if USING_LINUX
 #include <unistd.h>
 #endif
 
-#ifdef __APPLE__
+#if USING_APPLE
 #include <mach-o/dyld.h>
 #endif
 
@@ -23,16 +23,16 @@
 
 inline std::string gExecutablePath = []() -> std::string {
     std::string path;
-#ifdef _WIN32
+#if USING_WINDOWS
     char buffer[MAX_PATH];
     GetModuleFileNameA(nullptr, buffer, MAX_PATH);
     path = std::string(buffer);
-#elif defined(__linux__)
+#elif USING_LINUX
     char buffer[4097];
     ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer)-1);
     buffer[len] = '\0';
     path = std::string(buffer);
-#elif defined(__APPLE__) //TODO: MacOS
+#elif USING_APPLE
     char buffer[PATH_MAX];
     uint32_t size = sizeof(buffer);
 

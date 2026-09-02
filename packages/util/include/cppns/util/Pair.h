@@ -3,7 +3,9 @@
 #include <type_traits>
 #include <utility>
 
-#ifndef _MSC_VER
+#include "cppns/util/PlatformDefinition.h"
+
+#if !USING_MSVC
 template <typename TType>
 using implicitly_default_constructible = std::__is_implicitly_default_constructible<TType>;
 #else

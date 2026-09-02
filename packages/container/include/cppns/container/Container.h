@@ -54,7 +54,7 @@
 #define SHUFFLE(c, r) std::shuffle(c.begin(), c.end(), r);
 #endif
 
-#ifdef USING_CXX20
+#if USING_CXX20
 	#define ASSOCIATIVE_CONTAINS(c, x) c.contains(x)
 #else
 	#define ASSOCIATIVE_CONTAINS(c, x) c.find(x) != c.end()

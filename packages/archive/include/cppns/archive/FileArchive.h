@@ -50,7 +50,7 @@ public:
 		if constexpr (isWrite()) { mode += "w"; }
 		if constexpr (isBinary()) { mode += "b"; }
 
-#ifdef _MSC_VER
+#if USING_MSVC
 		fopen_s(&mFile, inFilePath.c_str(), mode.c_str());
 #else
 		mFile = fopen(inFilePath.c_str(), mode.c_str());

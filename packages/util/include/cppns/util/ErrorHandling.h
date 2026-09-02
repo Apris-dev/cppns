@@ -33,7 +33,7 @@ namespace Error {
 			const int error = errno;
 			if (error <= 0)
 				return "Unknown Error Occurred!";
-#ifdef _MSC_VER
+#if USING_MSVC
 			char buffer[256];
 			strerror_s(buffer, sizeof(buffer), error);
 			return buffer;
