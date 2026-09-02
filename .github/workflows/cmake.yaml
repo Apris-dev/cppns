@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: ${{ matrix.platform.name }}-${{ matrix.platform.compiler }}-c++${{ matrix.cxx_standard }}-cmake-run
+    name: c++${{ matrix.cxx_standard }}-${{ matrix.platform.name }}-${{ matrix.platform.compiler }}-cmake-run
     runs-on: ${{ matrix.platform.os }}
     env:
       vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
@@ -17,11 +17,11 @@ jobs:
           - 23
 
         platform:
-          - { os: ubuntu-24.04, compiler: gcc }
-          - { os: ubuntu-24.04, compiler: clang }
-          - { os: macos-15, compiler: clang }
-          - { os: windows-2022, compiler: msvc }
-          - { os: windows-2022, compiler: mingw }
+          - { name: linux, os: ubuntu-24.04, compiler: gcc }
+          - { name: linux, os: ubuntu-24.04, compiler: clang }
+          - { name: macos, os: macos-15, compiler: clang }
+          - { name: windows, os: windows-2022, compiler: msvc }
+          - { name: windows, os: windows-2022, compiler: mingw }
     steps:
       # Checkout project, including submodules
       - uses: actions/checkout@v4
