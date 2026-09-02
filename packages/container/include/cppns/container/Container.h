@@ -383,21 +383,21 @@ struct TSequenceContainer : SContainer {
 		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
 	>
 	[[nodiscard]] bool containsAll(const TOtherType&... obj) {
-		return derived(*this).containsAll(std::forward<TOtherType>(obj)...);
+		return derived(*this).containsAll(obj...);
 	}
 
 	template <typename... TFunc,
 		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
 	>
 	[[nodiscard]] bool containsAll(const TFunc&... inFunctions) {
-		return derived(*this).containsAll(std::forward<TFunc>(inFunctions)...);
+		return derived(*this).containsAll(inFunctions...);
 	}
 
 	template <typename... TFunc,
 		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
 	>
 	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
-		return derived(*this).containsOne(std::forward<TFunc>(inFunctions)...);
+		return derived(*this).containsOne(inFunctions...);
 	}
 
 	// Find a certain element in the container
@@ -408,14 +408,14 @@ struct TSequenceContainer : SContainer {
 		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
 	>
 	[[nodiscard]] size_t findFirst(const TFunc&... inFunctions) {
-		return derived(*this).findFirst(std::forward<TFunc>(inFunctions)...);
+		return derived(*this).findFirst(inFunctions...);
 	}
 
 	template <typename... TFunc,
 		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
 	>
 	[[nodiscard]] size_t findLast(const TFunc&... inFunctions) {
-		return derived(*this).findLast(std::forward<TFunc>(inFunctions)...);
+		return derived(*this).findLast(inFunctions...);
 	}
 
 	// Get an element at a specified index

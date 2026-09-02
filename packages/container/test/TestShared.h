@@ -15,8 +15,16 @@ struct Abstract {
         return fst.id < snd.id;
     }
 
+    friend bool operator<(const Abstract& fst, const int& snd) {
+        return fst.id < snd;
+    }
+
     friend bool operator==(const Abstract& fst, const Abstract& snd) {
         return fst.id == snd.id;
+    }
+
+    friend bool operator==(const Abstract& fst, const int& snd) {
+        return fst.id == snd;
     }
 
 #ifdef USING_CPPNS_ARCHIVE
@@ -50,8 +58,16 @@ struct Parent : Abstract{
         return fst.id < snd.id;
     }
 
+    friend bool operator<(const Parent& fst, const int& snd) {
+        return fst.id < snd;
+    }
+
     friend bool operator==(const Parent& fst, const Parent& snd) {
         return fst.id == snd.id;
+    }
+
+    friend bool operator==(const Parent& fst, const int& snd) {
+        return fst.id == snd;
     }
 
 #ifdef USING_CPPNS_ARCHIVE
@@ -86,8 +102,16 @@ struct SObject : Parent {
         return fst.id < snd.id;
     }
 
+    friend bool operator<(const SObject& fst, const int& snd) {
+        return fst.id < snd;
+    }
+
     friend bool operator==(const SObject& fst, const SObject& snd) {
         return fst.id == snd.id;
+    }
+
+    friend bool operator==(const SObject& fst, const int& snd) {
+        return fst.id == snd;
     }
 
 #ifdef USING_CPPNS_ARCHIVE

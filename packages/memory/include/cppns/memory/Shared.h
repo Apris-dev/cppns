@@ -76,6 +76,16 @@ struct TShared {
 		}
 	}
 
+	template <typename TChildType,
+		std::enable_if_t<std::is_base_of_v<TType, TChildType>, int> = 0
+	>
+	constexpr_23 explicit TShared(TChildType&& obj) noexcept {
+		m_ptr = std::shared_ptr<TType>(new TChildType(std::forward<TChildType>(obj)), sstl::deleter<TType>());
+		if constexpr (sstl::is_initializable_v<TType>) {
+			m_ptr->init();
+		}
+	}
+
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
@@ -121,15 +131,7 @@ struct TShared {
 	 * Allow copies of same type
 	 */
 
-	constexpr_23 TShared& operator=(const TShared& otr) noexcept {
-		this->m_ptr = otr.m_ptr;
-		return *this;
-	}
-
-	constexpr_23 TShared& operator=(TShared& otr) noexcept {
-		this->m_ptr = otr.m_ptr;
-		return *this;
-	}
+	constexpr_23 TShared& operator=(const TShared& otr) noexcept = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
@@ -144,7 +146,7 @@ struct TShared {
 		return *this;
 	}
 
-	size_t count() const noexcept {
+	[[nodiscard]] size_t count() const noexcept {
 		return m_ptr.use_count();
 	}
 
@@ -195,10 +197,24 @@ struct TShared {
 	}
 
 	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator<(const TShared& fst, const TOtherType& otr) noexcept {
+		return *fst < otr;
+	}
+
+	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator<=(const TShared& fst, const TOtherType& snd) noexcept {
 		return fst.get() <= snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator<=(const TShared& fst, const TOtherType& otr) noexcept {
+		return *fst <= otr;
 	}
 
 	template <typename TOtherType,
@@ -209,6 +225,13 @@ struct TShared {
 	}
 
 	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator>(const TShared& fst, const TOtherType& otr) noexcept {
+		return *fst > otr;
+	}
+
+	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator>=(const TShared& fst, const TOtherType& snd) noexcept {
@@ -216,10 +239,24 @@ struct TShared {
 	}
 
 	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator>=(const TShared& fst, const TOtherType& otr) noexcept {
+		return *fst >= otr;
+	}
+
+	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator==(const TShared& fst, const TOtherType& snd) noexcept {
 		return fst.get() == snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator==(const TShared& fst, const TOtherType& otr) noexcept {
+		return *fst == otr;
 	}
 
 	// Compare raw pointer
@@ -237,6 +274,13 @@ struct TShared {
 	>
 	constexpr_23 friend bool operator!=(const TShared& fst, const TOtherType& snd) noexcept {
 		return fst.get() != snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator!=(const TShared& fst, const TOtherType& otr) noexcept {
+		return *fst != otr;
 	}
 
 	// Compare raw pointer

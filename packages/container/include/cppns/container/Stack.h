@@ -59,6 +59,33 @@ struct TStack : TSequenceContainer<TStack<TType>> {
 		return CONTAINS_IF(m_Container, inFunction);
 	}
 
+	template <typename... TOtherType,
+		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
+	>
+	[[nodiscard]] bool containsAll(const TOtherType&... obj) {
+		bool res = true;
+		((res &= CONTAINS(m_Container, obj)), ...);
+		return res;
+	}
+
+	template <typename... TFunc,
+		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
+	>
+	[[nodiscard]] bool containsAll(const TFunc&... inFunctions) {
+		bool res = true;
+		((res &= CONTAINS_IF(m_Container, inFunctions)), ...);
+		return res;
+	}
+
+	template <typename... TFunc,
+		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
+	>
+	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
+		bool res = false;
+		((res |= CONTAINS_IF(m_Container, inFunctions)), ...);
+		return res;
+	}
+
 	template <typename TOtherType,
 		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
 	>
@@ -68,6 +95,32 @@ struct TStack : TSequenceContainer<TStack<TType>> {
 
 	size_t find(const std::function<bool(const TType&)>& inFunction) {
 		return DISTANCE_IF(m_Container, inFunction);
+	}
+
+	template <typename... TFunc,
+		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
+	>
+	[[nodiscard]] size_t findFirst(const TFunc&... inFunctions) {
+		auto func = [&](const auto& obb) {
+			bool res = false;
+			((res |= inFunctions(obb)), ...);
+			return res;
+		};
+
+		return find(func);
+	}
+
+	template <typename... TFunc,
+		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
+	>
+	[[nodiscard]] size_t findLast(const TFunc&... inFunctions) {
+		auto func = [&](const auto& obb) {
+			bool res = false;
+			((res |= inFunctions(obb)), ...);
+			return res;
+		};
+
+		return DISTANCE_LAST_IF(m_Container, func);
 	}
 
 	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)

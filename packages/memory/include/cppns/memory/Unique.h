@@ -52,6 +52,16 @@ struct TUnique {
 		}
 	}
 
+	template <typename TChildType,
+		std::enable_if_t<std::is_base_of_v<TType, TChildType>, int> = 0
+	>
+	constexpr_23 explicit TUnique(TChildType&& obj) noexcept {
+		m_ptr = std::unique_ptr<TType, sstl::delayed_deleter<TType>>(new TChildType(std::forward<TChildType>(obj)), sstl::delayed_deleter<TType>(&sstl::delete_impl<TType>));
+		if constexpr (sstl::is_initializable_v<TType>) {
+			m_ptr->init();
+		}
+	}
+
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
@@ -143,10 +153,24 @@ struct TUnique {
 	}
 
 	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator<(const TUnique& fst, const TOtherType& otr) noexcept {
+		return *fst < otr;
+	}
+
+	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator<=(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() <= snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator<=(const TUnique& fst, const TOtherType& otr) noexcept {
+		return *fst <= otr;
 	}
 
 	template <typename TOtherType,
@@ -157,6 +181,13 @@ struct TUnique {
 	}
 
 	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator>(const TUnique& fst, const TOtherType& otr) noexcept {
+		return *fst > otr;
+	}
+
+	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator>=(const TUnique& fst, const TOtherType& snd) noexcept {
@@ -164,10 +195,24 @@ struct TUnique {
 	}
 
 	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator>=(const TUnique& fst, const TOtherType& otr) noexcept {
+		return *fst >= otr;
+	}
+
+	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
 	constexpr_23 friend bool operator==(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() == snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator==(const TUnique& fst, const TOtherType& otr) noexcept {
+		return *fst == otr;
 	}
 
 	// Compare raw pointer
@@ -185,6 +230,13 @@ struct TUnique {
 	>
 	friend bool operator!=(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() != snd.get();
+	}
+
+	template <typename TOtherType,
+		std::enable_if_t<not sstl::is_managed<TOtherType>::value, int> = 0
+	>
+	constexpr_23 friend bool operator!=(const TUnique& fst, const TOtherType& otr) noexcept {
+		return *fst != otr;
 	}
 
 	// Compare raw pointer

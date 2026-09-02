@@ -208,20 +208,20 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
-			assert(container.contains(1, 5, 8));
+			assert(container.containsAll(1, 5, 8));
 
 			TForwardList<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 
-			assert(from.contains(10, 50, 80));
+			assert(from.containsAll(10, 50, 80));
 
 			container.append(from);
 
 			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-			assert(container.contains(1, 5, 8, 10, 50, 80));
+			assert(container.containsAll(1, 5, 8, 10, 50, 80));
 
 			container.clear();
 
@@ -267,7 +267,7 @@ void testSpan(const TSpan<int>& span) {
 
 cppns_main() {
 
-	/*DO_TEST(TVector)
+	DO_TEST(TVector)
 	DO_TEST(TMaxHeap)
 	DO_TEST(TMinHeap)
 	DO_TEST(TDeque)
@@ -275,35 +275,7 @@ cppns_main() {
 	DO_TEST(TForwardList)
 	DO_ARRAY_TEST(TArray)
 	DO_TEST(TStack)
-	DO_TEST(TQueue)*/
-
-	TUnique<TSequenceContainer<TVector<SObject>>> vec = TUnique{
-		TVector{
-			SObject{5, "Hello5"},
-			SObject{2, "Hello2"},
-			SObject{8, "Hello8"},
-			SObject{1, "Hello1"}
-		}
-	};
-
-	std::cout << "Started vec test" << std::endl;
-
-	auto contains1 = [](const auto& obb) { return obb.id == 1; };
-	auto contains5 = [](const auto& obb) { return obb.id == 5; };
-	auto contains8 = [](const auto& obb) { return obb.id == 8; };
-
-	//std::ranges::find_first_of
-
-	//TODO: std::any_of, all_of, and none_of are tests for conditions (extensions of contains)
-
-	/*std::cout << "Found First: ";
-	if (const auto index = vec->findLast(contains1, contains5, contains8); vec->isValid(index)) {
-		(*vec)[index].print();
-	}
-
-	assert(vec->containsAll(contains1, contains5, contains8));
-	assert(vec->containsAll(5, 2, 8, 1));*/
-
+	DO_TEST(TQueue)
 
 	return 0;
 }
