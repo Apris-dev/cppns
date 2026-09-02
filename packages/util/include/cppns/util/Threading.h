@@ -283,27 +283,21 @@ public:
 		}
 	}
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
-	TThreadSafe(const TThreadSafe<TOtherType>& otr) noexcept
-	: TThreadSafe(otr.m_obj) {}
-
 	TThreadSafe(const TThreadSafe& otr) noexcept
 	: TThreadSafe(otr.m_obj) {}
 
+	TThreadSafe(TThreadSafe&& otr) noexcept
+	: TThreadSafe(std::move(otr.m_obj)) {}
+
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
-	TThreadSafe(TThreadSafe<TOtherType>& otr)
+	TThreadSafe(const TThreadSafe<TOtherType>& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
 #else
 	noexcept
 #endif
-	: TThreadSafe(otr.m_obj) {}
-
-	TThreadSafe(TThreadSafe& otr) noexcept
 	: TThreadSafe(otr.m_obj) {}
 
 	template <typename TOtherType = TType,
@@ -317,8 +311,15 @@ public:
 #endif
 	: TThreadSafe(std::move(otr.m_obj)) {}
 
-	TThreadSafe(TThreadSafe&& otr) noexcept
-	: TThreadSafe(std::move(otr.m_obj)) {}
+	TThreadSafe& operator=(const TThreadSafe& otr) noexcept {
+		this->m_obj = otr.m_obj;
+		return *this;
+	}
+
+	TThreadSafe& operator=(TThreadSafe&& otr) noexcept {
+		this->m_obj = std::move(otr.m_obj);
+		return *this;
+	}
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
@@ -333,29 +334,6 @@ public:
 		return *this;
 	}
 
-	TThreadSafe& operator=(const TThreadSafe& otr) noexcept {
-		this->m_obj = otr.m_obj;
-		return *this;
-	}
-
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
-	TThreadSafe& operator=(TThreadSafe<TOtherType>& otr)
-#ifdef __cpp_lib_is_nothrow_convertible
-	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
-#else
-	noexcept {
-#endif
-		this->m_obj = otr.m_obj;
-		return *this;
-	}
-
-	TThreadSafe& operator=(TThreadSafe& otr) noexcept {
-		this->m_obj = otr.m_obj;
-		return *this;
-	}
-
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
@@ -365,11 +343,6 @@ public:
 #else
 	noexcept {
 #endif
-		this->m_obj = std::move(otr.m_obj);
-		return *this;
-	}
-
-	TThreadSafe& operator=(TThreadSafe&& otr) noexcept {
 		this->m_obj = std::move(otr.m_obj);
 		return *this;
 	}

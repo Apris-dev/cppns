@@ -9,9 +9,6 @@ struct TWeak {
 	TWeak(const std::weak_ptr<TType>& ptr) noexcept
 	: m_ptr(ptr) {}
 
-	TWeak(std::weak_ptr<TType>& ptr) noexcept
-	: m_ptr(ptr) {}
-
 	TWeak(std::weak_ptr<TType>&& ptr) noexcept
 	: m_ptr(std::move(ptr)) {}
 
@@ -20,15 +17,7 @@ struct TWeak {
 	: m_ptr(shared.m_ptr) {}
 
 	template <typename TOtherType>
-	TWeak(TShared<TOtherType>& shared) noexcept
-	: m_ptr(shared.m_ptr) {}
-
-	template <typename TOtherType>
 	TWeak(const std::shared_ptr<TOtherType>& shared) noexcept
-	: m_ptr(shared) {}
-
-	template <typename TOtherType>
-	TWeak(std::shared_ptr<TOtherType>& shared) noexcept
 	: m_ptr(shared) {}
 
 	TWeak() = default;
@@ -45,19 +34,11 @@ struct TWeak {
 	>
 	TWeak(const TWeak<TOtherType>& otr) = delete;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
-	TWeak(TWeak<TOtherType>& otr) = delete;
-
 	/*
 	 * Allow copies of same type
 	 */
 
 	TWeak(const TWeak& otr) noexcept
-	: m_ptr(otr.m_ptr) {}
-
-	TWeak(TWeak& otr) noexcept
 	: m_ptr(otr.m_ptr) {}
 
 	template <typename TOtherType = TType,
@@ -76,24 +57,11 @@ struct TWeak {
 	>
 	TWeak& operator=(const TWeak<TOtherType>& otr) = delete;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
-	TWeak& operator=(TWeak<TOtherType>& otr) = delete;
-
 	/*
 	 * Allow copies of same type
 	 */
 
-	TWeak& operator=(const TWeak& otr) noexcept {
-		this->m_ptr = otr.m_ptr;
-		return *this;
-	}
-
-	TWeak& operator=(TWeak& otr) noexcept {
-		this->m_ptr = otr.m_ptr;
-		return *this;
-	}
+	TWeak& operator=(const TWeak& otr) noexcept = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
@@ -316,8 +284,3 @@ template <typename TType>
 template <typename TOtherType>
 constexpr_23 TShared<TType>::TShared(const TWeak<TOtherType>& shared) noexcept
 	: m_ptr(shared.m_ptr) {}
-
-template <typename TType>
-template <typename TOtherType>
-constexpr_23 TShared<TType>::TShared(TWeak<TOtherType>& shared) noexcept
-: m_ptr(shared.m_ptr) {}

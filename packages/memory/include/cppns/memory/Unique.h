@@ -70,11 +70,6 @@ struct TUnique {
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
-	constexpr_23 TUnique(TUnique<TOtherType>&) = delete;
-
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
 	constexpr_23 TUnique(TUnique<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
@@ -87,11 +82,6 @@ struct TUnique {
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
 	constexpr_23 TUnique& operator=(const TUnique<TOtherType>& otr) = delete;
-
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
-	constexpr_23 TUnique& operator=(TUnique<TOtherType>& otr) = delete;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0

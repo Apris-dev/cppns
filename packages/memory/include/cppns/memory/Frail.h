@@ -11,13 +11,7 @@ struct TFrail {
 	TFrail(const TWeak<TType>& ptr) noexcept
 	: m_ptr(ptr.m_ptr.lock().get()) {}
 
-	TFrail(TWeak<TType>& ptr) noexcept
-	: m_ptr(ptr.m_ptr.lock().get()) {}
-
 	TFrail(const std::weak_ptr<TType>& ptr) noexcept
-	: m_ptr(ptr.lock().get()) {}
-
-	TFrail(std::weak_ptr<TType>& ptr) noexcept
 	: m_ptr(ptr.lock().get()) {}
 
 	template <typename TOtherType>
@@ -25,15 +19,7 @@ struct TFrail {
 	: m_ptr(shared.m_ptr.get()) {}
 
 	template <typename TOtherType>
-	TFrail(TShared<TOtherType>& shared) noexcept
-	: m_ptr(shared.m_ptr.get()) {}
-
-	template <typename TOtherType>
 	TFrail(const std::shared_ptr<TOtherType>& shared) noexcept
-	: m_ptr(shared.get()) {}
-
-	template <typename TOtherType>
-	TFrail(std::shared_ptr<TOtherType>& shared) noexcept
 	: m_ptr(shared.get()) {}
 
 	template <typename TOtherType>
@@ -41,15 +27,7 @@ struct TFrail {
 	: m_ptr(unique.m_ptr.get()) {}
 
 	template <typename TOtherType>
-	TFrail(TUnique<TOtherType>& unique) noexcept
-	: m_ptr(unique.m_ptr.get()) {}
-
-	template <typename TOtherType>
 	TFrail(const std::unique_ptr<TOtherType>& unique) noexcept
-	: m_ptr(unique.get()) {}
-
-	template <typename TOtherType>
-	TFrail(std::unique_ptr<TOtherType>& unique) noexcept
 	: m_ptr(unique.get()) {}
 
 	TFrail() = default;
@@ -66,16 +44,11 @@ struct TFrail {
 	template <typename TOtherType>
 	TFrail(const TFrail<TOtherType>& otr) = delete;
 
-	template <typename TOtherType>
-	TFrail(TFrail<TOtherType>& otr) = delete;
-
 	/*
 	 * Allow copies of same type
 	 */
 
 	TFrail(const TFrail& otr) noexcept = default;
-
-	TFrail(TFrail& otr) noexcept = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
@@ -91,16 +64,11 @@ struct TFrail {
 	template <typename TOtherType>
 	TFrail& operator=(const TFrail<TOtherType>& otr) = delete;
 
-	template <typename TOtherType>
-	TFrail& operator=(TFrail<TOtherType>& otr) = delete;
-
 	/*
 	 * Allow copies of same type
 	 */
 
 	TFrail& operator=(const TFrail& otr) noexcept = default;
-
-	TFrail& operator=(TFrail& otr) noexcept = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0

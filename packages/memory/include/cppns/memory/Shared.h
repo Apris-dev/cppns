@@ -12,9 +12,6 @@ struct TShared {
 	constexpr_23 TShared(const std::shared_ptr<TType>& ptr) noexcept
 	: m_ptr(ptr) {}
 
-	constexpr_23 TShared(std::shared_ptr<TType>& ptr) noexcept
-	: m_ptr(ptr) {}
-
 	constexpr_23 TShared(std::shared_ptr<TType>&& ptr) noexcept
 	: m_ptr(std::move(ptr)) {}
 
@@ -22,14 +19,7 @@ struct TShared {
 	constexpr_23 TShared(const TWeak<TOtherType>& shared) noexcept;
 
 	template <typename TOtherType>
-	constexpr_23 TShared(TWeak<TOtherType>& shared) noexcept;
-
-	template <typename TOtherType>
 	constexpr_23 TShared(const std::weak_ptr<TOtherType>& shared) noexcept
-	: m_ptr(shared) {}
-
-	template <typename TOtherType>
-	constexpr_23 TShared(std::weak_ptr<TOtherType>& shared) noexcept
 	: m_ptr(shared) {}
 
 	constexpr_23 TShared() noexcept {
@@ -91,19 +81,11 @@ struct TShared {
 	>
 	constexpr_23 TShared(const TShared<TOtherType>& otr) = delete;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
-	constexpr_23 TShared(TShared<TOtherType>& otr) = delete;
-
 	/*
 	 * Allow copies of same type
 	 */
 
 	constexpr_23 TShared(const TShared& otr) noexcept
-	: m_ptr(otr.m_ptr) {}
-
-	constexpr_23 TShared(TShared& otr) noexcept
 	: m_ptr(otr.m_ptr) {}
 
 	template <typename TOtherType = TType,
@@ -122,24 +104,11 @@ struct TShared {
 	>
 	TShared& operator=(const TShared<TOtherType>& otr) = delete;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
-	TShared& operator=(TShared<TOtherType>& otr) = delete;
-
 	/*
 	 * Allow copies of same type
 	 */
 
-	constexpr_23 TShared& operator=(const TShared& otr) noexcept {
-		this->m_ptr = otr.m_ptr;
-		return *this;
-	}
-
-	constexpr_23 TShared& operator=(TShared& otr) noexcept {
-		this->m_ptr = otr.m_ptr;
-		return *this;
-	}
+	TShared& operator=(const TShared& otr) noexcept = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
