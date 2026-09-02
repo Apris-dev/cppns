@@ -4,8 +4,8 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: ${{ matrix.name }}-${{ matrix.compiler }}-c++${{ matrix.cxx_standard }}-cmake-run
-    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.platform.name }}-${{ matrix.platform.compiler }}-c++${{ matrix.cxx_standard }}-cmake-run
+    runs-on: ${{ matrix.platform.os }}
     env:
       vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
     strategy:
@@ -16,26 +16,12 @@ jobs:
           - 20
           - 23
 
-        include:
-          - os: ubuntu-24.04
-            name: linux
-            compiler: gcc
-
-          - os: ubuntu-24.04
-            name: linux
-            compiler: clang
-
-          - os: macos-15
-            name: macos
-            compiler: clang
-
-          - os: windows-2022
-            name: windows
-            compiler: msvc
-
-          - os: windows-2022
-            name: windows
-            compiler: mingw
+        platform:
+          - { os: ubuntu-24.04, compiler: gcc }
+          - { os: ubuntu-24.04, compiler: clang }
+          - { os: macos-15, compiler: clang }
+          - { os: windows-2022, compiler: msvc }
+          - { os: windows-2022, compiler: mingw }
     steps:
       # Checkout project, including submodules
       - uses: actions/checkout@v4
@@ -61,7 +47,7 @@ jobs:
       - name: Run CMake
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: 'ninja-multi-${{ matrix.compiler }}'
+          configurePreset: 'ninja-multi-${{ matrix.platform.compiler }}'
           configurePresetAdditionalArgs: "['-DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }}']"
-          buildPreset: 'ninja-release-${{ matrix.compiler }}'
-          testPreset: 'test-${{ matrix.compiler }}-release'
+          buildPreset: 'ninja-release-${{ matrix.platform.compiler }}'
+          testPreset: 'test-${{ matrix.platform.compiler }}-release'
