@@ -28,10 +28,15 @@
 
 #include "cppns/util/Pair.h"
 
+#ifdef __cpp_lib_ranges_find_last
+#define FIND_LAST_IF(c, func, ...) std::ranges::find_last_if(c, func).begin()
+#else
+#define FIND_LAST_IF(c, func, ...) std::find_if(c.rbegin(), c.rend(), func)
+#endif
+
 #ifdef __cpp_lib_ranges
 #define FIND(c, x, ...) std::ranges::find_if(c, [&x](const auto& v) { return v == x; })
 #define FIND_IF(c, func, ...) std::ranges::find_if(c, func)
-#define FIND_LAST_IF(c, func, ...) std::ranges::find_last_if(c, func).begin()
 #define ERASE(c, x, ...) c.erase(FIND(c, x, __VA_ARGS__))
 #define DISTANCE(c, x, ...) std::ranges::distance(c.begin(), FIND(c, x, __VA_ARGS__))
 #define DISTANCE_IF(c, func, ...) std::ranges::distance(c.begin(), FIND_IF(c, func, __VA_ARGS__))
@@ -41,7 +46,6 @@
 #else
 #define FIND(c, x, ...) std::find(c.begin(), c.end(), x)
 #define FIND_IF(c, func, ...) std::find_if(c.begin(), c.end(), func)
-#define FIND_LAST_IF(c, func, ...) std::find_if(c.rbegin(), c.rend(), func)
 #define ERASE(c, x, ...) c.erase(FIND(c, x, __VA_ARGS__))
 #define DISTANCE(c, x, ...) std::distance(c.begin(), FIND(c, x, __VA_ARGS__))
 #define DISTANCE_IF(c, func, ...) std::distance(c.begin(), FIND_IF(c, func, __VA_ARGS__))
