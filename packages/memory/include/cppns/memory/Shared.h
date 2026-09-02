@@ -131,7 +131,15 @@ struct TShared {
 	 * Allow copies of same type
 	 */
 
-	constexpr_23 TShared& operator=(const TShared& otr) noexcept = default;
+	constexpr_23 TShared& operator=(const TShared& otr) noexcept {
+		this->m_ptr = otr.m_ptr;
+		return *this;
+	}
+
+	constexpr_23 TShared& operator=(TShared& otr) noexcept {
+		this->m_ptr = otr.m_ptr;
+		return *this;
+	}
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
