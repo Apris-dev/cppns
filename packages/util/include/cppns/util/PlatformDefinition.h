@@ -30,18 +30,6 @@
     #define USING_APPLE 0
 #endif
 
-#if USING_WINDOWS
-    // On Windows, only two compilers are supported
-    #ifdef _MSC_VER
-        #define USING_MSVC 1
-        #define USING_MINGW 0
-    #else
-        #define USING_MSVC 0
-        // MinGW can use either GCC or Clang under the hood, so multiple may seem to be enabled
-        #define USING_MINGW 1
-    #endif
-#endif
-
 #ifdef __clang__
     #define USING_CLANG 1
 #else
@@ -52,6 +40,22 @@
     #define USING_GCC 1
 #else
     #define USING_GCC 0
+#endif
+
+#if USING_WINDOWS
+    // On Windows, only two compilers are supported
+    #ifdef _MSC_VER
+        #define USING_MSVC 1
+    #else
+        #define USING_MSVC 0
+    #endif
+
+        // MinGW uses either GCC or Clang under the hood
+    #if USING_GCC || USING_CLANG
+        #define USING_MINGW 1
+    #else
+        #define USING_MINGW 0
+    #endif
 #endif
 
 
