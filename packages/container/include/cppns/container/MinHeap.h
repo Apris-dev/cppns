@@ -13,25 +13,25 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 
 	using Super = TSequenceContainer<TMinHeap>;
 
-	_CONSTEXPR20 TMinHeap() = default;
+	constexpr_20 TMinHeap() = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_copy_constructible_v<TOtherType>, int> = 0
 	>
-	_CONSTEXPR20 TMinHeap(TInitializerList<TType> init): m_Container(init) {
+	constexpr_20 TMinHeap(TInitializerList<TType> init): m_Container(init) {
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
 	template <typename... TArgs,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TType, TArgs>...>, int> = 0
 	>
-	_CONSTEXPR20 explicit TMinHeap(TArgs&&... args) {
+	constexpr_20 explicit TMinHeap(TArgs&&... args) {
 		m_Container.reserve(sizeof...(TArgs));
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
-	_CONSTEXPR20 TMinHeap(const std::vector<TType>& otr): m_Container(otr) {
+	constexpr_20 TMinHeap(const std::vector<TType>& otr): m_Container(otr) {
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 

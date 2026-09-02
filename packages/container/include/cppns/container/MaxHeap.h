@@ -13,25 +13,25 @@ struct TMaxHeap : TSequenceContainer<TMaxHeap<TType>> {
 
 	using Super = TSequenceContainer<TMaxHeap>;
 
-	_CONSTEXPR20 TMaxHeap() = default;
+	constexpr_20 TMaxHeap() = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_copy_constructible_v<TOtherType>, int> = 0
 	>
-	_CONSTEXPR20 TMaxHeap(TInitializerList<TType> init): m_Container(init) {
+	constexpr_20 TMaxHeap(TInitializerList<TType> init): m_Container(init) {
 		std::make_heap(m_Container.begin(), m_Container.end(), std::less<TType>{});
 	}
 
 	template <typename... TArgs,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TType, TArgs>...>, int> = 0
 	>
-	_CONSTEXPR20 explicit TMaxHeap(TArgs&&... args) {
+	constexpr_20 explicit TMaxHeap(TArgs&&... args) {
 		m_Container.reserve(sizeof...(TArgs));
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
 		std::make_heap(m_Container.begin(), m_Container.end(), std::less<TType>{});
 	}
 
-	_CONSTEXPR20 TMaxHeap(const std::vector<TType>& otr): m_Container(otr) {
+	constexpr_20 TMaxHeap(const std::vector<TType>& otr): m_Container(otr) {
 		std::make_heap(m_Container.begin(), m_Container.end(), std::less<TType>{});
 	}
 

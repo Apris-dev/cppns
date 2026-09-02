@@ -195,17 +195,17 @@ namespace sstl {
 	struct is_managed : std::bool_constant<is_managed_v<TType>> {};
 
 	template <typename TType>
-	_CONSTEXPR23 TType* getUnfurled(TType* type) {
+	constexpr_23 TType* getUnfurled(TType* type) {
 		return type;
 	}
 
 	template <typename TType>
-	_CONSTEXPR23 const TType* getUnfurled(const TType* type) {
+	constexpr_23 const TType* getUnfurled(const TType* type) {
 		return type;
 	}
 
 	template <typename TType>
-	_CONSTEXPR23 typename TUnfurled<TType>::Type* getUnfurled(TType& type) {
+	constexpr_23 typename TUnfurled<TType>::Type* getUnfurled(TType& type) {
 		if constexpr (sstl::is_managed_v<TType>) {
 			return type.get();
 		} else {
@@ -214,7 +214,7 @@ namespace sstl {
 	}
 
 	template <typename TType>
-	_CONSTEXPR23 const typename TUnfurled<TType>::Type* getUnfurled(const TType& type) {
+	constexpr_23 const typename TUnfurled<TType>::Type* getUnfurled(const TType& type) {
 		if constexpr (sstl::is_managed_v<TType>) {
 			return type.get();
 		} else {

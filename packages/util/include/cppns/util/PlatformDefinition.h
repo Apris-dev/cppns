@@ -9,20 +9,24 @@
 
 // TODO: support more than linux, windows, and macOS.  Would need help from outside to support mobile platforms and etc.
 
-#ifndef _CONSTEXPR20
-    # if __cplusplus >= 202002L
-        #define _CONSTEXPR20 constexpr
-    #else
-        #define _CONSTEXPR20
-    #endif
+#if __cplusplus >= 202002L
+    #define USING_CXX20
 #endif
 
-#ifndef _CONSTEXPR23
-    # if __cplusplus >= 202100L
-    #  define _CONSTEXPR23 constexpr
-    # else
-    #  define _CONSTEXPR23
-    # endif
+#if __cplusplus >= 202100L
+    #define USING_CXX23
+#endif
+
+#ifdef USING_CXX20
+    #define constexpr_20 constexpr
+#else
+    #define constexpr_20
+#endif
+
+#ifdef USING_CXX23
+    #define constexpr_23 constexpr
+#else
+    #define constexpr_23
 #endif
 
 #ifdef _WIN32

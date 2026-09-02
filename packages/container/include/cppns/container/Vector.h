@@ -9,22 +9,22 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 
 	using Super = TSequenceContainer<TVector>;
 
-	_CONSTEXPR20 TVector() = default;
+	constexpr_20 TVector() = default;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_copy_constructible_v<TOtherType>, int> = 0
 	>
-	_CONSTEXPR20 TVector(TInitializerList<TType> init): m_Container(init) {}
+	constexpr_20 TVector(TInitializerList<TType> init): m_Container(init) {}
 
 	template <typename... TArgs,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TType, TArgs>...>, int> = 0
 	>
-	_CONSTEXPR20 explicit TVector(TArgs&&... args) {
+	constexpr_20 explicit TVector(TArgs&&... args) {
 		m_Container.reserve(sizeof...(TArgs));
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
 	}
 
-	_CONSTEXPR20 TVector(const std::vector<TType>& otr): m_Container(otr) {}
+	constexpr_20 TVector(const std::vector<TType>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();

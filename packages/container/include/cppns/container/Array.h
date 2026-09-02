@@ -9,14 +9,14 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	using Super = TSequenceContainer<TArray>;
 
-	_CONSTEXPR20 TArray() {
+	constexpr_20 TArray() {
 		m_IsPopulated.fill(false);
 	}
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_copy_constructible_v<TOtherType>, int> = 0
 	>
-	_CONSTEXPR20 TArray(TInitializerList<TType> init) {
+	constexpr_20 TArray(TInitializerList<TType> init) {
 		if (init.size() > TSize) {
 			throw std::runtime_error("Initializer contains too many elements for TArray!");
 		}
@@ -35,13 +35,13 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 	template <typename... TArgs,
 		std::enable_if_t<std::conjunction_v<std::is_constructible<TType, TArgs>...>, int> = 0
 	>
-	_CONSTEXPR20 explicit TArray(TArgs&&... args) {
+	constexpr_20 explicit TArray(TArgs&&... args) {
 		m_IsPopulated.fill(false);
 		size_t index = 0;
 		(arrayArgsInit(std::forward<TArgs>(args), index), ...);
 	}
 
-	_CONSTEXPR20 TArray(const std::array<TType, TSize>& otr): m_Container(otr) {
+	constexpr_20 TArray(const std::array<TType, TSize>& otr): m_Container(otr) {
 		m_IsPopulated.fill(true);
 	}
 

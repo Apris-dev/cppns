@@ -6,10 +6,10 @@
 template <typename TType>
 struct TUnique {
 
-	_CONSTEXPR23 TUnique(std::unique_ptr<TType, sstl::delayed_deleter<TType>>&& ptr) noexcept
+	constexpr_23 TUnique(std::unique_ptr<TType, sstl::delayed_deleter<TType>>&& ptr) noexcept
 	: m_ptr(std::move(ptr)) {}
 
-	_CONSTEXPR23 TUnique() noexcept {
+	constexpr_23 TUnique() noexcept {
 		// If not default constructible, default to nullptr
 		if constexpr (std::is_default_constructible_v<TType>) {
 			m_ptr = std::unique_ptr<TType, sstl::delayed_deleter<TType>>(new TType(), sstl::delayed_deleter<TType>(&sstl::delete_impl<TType>));
@@ -19,9 +19,9 @@ struct TUnique {
 		}
 	}
 
-	_CONSTEXPR23 TUnique(std::nullptr_t) noexcept {}
+	constexpr_23 TUnique(std::nullptr_t) noexcept {}
 
-	_CONSTEXPR23 TUnique& operator=(std::nullptr_t) noexcept {
+	constexpr_23 TUnique& operator=(std::nullptr_t) noexcept {
 		m_ptr = nullptr;
 		return *this;
 	}
@@ -29,7 +29,7 @@ struct TUnique {
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
-	_CONSTEXPR23 explicit TUnique(TOtherType* ptr)
+	constexpr_23 explicit TUnique(TOtherType* ptr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
 #else
@@ -45,7 +45,7 @@ struct TUnique {
 			>,
 			int> = 0
 	>
-	_CONSTEXPR23 explicit TUnique(TArgs&&... args) noexcept {
+	constexpr_23 explicit TUnique(TArgs&&... args) noexcept {
 		m_ptr = std::unique_ptr<TType, sstl::delayed_deleter<TType>>(new TType(std::forward<TArgs>(args)...), sstl::delayed_deleter<TType>(&sstl::delete_impl<TType>));
 		if constexpr (sstl::is_initializable_v<TType>) {
 			m_ptr->init();
@@ -55,17 +55,17 @@ struct TUnique {
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
-	_CONSTEXPR23 TUnique(const TUnique<TOtherType>&) = delete;
+	constexpr_23 TUnique(const TUnique<TOtherType>&) = delete;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
-	_CONSTEXPR23 TUnique(TUnique<TOtherType>&) = delete;
+	constexpr_23 TUnique(TUnique<TOtherType>&) = delete;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
-	_CONSTEXPR23 TUnique(TUnique<TOtherType>&& otr)
+	constexpr_23 TUnique(TUnique<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
 #else
@@ -76,17 +76,17 @@ struct TUnique {
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
-	_CONSTEXPR23 TUnique& operator=(const TUnique<TOtherType>& otr) = delete;
+	constexpr_23 TUnique& operator=(const TUnique<TOtherType>& otr) = delete;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
-	_CONSTEXPR23 TUnique& operator=(TUnique<TOtherType>& otr) = delete;
+	constexpr_23 TUnique& operator=(TUnique<TOtherType>& otr) = delete;
 
 	template <typename TOtherType = TType,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
-	_CONSTEXPR23 TUnique& operator=(TUnique<TOtherType>&& otr)
+	constexpr_23 TUnique& operator=(TUnique<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
 #else
@@ -102,81 +102,81 @@ struct TUnique {
 	}
 
 	template <typename TOtherType>
-	_CONSTEXPR23 TOtherType* staticCast() const noexcept {
+	constexpr_23 TOtherType* staticCast() const noexcept {
 		return static_cast<TOtherType*>(this->m_ptr.get());
 	}
 
 	template <typename TOtherType>
-	_CONSTEXPR23 TOtherType* dynamicCast() const noexcept {
+	constexpr_23 TOtherType* dynamicCast() const noexcept {
 		return dynamic_cast<TOtherType*>(this->m_ptr.get());
 	}
 
 	template <typename TOtherType>
-	_CONSTEXPR23 TOtherType* reinterpretCast() const noexcept {
+	constexpr_23 TOtherType* reinterpretCast() const noexcept {
 		return reinterpret_cast<TOtherType*>(this->m_ptr.get());
 	}
 
 	template <typename TOtherType>
-	_CONSTEXPR23 TOtherType* constCast() const noexcept {
+	constexpr_23 TOtherType* constCast() const noexcept {
 		return const_cast<TOtherType*>(this->m_ptr.get());
 	}
 
-	_CONSTEXPR23 TType* operator->() const noexcept {
+	constexpr_23 TType* operator->() const noexcept {
 		return m_ptr.get();
 	}
 
-	_CONSTEXPR23 TType& operator*() const noexcept {
+	constexpr_23 TType& operator*() const noexcept {
 		return *m_ptr.get();
 	}
 
-	_CONSTEXPR23 TType* get() const noexcept { return m_ptr.get(); }
+	constexpr_23 TType* get() const noexcept { return m_ptr.get(); }
 
-	_CONSTEXPR23 operator bool() const noexcept {
+	constexpr_23 operator bool() const noexcept {
 		return static_cast<bool>(m_ptr);
 	}
 
 	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
-	_CONSTEXPR23 friend bool operator<(const TUnique& fst, const TOtherType& snd) noexcept {
+	constexpr_23 friend bool operator<(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() < snd.get();
 	}
 
 	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
-	_CONSTEXPR23 friend bool operator<=(const TUnique& fst, const TOtherType& snd) noexcept {
+	constexpr_23 friend bool operator<=(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() <= snd.get();
 	}
 
 	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
-	_CONSTEXPR23 friend bool operator>(const TUnique& fst, const TOtherType& snd) noexcept {
+	constexpr_23 friend bool operator>(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() > snd.get();
 	}
 
 	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
-	_CONSTEXPR23 friend bool operator>=(const TUnique& fst, const TOtherType& snd) noexcept {
+	constexpr_23 friend bool operator>=(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() >= snd.get();
 	}
 
 	template <typename TOtherType,
 		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
 	>
-	_CONSTEXPR23 friend bool operator==(const TUnique& fst, const TOtherType& snd) noexcept {
+	constexpr_23 friend bool operator==(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() == snd.get();
 	}
 
 	// Compare raw pointer
-	_CONSTEXPR23 friend bool operator==(const TUnique& fst, const void* snd) noexcept {
+	constexpr_23 friend bool operator==(const TUnique& fst, const void* snd) noexcept {
 		return fst.get() == snd;
 	}
 
 	// Compare raw pointer
-	_CONSTEXPR23 friend bool operator==(const void* fst, const TUnique& snd) noexcept {
+	constexpr_23 friend bool operator==(const void* fst, const TUnique& snd) noexcept {
 		return snd == fst;
 	}
 
@@ -188,7 +188,7 @@ struct TUnique {
 	}
 
 	// Compare raw pointer
-	_CONSTEXPR23 friend bool operator!=(const TUnique& fst, const void* snd) noexcept {
+	constexpr_23 friend bool operator!=(const TUnique& fst, const void* snd) noexcept {
 		return fst.get() != snd;
 	}
 
@@ -235,7 +235,7 @@ struct TUnfurled<TUnique<TType>> {
 	template <typename TOtherType = TType, typename... TArgs,
 		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
 	>
-	_CONSTEXPR23 static TUnique<TType> create(TArgs&&... args)
+	constexpr_23 static TUnique<TType> create(TArgs&&... args)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
 #else

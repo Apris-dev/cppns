@@ -54,10 +54,10 @@
 #define SHUFFLE(c, r) std::shuffle(c.begin(), c.end(), r);
 #endif
 
-#if __cplusplus >= 202002L
-#define ASSOCIATIVE_CONTAINS(c, x) c.contains(x)
+#ifdef USING_CXX20
+	#define ASSOCIATIVE_CONTAINS(c, x) c.contains(x)
 #else
-#define ASSOCIATIVE_CONTAINS(c, x) c.find(x) != c.end()
+	#define ASSOCIATIVE_CONTAINS(c, x) c.find(x) != c.end()
 #endif
 
 #define CONTAINS(c, x, ...) FIND(c, x, __VA_ARGS__) != c.end()

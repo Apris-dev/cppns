@@ -314,10 +314,10 @@ struct std::hash<TWeak<TType>> {
 
 template <typename TType>
 template <typename TOtherType>
-_CONSTEXPR23 TShared<TType>::TShared(const TWeak<TOtherType>& shared) noexcept
+constexpr_23 TShared<TType>::TShared(const TWeak<TOtherType>& shared) noexcept
 	: m_ptr(shared.m_ptr) {}
 
 template <typename TType>
 template <typename TOtherType>
-_CONSTEXPR23 TShared<TType>::TShared(TWeak<TOtherType>& shared) noexcept
+constexpr_23 TShared<TType>::TShared(TWeak<TOtherType>& shared) noexcept
 : m_ptr(shared.m_ptr) {}
