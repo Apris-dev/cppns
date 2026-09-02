@@ -6,29 +6,47 @@ jobs:
   build:
     name: ${{ matrix.os }}-${{ matrix.compiler }}-cmake-run
     runs-on: ${{ matrix.os }}
+    env:
+      vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-24.04
-            compiler: gcc
-            vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
+        os:
+          - ubuntu-24.04
+          - macos-15
+          - windows-2022
 
-          - os: ubuntu-24.04
-            compiler: clang
-            vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
+        compiler:
+          - gcc
+          - clang
+          - msvc
+          - mingw
 
+        cxx_standard:
+          - 17
+          - 20
+          - 23
+
+        exclude:
+          # macOS
           - os: macos-15
-            compiler: clang
-            vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
-
-          - os: windows-2022
+            compiler: gcc
+          - os: macos-15
             compiler: msvc
-            vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
-
-          - os: windows-2022
+          - os: macos-15
             compiler: mingw
-            vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
+
+          # Ubuntu
+          - os: ubuntu-24.04
+            compiler: msvc
+          - os: ubuntu-24.04
+            compiler: mingw
+
+          # Windows
+          - os: windows-2022
+            compiler: gcc
+          - os: windows-2022
+            compiler: clang
     steps:
       # Checkout project, including submodules
       - uses: actions/checkout@v4
@@ -44,7 +62,7 @@ jobs:
         id: runvcpkg
         with:
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
+          vcpkgGitCommitId: '${{ env.vcpkgCommitId }}'
           vcpkgJsonGlob: '**/scripts/example_vcpkg.json'
 
       - name: Prints output of run-vcpkg's action
@@ -55,5 +73,6 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           configurePreset: 'ninja-multi-${{ matrix.compiler }}'
+          configurePresetAdditionalArgs: "['-DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }}']"
           buildPreset: 'ninja-release-${{ matrix.compiler }}'
           testPreset: 'test-${{ matrix.compiler }}-release'
