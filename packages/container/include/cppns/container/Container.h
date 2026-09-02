@@ -31,17 +31,21 @@
 #ifdef __cpp_lib_ranges
 #define FIND(c, x, ...) std::ranges::find_if(c, [&x](const auto& v) { return v == x; })
 #define FIND_IF(c, func, ...) std::ranges::find_if(c, func)
+#define FIND_LAST_IF(c, func, ...) std::ranges::find_last_if(c, func).begin()
 #define ERASE(c, x, ...) c.erase(FIND(c, x, __VA_ARGS__))
 #define DISTANCE(c, x, ...) std::ranges::distance(c.begin(), FIND(c, x, __VA_ARGS__))
 #define DISTANCE_IF(c, func, ...) std::ranges::distance(c.begin(), FIND_IF(c, func, __VA_ARGS__))
+#define DISTANCE_LAST_IF(c, func, ...) std::ranges::distance(c.begin(), FIND_LAST_IF(c, func, __VA_ARGS__))
 #define SIZE(c) std::ranges::distance(c)
 #define SHUFFLE(c, r) std::ranges::shuffle(c, r);
 #else
 #define FIND(c, x, ...) std::find(c.begin(), c.end(), x)
 #define FIND_IF(c, func, ...) std::find_if(c.begin(), c.end(), func)
+#define FIND_LAST_IF(c, func, ...) std::find_if(c.rbegin(), c.rend(), func)
 #define ERASE(c, x, ...) c.erase(FIND(c, x, __VA_ARGS__))
 #define DISTANCE(c, x, ...) std::distance(c.begin(), FIND(c, x, __VA_ARGS__))
 #define DISTANCE_IF(c, func, ...) std::distance(c.begin(), FIND_IF(c, func, __VA_ARGS__))
+#define DISTANCE_LAST_IF(c, func, ...) std::distance(c.begin(), FIND_LAST_IF(c, func, __VA_ARGS__))
 #define SIZE(c) std::distance(c.begin(), c.end())
 #define SHUFFLE(c, r) std::shuffle(c.begin(), c.end(), r);
 #endif
@@ -371,9 +375,44 @@ struct TSequenceContainer : SContainer {
 		return derived(*this).contains(inFunction);
 	}
 
+	template <typename... TOtherType,
+		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
+	>
+	[[nodiscard]] bool containsAll(const TOtherType&... obj) {
+		return derived(*this).containsAll(std::forward<TOtherType>(obj)...);
+	}
+
+	template <typename... TFunc,
+		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
+	>
+	[[nodiscard]] bool containsAll(const TFunc&... inFunctions) {
+		return derived(*this).containsAll(std::forward<TFunc>(inFunctions)...);
+	}
+
+	template <typename... TFunc,
+		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
+	>
+	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
+		return derived(*this).containsOne(std::forward<TFunc>(inFunctions)...);
+	}
+
 	// Find a certain element in the container
 	template <typename TOtherType>
 	[[nodiscard]] size_t find(const TOtherType& obj) const { return derived(*this).find(obj); }
+
+	template <typename... TFunc,
+		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
+	>
+	[[nodiscard]] size_t findFirst(const TFunc&... inFunctions) {
+		return derived(*this).findFirst(std::forward<TFunc>(inFunctions)...);
+	}
+
+	template <typename... TFunc,
+		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
+	>
+	[[nodiscard]] size_t findLast(const TFunc&... inFunctions) {
+		return derived(*this).findLast(std::forward<TFunc>(inFunctions)...);
+	}
 
 	// Get an element at a specified index
 	ENABLE_FUNC_IF(!bIsLimitedAccess)

@@ -55,11 +55,19 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 		return CONTAINS(m_Container, obj);
 	}
 
+	[[nodiscard]] bool contains(const std::function<bool(const TType&)>& inFunction) {
+		return CONTAINS_IF(m_Container, inFunction);
+	}
+
 	template <typename TOtherType,
 		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
 	>
 	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
+	}
+
+	size_t find(const std::function<bool(const TType&)>& inFunction) {
+		return DISTANCE_IF(m_Container, inFunction);
 	}
 
 	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)

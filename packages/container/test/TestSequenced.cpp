@@ -75,7 +75,7 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
 		assert(from.getSize() == 1);
-		assert(sstl::getUnfurled(from.top())->id == 100);
+		assert(from.contains(100));
 
 		from.transfer(container, 0);
 
@@ -90,7 +90,7 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
 			assert(container.getSize() == 1);
 		}
-		assert(sstl::getUnfurled(container.top())->id == 100);
+		assert(container.contains(100));
 
 		container.clear();
 
@@ -112,7 +112,7 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
 		assert(from.getSize() == 1);
-		assert(sstl::getUnfurled(from.top())->id == 100);
+		assert(from.contains(100));
 
 		from.transfer(container, 0);
 
@@ -127,7 +127,7 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
 			assert(container.getSize() == 1);
 		}
-		assert(sstl::getUnfurled(container.top())->id == 100);
+		assert(container.contains(100));
 
 		container.clear();
 
@@ -150,50 +150,20 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
-			{
-				std::vector numbers = {1, 5, 8};
-
-				for (auto& obb : container) {
-					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
-					ERASE(numbers, idd);
-				}
-
-				assert(numbers.empty());
-			}
+			assert(container.containsAll(1, 5, 8));
 
 			TVector<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 
-			{
-				std::vector numbers = {10, 50, 80};
-
-				for (auto& obb : from) {
-					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
-					ERASE(numbers, idd);
-				}
-
-				assert(numbers.empty());
-			}
+			assert(from.containsAll(10, 50, 80));
 
 			container.append(from);
 
 			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-			{
-				std::vector numbers = {1, 5, 8, 10, 50, 80};
-
-				for (auto& obb : container) {
-					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
-					ERASE(numbers, idd);
-				}
-
-				assert(numbers.empty());
-			}
+			assert(container.containsAll(1, 5, 8, 10, 50, 80));
 
 			container.clear();
 
@@ -209,50 +179,20 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
-			{
-				std::vector numbers = {1, 5, 8};
-
-				for (auto& obb : container) {
-					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
-					ERASE(numbers, idd);
-				}
-
-				assert(numbers.empty());
-			}
+			assert(container.containsAll(1, 5, 8));
 
 			TList<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 
-			{
-				std::vector numbers = {10, 50, 80};
-
-				for (auto& obb : from) {
-					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
-					ERASE(numbers, idd);
-				}
-
-				assert(numbers.empty());
-			}
+			assert(from.containsAll(10, 50, 80));
 
 			container.append(from);
 
 			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-			{
-				std::vector numbers = {1, 5, 8, 10, 50, 80};
-
-				for (auto& obb : container) {
-					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
-					ERASE(numbers, idd);
-				}
-
-				assert(numbers.empty());
-			}
+			assert(container.containsAll(1, 5, 8, 10, 50, 80));
 
 			container.clear();
 
@@ -268,50 +208,20 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
-			{
-				std::vector numbers = {1, 5, 8};
-
-				for (auto& obb : container) {
-					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
-					ERASE(numbers, idd);
-				}
-
-				assert(numbers.empty());
-			}
+			assert(container.contains(1, 5, 8));
 
 			TForwardList<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 
-			{
-				std::vector numbers = {10, 50, 80};
-
-				for (auto& obb : from) {
-					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
-					ERASE(numbers, idd);
-				}
-
-				assert(numbers.empty());
-			}
+			assert(from.contains(10, 50, 80));
 
 			container.append(from);
 
 			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-			{
-				std::vector numbers = {1, 5, 8, 10, 50, 80};
-
-				for (auto& obb : container) {
-					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
-					ERASE(numbers, idd);
-				}
-
-				assert(numbers.empty());
-			}
+			assert(container.contains(1, 5, 8, 10, 50, 80));
 
 			container.clear();
 
@@ -367,24 +277,33 @@ cppns_main() {
 	DO_TEST(TStack)
 	DO_TEST(TQueue)*/
 
-	TVector vec{
-		SObject{5, "Hello5"},
-		SObject{2, "Hello2"},
-		SObject{8, "Hello8"},
-		SObject{1, "Hello1"}
+	TUnique<TSequenceContainer<TVector<SObject>>> vec = TUnique{
+		TVector{
+			SObject{5, "Hello5"},
+			SObject{2, "Hello2"},
+			SObject{8, "Hello8"},
+			SObject{1, "Hello1"}
+		}
 	};
 
-	const bool val = vec.contains([](const SObject& obb) {
-		return obb.id == 2;
-	});
+	std::cout << "Started vec test" << std::endl;
 
-	// Returns 1 + max index if failed, should throw?
-	const size_t val2 = vec.find([](const SObject& obb) {
-		return obb.id == 90;
-	});
+	auto contains1 = [](const auto& obb) { return obb.id == 1; };
+	auto contains5 = [](const auto& obb) { return obb.id == 5; };
+	auto contains8 = [](const auto& obb) { return obb.id == 8; };
 
-	std::cout << "Vector contains object: " << (val ? "True" : "False") << std::endl;
-	std::cout << "Vector obb loc: " << val2 << std::endl;
+	//std::ranges::find_first_of
+
+	//TODO: std::any_of, all_of, and none_of are tests for conditions (extensions of contains)
+
+	/*std::cout << "Found First: ";
+	if (const auto index = vec->findLast(contains1, contains5, contains8); vec->isValid(index)) {
+		(*vec)[index].print();
+	}
+
+	assert(vec->containsAll(contains1, contains5, contains8));
+	assert(vec->containsAll(5, 2, 8, 1));*/
+
 
 	return 0;
 }
