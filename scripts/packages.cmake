@@ -215,6 +215,17 @@ function(add_shared_package TARGET_NAME)
     )
 endfunction()
 
+function(add_project_precompiled_package)
+    set(TARGET_NAME ${CURRENT_SCOPE_PROJECT}-pch)
+
+    _ensure_project_scope("Precompiled Package ${TARGET_NAME} was not created in the scope of a project!")
+    _ensure_not_package_scope("Precompiled Package ${TARGET_NAME} was created in the scope of another package!")
+    _ensure_is_not_package(${TARGET_NAME} "Precompiled Package ${TARGET_NAME} already exists!")
+
+    _add_package_impl(${TARGET_NAME} INTERFACE)
+    target_precompile_headers(${TARGET_NAME} INTERFACE ${ARGN})
+endfunction()
+
 function(_add_exec TARGET_NAME)
     # MinGW doesn't export symbols from executables even with ENABLE_EXPORTS set to ON, it is unsupported
     if (USE_BOOTSTRAPPER)
