@@ -7,9 +7,6 @@
 
 // TODO: support more than linux, windows, and macOS.  Would need help from outside to support mobile platforms and etc.
 
-#define USING_CXX20 (__cplusplus >= 202002L)
-#define USING_CXX23 (__cplusplus >= 202100L)
-
 #ifdef _WIN32
     #define USING_WINDOWS 1
 #else
@@ -56,19 +53,6 @@
     #endif
 #endif
 
-
-#if USING_CXX20
-    #define constexpr_20 constexpr
-#else
-    #define constexpr_20
-#endif
-
-#if USING_CXX23
-    #define constexpr_23 constexpr
-#else
-    #define constexpr_23
-#endif
-
 #if USING_WINDOWS
     #define PATH_SEPARATOR '\\'
     #define LINE_ENDING "\r\n"
@@ -84,12 +68,3 @@
 #endif
 
 #define EXPORTC extern "C" EXPORT
-
-#ifdef USING_BOOTSTRAPPER
-    #define cppns_main EXPORTC int run
-#else
-    #define cppns_main int main
-#endif
-
-// Allows you to optionally define whether a function exists or not. Must be constexpr and static
-#define ENABLE_FUNC_IF(cond) template<bool b = cond, std::enable_if_t<b, int> = 0>

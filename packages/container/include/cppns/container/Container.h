@@ -16,7 +16,6 @@
 #endif
 
 #include "cppns/util/Comparison.h"
-#include "cppns/util/PlatformDefinition.h"
 
 #ifdef __cpp_lib_ranges
 #include <algorithm>

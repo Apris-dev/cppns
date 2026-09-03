@@ -5,7 +5,6 @@
 
 #include "cppns/util/InitializerList.h"
 #include "cppns/util/Pair.h"
-#include "cppns/util/PlatformDefinition.h"
 
 //TODO: delimiter template?
 class CBaseStringArchive {
