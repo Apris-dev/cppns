@@ -2,8 +2,6 @@
 
 #include <type_traits>
 
-#include "cppns/util/PlatformDefinition.h"
-
 #ifdef USING_CPPNS_ARCHIVE
 #include "cppns/archive/Archive.h"
 #endif

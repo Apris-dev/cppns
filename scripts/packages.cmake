@@ -123,6 +123,11 @@ macro (_set_target_defaults TARGET_NAME)
             CXX_STANDARD_REQUIRED ON
     )
 
+    # Add precompiled headers from project pch if exists
+    if (TARGET ${CURRENT_SCOPE_PROJECT}-pch AND (NOT ${TARGET_NAME} MATCHES ${CURRENT_SCOPE_PROJECT}-pch))
+        target_link_libraries(${TARGET_NAME} INTERFACE ${CURRENT_SCOPE_PROJECT}-pch)
+    endif ()
+
     # This tells other libraries that this target has been linked downstream to enable cross-package compatibility without hard requirements
     string(TOUPPER ${CURRENT_SCOPE_PROJECT} UPPER_PROJECT_NAME)
     target_compile_definitions(${TARGET_NAME} INTERFACE USING_${UPPER_PROJECT_NAME})
