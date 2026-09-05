@@ -15,9 +15,8 @@ struct TMap : TAssociativeContainer<TMap<TKeyType, TValueType>> {
 
 	TMap() = default;
 
-	template <typename TOtherValueType = TValueType,
-		std::enable_if_t<std::is_copy_constructible_v<TOtherValueType>, int> = 0
-	>
+	template <typename TOtherValueType = TValueType
+	REQUIRES(std::is_copy_constructible_v<TOtherValueType>)
 	TMap(TInitializerList<TPair<TKeyType, TValueType>> init) {
 		m_Container.reserve(init.size());
 		for (auto& pair : init) {
@@ -71,18 +70,16 @@ struct TMap : TAssociativeContainer<TMap<TKeyType, TValueType>> {
 		return ASSOCIATIVE_CONTAINS(m_Container, key);
 	}
 
-	template <typename TOtherValueType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TValueType, TOtherValueType>, int> = 0
-	>
+	template <typename TOtherValueType
+	REQUIRES(sutil::is_equality_comparable_v<TValueType, TOtherValueType>)
 	bool contains(const TOtherValueType& obj) const {
 		return std::find_if(m_Container.begin(), m_Container.end(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
 			return pair.second == obj;
 		}) != m_Container.end();
 	}
 
-	template <typename TOtherValueType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TValueType, TOtherValueType>, int> = 0
-	>
+	template <typename TOtherValueType
+	REQUIRES(sutil::is_equality_comparable_v<TValueType, TOtherValueType>)
 	[[nodiscard]] TKeyType find(const TOtherValueType& obj) const {
 		return std::find_if(m_Container.begin(), m_Container.end(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
 			return pair.second == obj;

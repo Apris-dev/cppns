@@ -9,9 +9,6 @@ struct TWeak {
 	TWeak(const std::weak_ptr<TType>& ptr) noexcept
 	: m_ptr(ptr) {}
 
-	TWeak(std::weak_ptr<TType>& ptr) noexcept
-	: m_ptr(ptr) {}
-
 	TWeak(std::weak_ptr<TType>&& ptr) noexcept
 	: m_ptr(std::move(ptr)) {}
 
@@ -20,15 +17,7 @@ struct TWeak {
 	: m_ptr(shared.m_ptr) {}
 
 	template <typename TOtherType>
-	TWeak(TShared<TOtherType>& shared) noexcept
-	: m_ptr(shared.m_ptr) {}
-
-	template <typename TOtherType>
 	TWeak(const std::shared_ptr<TOtherType>& shared) noexcept
-	: m_ptr(shared) {}
-
-	template <typename TOtherType>
-	TWeak(std::shared_ptr<TOtherType>& shared) noexcept
 	: m_ptr(shared) {}
 
 	TWeak() = default;
@@ -40,15 +29,9 @@ struct TWeak {
 		return *this;
 	}
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
 	TWeak(const TWeak<TOtherType>& otr) = delete;
-
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
-	TWeak(TWeak<TOtherType>& otr) = delete;
 
 	/*
 	 * Allow copies of same type
@@ -57,12 +40,8 @@ struct TWeak {
 	TWeak(const TWeak& otr) noexcept
 	: m_ptr(otr.m_ptr) {}
 
-	TWeak(TWeak& otr) noexcept
-	: m_ptr(otr.m_ptr) {}
-
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
 	TWeak(TWeak<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
@@ -71,33 +50,18 @@ struct TWeak {
 #endif
 	: m_ptr(std::move(otr.m_ptr)) {}
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
 	TWeak& operator=(const TWeak<TOtherType>& otr) = delete;
-
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
-	TWeak& operator=(TWeak<TOtherType>& otr) = delete;
 
 	/*
 	 * Allow copies of same type
 	 */
 
-	TWeak& operator=(const TWeak& otr) noexcept {
-		this->m_ptr = otr.m_ptr;
-		return *this;
-	}
+	TWeak& operator=(const TWeak& otr) noexcept = default;
 
-	TWeak& operator=(TWeak& otr) noexcept {
-		this->m_ptr = otr.m_ptr;
-		return *this;
-	}
-
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
 	TWeak& operator=(TWeak<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
@@ -217,44 +181,38 @@ noexcept {
 		return snd != fst;
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator<(const TWeak& fst, const TOtherType& snd) noexcept {
 		return fst.get() < snd.get();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator<=(const TWeak& fst, const TOtherType& snd) noexcept {
 		return fst.get() <= snd.get();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator>(const TWeak& fst, const TOtherType& snd) noexcept {
 		return fst.get() > snd.get();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator>=(const TWeak& fst, const TOtherType& snd) noexcept {
 		return fst.get() >= snd.get();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator==(const TWeak& fst, const TOtherType& snd) noexcept {
 		return fst.get() == snd.get();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator!=(const TWeak& fst, const TOtherType& snd) noexcept {
 		return fst.get() != snd.get();
 	}
@@ -316,8 +274,3 @@ template <typename TType>
 template <typename TOtherType>
 constexpr_23 TShared<TType>::TShared(const TWeak<TOtherType>& shared) noexcept
 	: m_ptr(shared.m_ptr) {}
-
-template <typename TType>
-template <typename TOtherType>
-constexpr_23 TShared<TType>::TShared(TWeak<TOtherType>& shared) noexcept
-: m_ptr(shared.m_ptr) {}

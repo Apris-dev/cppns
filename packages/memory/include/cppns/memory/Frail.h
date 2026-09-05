@@ -77,9 +77,8 @@ struct TFrail {
 
 	TFrail(TFrail& otr) noexcept = default;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
 	TFrail(TFrail<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
@@ -102,9 +101,8 @@ struct TFrail {
 
 	TFrail& operator=(TFrail& otr) noexcept = default;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
 	TFrail& operator=(TFrail<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
@@ -149,37 +147,32 @@ noexcept {
 		return m_ptr != nullptr;
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator<(const TFrail& fst, const TOtherType& snd) noexcept {
 		return fst.get() < snd.get();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator<=(const TFrail& fst, const TOtherType& snd) noexcept {
 		return fst.get() <= snd.get();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator>(const TFrail& fst, const TOtherType& snd) noexcept {
 		return fst.get() > snd.get();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator>=(const TFrail& fst, const TOtherType& snd) noexcept {
 		return fst.get() >= snd.get();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator==(const TFrail& fst, const TOtherType& snd) noexcept {
 		return fst.get() == snd.get();
 	}
@@ -194,9 +187,8 @@ noexcept {
 		return snd == fst;
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sstl::is_managed<TOtherType>::value, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sstl::is_managed_v<TOtherType>)
 	friend bool operator!=(const TFrail& fst, const TOtherType& snd) noexcept {
 		return fst.get() != snd.get();
 	}

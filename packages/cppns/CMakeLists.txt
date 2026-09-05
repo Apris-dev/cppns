@@ -3,4 +3,5 @@ add_project_precompiled_package(
         include/cppns/PlatformDefinition.h
         include/cppns/Types.h
         include/cppns/Templates.h
+        include/cppns/Paths.h
 )

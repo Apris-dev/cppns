@@ -13,9 +13,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		m_IsPopulated.fill(false);
 	}
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_copy_constructible_v<TOtherType>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_copy_constructible_v<TOtherType>)
 	constexpr_20 TArray(TInitializerList<TType> init) {
 		if (init.size() > TSize) {
 			throw std::runtime_error("Initializer contains too many elements for TArray!");
@@ -32,9 +31,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	}
 
-	template <typename... TArgs,
-		std::enable_if_t<std::conjunction_v<std::is_constructible<TType, TArgs>...>, int> = 0
-	>
+	template <typename... TArgs
+	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
 	constexpr_20 explicit TArray(TArgs&&... args) {
 		m_IsPopulated.fill(false);
 		size_t index = 0;
@@ -109,9 +107,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return m_IsPopulated[index];
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
@@ -120,9 +117,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return CONTAINS_IF(m_Container, inFunction);
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
@@ -236,9 +232,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		throw std::runtime_error("No element at index to be popped!");
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	void pop(const TOtherType& obj) {
 		for (size_t index = 0; index < getSize(); ++index) {
 			if (m_Container[index] == obj) {

@@ -31,7 +31,7 @@
     #define USING_CLANG 0
 #endif
 
-#if ((defined(__GNUC__) || defined(__GNUG__)) && !defined(USING_CLANG))
+#if ((defined(__GNUC__) || defined(__GNUG__)) && !USING_CLANG)
     #define USING_GCC 1
 #else
     #define USING_GCC 0
@@ -52,19 +52,3 @@
         #define USING_MINGW 0
     #endif
 #endif
-
-#if USING_WINDOWS
-    #define PATH_SEPARATOR '\\'
-    #define LINE_ENDING "\r\n"
-#else
-    #define PATH_SEPARATOR '/'
-    #define LINE_ENDING "\n"
-#endif
-
-#if USING_MSVC
-    #define EXPORT __declspec(dllexport)
-#else
-    #define EXPORT __attribute__((visibility("default")))
-#endif
-
-#define EXPORTC extern "C" EXPORT
