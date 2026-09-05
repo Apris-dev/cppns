@@ -5,7 +5,6 @@
 
 #include "cppns/util/InitializerList.h"
 #include "cppns/util/Pair.h"
-#include "cppns/util/PlatformDefinition.h"
 
 //TODO: delimiter template?
 class CBaseStringArchive {
@@ -34,9 +33,8 @@ public:
 		return inArchive;
 	}
 
-	template <typename TType,
-		std::enable_if_t<std::is_arithmetic_v<TType>, int> = 0
-	>
+	template <typename TType
+	REQUIRES(std::is_arithmetic_v<TType>)
 	friend CBaseStringArchive& operator>>(CBaseStringArchive& inArchive, TType& inValue) {
 		std::string str = inArchive.get();
 		const std::from_chars_result result = std::from_chars(str.data(), str.data() + str.size(), inValue);
@@ -47,17 +45,15 @@ public:
 		return inArchive;
 	}
 
-	template <typename TType,
-		std::enable_if_t<std::is_arithmetic_v<TType>, int> = 0
-	>
+	template <typename TType
+	REQUIRES(std::is_arithmetic_v<TType>)
 	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TType& inValue) {
 		inArchive << std::to_string(inValue);
 		return inArchive;
 	}
 
-	template <typename TType,
-		std::enable_if_t<std::is_enum_v<TType>, int> = 0
-	>
+	template <typename TType
+	REQUIRES(std::is_enum_v<TType>)
 	friend CBaseStringArchive& operator>>(CBaseStringArchive& inArchive, TType& inEnum) {
 		using EnumType = std::underlying_type_t<TType>;
 		EnumType value;
@@ -66,9 +62,8 @@ public:
 		return inArchive;
 	}
 
-	template <typename TType,
-		std::enable_if_t<std::is_enum_v<TType>, int> = 0
-	>
+	template <typename TType
+	REQUIRES(std::is_enum_v<TType>)
 	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TType& inEnum) {
 		using EnumType = std::underlying_type_t<TType>;
 		inArchive << static_cast<EnumType>(inEnum);
@@ -162,17 +157,15 @@ public:
 
 	virtual ~CInputArchive() = default;
 
-	template <typename TType,
-		std::enable_if_t<std::is_arithmetic_v<TType>, int> = 0
-	>
+	template <typename TType
+	REQUIRES(std::is_arithmetic_v<TType>)
 	friend CInputArchive& operator>>(CInputArchive& inArchive, TType& inValue) {
 		inArchive.read(&inValue, sizeof(TType));
 		return inArchive;
 	}
 
-	template <typename TType,
-		std::enable_if_t<std::is_enum_v<TType>, int> = 0
-	>
+	template <typename TType
+	REQUIRES(std::is_enum_v<TType>)
 	friend CInputArchive& operator>>(CInputArchive& inArchive, TType& inEnum) {
 		using EnumType = std::underlying_type_t<TType>;
 		EnumType value;
@@ -216,17 +209,15 @@ public:
 
 	virtual ~COutputArchive() = default;
 
-	template <typename TType,
-		std::enable_if_t<std::is_arithmetic_v<TType>, int> = 0
-	>
+	template <typename TType
+	REQUIRES(std::is_arithmetic_v<TType>)
 	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType& inValue) {
 		inArchive.write(&inValue, sizeof(TType));
 		return inArchive;
 	}
 
-	template <typename TType,
-		std::enable_if_t<std::is_enum_v<TType>, int> = 0
-	>
+	template <typename TType
+	REQUIRES(std::is_enum_v<TType>)
 	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType& inEnum) {
 		using EnumType = std::underlying_type_t<TType>;
 		inArchive << static_cast<EnumType>(inEnum);

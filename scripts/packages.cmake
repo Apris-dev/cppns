@@ -123,6 +123,11 @@ macro (_set_target_defaults TARGET_NAME)
             CXX_STANDARD_REQUIRED ON
     )
 
+    # Add precompiled headers from project pch if exists
+    if (TARGET ${CURRENT_SCOPE_PROJECT}-pch AND (NOT ${TARGET_NAME} MATCHES ${CURRENT_SCOPE_PROJECT}-pch))
+        target_link_libraries(${TARGET_NAME} INTERFACE ${CURRENT_SCOPE_PROJECT}-pch)
+    endif ()
+
     # This tells other libraries that this target has been linked downstream to enable cross-package compatibility without hard requirements
     string(TOUPPER ${CURRENT_SCOPE_PROJECT} UPPER_PROJECT_NAME)
     target_compile_definitions(${TARGET_NAME} INTERFACE USING_${UPPER_PROJECT_NAME})
@@ -208,6 +213,17 @@ function(add_shared_package TARGET_NAME)
         PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}/src"
     )
+endfunction()
+
+function(add_project_precompiled_package)
+    set(TARGET_NAME ${CURRENT_SCOPE_PROJECT}-pch)
+
+    _ensure_project_scope("Precompiled Package ${TARGET_NAME} was not created in the scope of a project!")
+    _ensure_not_package_scope("Precompiled Package ${TARGET_NAME} was created in the scope of another package!")
+    _ensure_is_not_package(${TARGET_NAME} "Precompiled Package ${TARGET_NAME} already exists!")
+
+    _add_package_impl(${TARGET_NAME} INTERFACE)
+    target_precompile_headers(${TARGET_NAME} INTERFACE ${ARGN})
 endfunction()
 
 function(_add_exec TARGET_NAME)

@@ -75,15 +75,14 @@ private:
     }
 
 #ifndef __cpp_lib_bitops
-    template <typename TType,
-        std::enable_if_t<std::is_unsigned_v<TType>, int> = 0
-    >
+    template <typename TType
+	REQUIRES(std::is_unsigned_v<TType>)
     constexpr TType rotl(const TType& n, const int rotation) noexcept {
         const TType m = (std::numeric_limits<TType>::digits - 1);
         const TType c = rotation & m;
         return (n << c) | (n >> ((TType(0) - c) & m));
     }
 #endif
-    
+
     size_t hash = 0;
 };
