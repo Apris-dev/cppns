@@ -10,14 +10,12 @@ struct TStack : TSequenceContainer<TStack<TType>> {
 
 	TStack() = default;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_copy_constructible_v<TOtherType>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_copy_constructible_v<TOtherType>)
 	TStack(TInitializerList<TType> init): m_Container(init) {}
 
-	template <typename... TArgs,
-		std::enable_if_t<std::conjunction_v<std::is_constructible<TType, TArgs>...>, int> = 0
-	>
+	template <typename... TArgs
+	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
 	explicit TStack(TArgs&&... args) {
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
 	}
@@ -48,9 +46,8 @@ struct TStack : TSequenceContainer<TStack<TType>> {
 		return index < getSize();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
@@ -86,9 +83,8 @@ struct TStack : TSequenceContainer<TStack<TType>> {
 		return res;
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
