@@ -13,8 +13,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		m_IsPopulated.fill(false);
 	}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_copy_constructible_v<TOtherType>)
+	template <typename TOtherType = TType>
+	requires std::is_copy_constructible_v<TOtherType>
 	constexpr_20 TArray(TInitializerList<TType> init) {
 		if (init.size() > TSize) {
 			throw std::runtime_error("Initializer contains too many elements for TArray!");
@@ -31,8 +31,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	}
 
-	template <typename... TArgs
-	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
+	template <typename... TArgs>
+	requires std::conjunction_v<std::is_constructible<TType, TArgs>...>
 	constexpr_20 explicit TArray(TArgs&&... args) {
 		m_IsPopulated.fill(false);
 		size_t index = 0;
@@ -107,8 +107,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return m_IsPopulated[index];
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
@@ -117,32 +117,32 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return CONTAINS_IF(m_Container, inFunction);
 	}
 
-	template <typename... TOtherType
-	REQUIRES(std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>)
+	template <typename... TOtherType>
+	requires std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>
 	[[nodiscard]] bool containsAll(const TOtherType&... obj) {
 		bool res = true;
 		((res &= CONTAINS(m_Container, obj)), ...);
 		return res;
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] bool containsAll(const TFunc&... inFunctions) {
 		bool res = true;
 		((res &= CONTAINS_IF(m_Container, inFunctions)), ...);
 		return res;
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
 		bool res = false;
 		((res |= CONTAINS_IF(m_Container, inFunctions)), ...);
 		return res;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
@@ -151,8 +151,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return DISTANCE_IF(m_Container, inFunction);
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] size_t findFirst(const TFunc&... inFunctions) {
 		auto func = [&](const auto& obb) {
 			bool res = false;
@@ -163,8 +163,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return find(func);
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] size_t findLast(const TFunc&... inFunctions) {
 		auto func = [&](const auto& obb) {
 			bool res = false;
@@ -183,8 +183,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return m_Container[index];
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	void resize(size_t amt) {
+	void resize(size_t amt)
+	requires std::is_default_constructible_v<TType> {
 		for (size_t i = 0; i < amt; ++i) {
 			if (!m_IsPopulated[i]) {
 				m_Container[i] = {};
@@ -210,13 +210,13 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		resize(TSize, func);
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	TType& push() {
+	TType& push()
+	requires std::is_default_constructible_v<TType> {
 		return get(push(TType{}));
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	size_t push(const TType& obj) {
+	size_t push(const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		for (size_t i = 0; i < getSize(); ++i) {
 			if (!m_IsPopulated[i]) { //is not populated
 				m_IsPopulated[i] = true;
@@ -227,8 +227,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		throw std::runtime_error("Array is full, cannot add any more elements.");
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	size_t push(TType&& obj) {
+	size_t push(TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		for (size_t i = 0; i < getSize(); ++i) {
 			if (!m_IsPopulated[i]) { //is not populated
 				m_IsPopulated[i] = true;
@@ -247,13 +247,13 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		replace(index, std::move(obj));
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	void replace(const size_t index, const TType& obj) {
+	void replace(const size_t index, const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		m_Container[index] = obj;
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	void replace(const size_t index, TType&& obj) {
+	void replace(const size_t index, TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		m_Container[index] = std::move(obj);
 	}
 
@@ -280,8 +280,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		throw std::runtime_error("No element at index to be popped!");
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	void pop(const TOtherType& obj) {
 		for (size_t index = 0; index < getSize(); ++index) {
 			if (m_Container[index] == obj) {
@@ -290,8 +290,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		}
 	}
 
-	ENABLE_FUNC_IF(sutil::is_less_than_comparable_v<TType>)
-	void sort() {
+	void sort()
+	requires sutil::is_less_than_comparable_v<TType> {
 		std::sort(m_Container.begin(), m_Container.end());
 	}
 

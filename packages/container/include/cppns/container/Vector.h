@@ -11,12 +11,12 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 
 	constexpr_20 TVector() = default;
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_copy_constructible_v<TOtherType>)
+	template <typename TOtherType = TType>
+	requires std::is_copy_constructible_v<TOtherType>
 	constexpr_20 TVector(TInitializerList<TType> init): m_Container(init) {}
 
-	template <typename... TArgs
-	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
+	template <typename... TArgs>
+	requires std::conjunction_v<std::is_constructible<TType, TArgs>...>
 	constexpr_20 explicit TVector(TArgs&&... args) {
 		m_Container.reserve(sizeof...(TArgs));
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
@@ -88,8 +88,8 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return index < getSize();
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
@@ -98,32 +98,32 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return CONTAINS_IF(m_Container, inFunction);
 	}
 
-	template <typename... TOtherType
-	REQUIRES(std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>)
+	template <typename... TOtherType>
+	requires std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>
 	[[nodiscard]] bool containsAll(const TOtherType&... obj) {
 		bool res = true;
 		((res &= CONTAINS(m_Container, obj)), ...);
 		return res;
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] bool containsAll(const TFunc&... inFunctions) {
 		bool res = true;
 		((res &= CONTAINS_IF(m_Container, inFunctions)), ...);
 		return res;
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
 		bool res = false;
 		((res |= CONTAINS_IF(m_Container, inFunctions)), ...);
 		return res;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
@@ -132,8 +132,8 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return DISTANCE_IF(m_Container, inFunction);
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] size_t findFirst(const TFunc&... inFunctions) {
 		auto func = [&](const auto& obb) {
 			bool res = false;
@@ -144,8 +144,8 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return find(func);
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] size_t findLast(const TFunc&... inFunctions) {
 		auto func = [&](const auto& obb) {
 			bool res = false;
@@ -164,8 +164,8 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return m_Container[index];
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	void resize(size_t amt) {
+	void resize(size_t amt)
+	requires std::is_default_constructible_v<TType> {
 		m_Container.resize(amt);
 	}
 
@@ -181,42 +181,42 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		m_Container.reserve(amt);
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	TType& push() {
+	TType& push()
+	requires std::is_default_constructible_v<TType> {
 		m_Container.emplace_back();
 		return get(getSize() - 1);
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	size_t push(const TType& obj) {
+	size_t push(const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		m_Container.emplace_back(obj);
 		return getSize() - 1;
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	size_t push(TType&& obj) {
+	size_t push(TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		m_Container.emplace_back(std::move(obj));
 		return getSize() - 1;
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	void push(const size_t index, const TType& obj) {
+	void push(const size_t index, const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		m_Container.insert(m_Container.begin() + index, obj);
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	void push(const size_t index, TType&& obj) {
+	void push(const size_t index, TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		m_Container.insert(m_Container.begin() + index, std::move(obj));
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	void replace(const size_t index, const TType& obj) {
+	void replace(const size_t index, const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		popAt(index);
 		push(index, obj);
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	void replace(const size_t index, TType&& obj) {
+	void replace(const size_t index, TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		popAt(index);
 		push(index, std::move(obj));
 	}
@@ -233,14 +233,14 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		m_Container.erase(m_Container.begin() + index);
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	void pop(const TOtherType& obj) {
 		ERASE(m_Container, obj);
 	}
 
-	ENABLE_FUNC_IF(sutil::is_less_than_comparable_v<TType>)
-	void sort() {
+	void sort()
+	requires sutil::is_less_than_comparable_v<TType> {
 		std::sort(m_Container.begin(), m_Container.end());
 	}
 

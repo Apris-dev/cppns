@@ -21,9 +21,9 @@ if(CPPNS_TEST)
     endif ()
 endif()
 
-# If CXX Standard is not defined, fallback to c++17
+# If CXX Standard is not defined, fallback to c++20
 if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
     message(WARNING "cppns: Could not find parent CXX standard; Using default.")
 endif()
 

@@ -10,12 +10,12 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 
 	TQueue() = default;
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_copy_constructible_v<TOtherType>)
+	template <typename TOtherType = TType>
+	requires std::is_copy_constructible_v<TOtherType>
 	TQueue(TInitializerList<TType> init): m_Container(init) {}
 
-	template <typename... TArgs
-	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
+	template <typename... TArgs>
+	requires std::conjunction_v<std::is_constructible<TType, TArgs>...>
 	explicit TQueue(TArgs&&... args) {
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
 	}
@@ -46,8 +46,8 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 		return index < getSize();
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
@@ -83,8 +83,8 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 		return res;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
@@ -119,8 +119,8 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 		return DISTANCE_LAST_IF(m_Container, func);
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	void resize(size_t amt) {
+	void resize(size_t amt)
+	requires std::is_default_constructible_v<TType> {
 		m_Container.resize(amt);
 	}
 
@@ -131,20 +131,20 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 		}
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	TType& push() {
+	TType& push()
+	requires std::is_default_constructible_v<TType> {
 		m_Container.emplace_back();
 		return top();
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	size_t push(const TType& obj) {
+	size_t push(const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		m_Container.emplace_back(obj);
 		return getSize() - 1;
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	size_t push(TType&& obj) {
+	size_t push(TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		m_Container.emplace_back(std::move(obj));
 		return getSize() - 1;
 	}

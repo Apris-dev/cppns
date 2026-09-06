@@ -4,7 +4,7 @@ A collection of libraries designed to make c++ usage less complicated and easier
 
 ## Requirements
 
-cppns requires at least C++17, though it is recommended to use the latest c++ release for newer features.
+cppns requires at least C++20, though it is recommended to use the latest c++ release for newer features.
 
 ## Setup
 

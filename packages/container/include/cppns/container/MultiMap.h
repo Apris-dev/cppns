@@ -15,8 +15,8 @@ struct TMultiMap : TAssociativeContainer<TMultiMap<TKeyType, TValueType>> {
 
 	TMultiMap() = default;
 
-	template <typename TOtherValueType = TValueType
-	REQUIRES(std::is_copy_constructible_v<TOtherValueType>)
+	template <typename TOtherValueType = TValueType>
+	requires std::is_copy_constructible_v<TOtherValueType>
 	TMultiMap(TInitializerList<TPair<TKeyType, TValueType>> init) {
 		m_Container.reserve(init.size());
 		for (auto& pair : init) {
@@ -67,19 +67,19 @@ struct TMultiMap : TAssociativeContainer<TMultiMap<TKeyType, TValueType>> {
 	}
 
 	bool isValid(const TKeyType& key) const {
-		return ASSOCIATIVE_CONTAINS(m_Container, key);
+		return m_Container.contains(key);
 	}
 
-	template <typename TOtherValueType
-	REQUIRES(sutil::is_equality_comparable_v<TValueType, TOtherValueType>)
+	template <typename TOtherValueType>
+	requires sutil::is_equality_comparable_v<TValueType, TOtherValueType>
 	bool contains(const TOtherValueType& obj) const {
 		return std::find_if(m_Container.begin(), m_Container.end(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
 			return pair.second == obj;
 		}) != m_Container.end();
 	}
 
-	template <typename TOtherValueType
-	REQUIRES(sutil::is_equality_comparable_v<TValueType, TOtherValueType>)
+	template <typename TOtherValueType>
+	requires sutil::is_equality_comparable_v<TValueType, TOtherValueType>
 	[[nodiscard]] TKeyType find(const TOtherValueType& obj) const {
 		return std::find_if(m_Container.begin(), m_Container.end(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
 			return pair.second == obj;
@@ -106,48 +106,48 @@ struct TMultiMap : TAssociativeContainer<TMultiMap<TKeyType, TValueType>> {
 		m_Container.reserve(amt);
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TKeyType> && std::is_default_constructible_v<TValueType>)
-	TPair<TKeyType, const TValueType&> push() {
+	TPair<TKeyType, const TValueType&> push()
+	requires std::is_default_constructible_v<TKeyType> && std::is_default_constructible_v<TValueType> {
 		m_Container.emplace();
 		return top();
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TValueType>)
-	TValueType& push(const TKeyType& key) {
+	TValueType& push(const TKeyType& key)
+	requires std::is_default_constructible_v<TValueType> {
 		push(TPair<TKeyType, TValueType>{key, {}});
 		return get(key);
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TValueType>)
-	TValueType& push(const TKeyType& key, const TValueType& value) {
+	TValueType& push(const TKeyType& key, const TValueType& value)
+	requires std::is_copy_constructible_v<TValueType> {
 		push(TPair<TKeyType, TValueType>{key, value});
 		return get(key);
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TValueType>)
-	TValueType& push(const TKeyType& key, TValueType&& value) {
+	TValueType& push(const TKeyType& key, TValueType&& value)
+	requires std::is_move_constructible_v<TValueType> {
 		push(TPair<TKeyType, TValueType>{key, std::move(value)});
 		return get(key);
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TValueType>)
-	void push(const TPair<TKeyType, TValueType>& pair) {
+	void push(const TPair<TKeyType, TValueType>& pair)
+	requires std::is_copy_constructible_v<TValueType> {
 		m_Container.emplace(pair.first(), pair.second());
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TValueType>)
-	void push(TPair<TKeyType, TValueType>&& pair) {
+	void push(TPair<TKeyType, TValueType>&& pair)
+	requires std::is_move_constructible_v<TValueType> {
 		m_Container.emplace(std::move(pair.first()), std::move(pair.second()));
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TValueType>)
-	void replace(const TKeyType& key, const TValueType& obj) {
+	void replace(const TKeyType& key, const TValueType& obj)
+	requires std::is_copy_constructible_v<TValueType> {
 		pop(key);
 		push(TPair<TKeyType, TValueType>{key, obj});
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TValueType>)
-	void replace(const TKeyType& key, TValueType&& obj) {
+	void replace(const TKeyType& key, TValueType&& obj)
+	requires std::is_move_constructible_v<TValueType> {
 		pop(key);
 		push(TPair<TKeyType, TValueType>{key, std::move(obj)});
 	}
