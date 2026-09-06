@@ -16,7 +16,6 @@ jobs:
       fail-fast: false
       matrix:
         cxx_standard:
-          - 17
           - 20
           - 23
 
