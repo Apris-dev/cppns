@@ -13,9 +13,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		m_IsPopulated.fill(false);
 	}
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_copy_constructible_v<TOtherType>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_copy_constructible_v<TOtherType>)
 	constexpr_20 TArray(TInitializerList<TType> init) {
 		if (init.size() > TSize) {
 			throw std::runtime_error("Initializer contains too many elements for TArray!");
@@ -32,9 +31,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	}
 
-	template <typename... TArgs,
-		std::enable_if_t<std::conjunction_v<std::is_constructible<TType, TArgs>...>, int> = 0
-	>
+	template <typename... TArgs
+	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
 	constexpr_20 explicit TArray(TArgs&&... args) {
 		m_IsPopulated.fill(false);
 		size_t index = 0;
@@ -109,9 +107,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return m_IsPopulated[index];
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
@@ -120,36 +117,32 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return CONTAINS_IF(m_Container, inFunction);
 	}
 
-	template <typename... TOtherType,
-		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
-	>
+	template <typename... TOtherType
+	REQUIRES(std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>)
 	[[nodiscard]] bool containsAll(const TOtherType&... obj) {
 		bool res = true;
 		((res &= CONTAINS(m_Container, obj)), ...);
 		return res;
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] bool containsAll(const TFunc&... inFunctions) {
 		bool res = true;
 		((res &= CONTAINS_IF(m_Container, inFunctions)), ...);
 		return res;
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
 		bool res = false;
 		((res |= CONTAINS_IF(m_Container, inFunctions)), ...);
 		return res;
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
@@ -158,9 +151,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return DISTANCE_IF(m_Container, inFunction);
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] size_t findFirst(const TFunc&... inFunctions) {
 		auto func = [&](const auto& obb) {
 			bool res = false;
@@ -171,9 +163,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return find(func);
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] size_t findLast(const TFunc&... inFunctions) {
 		auto func = [&](const auto& obb) {
 			bool res = false;
@@ -289,9 +280,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		throw std::runtime_error("No element at index to be popped!");
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	void pop(const TOtherType& obj) {
 		for (size_t index = 0; index < getSize(); ++index) {
 			if (m_Container[index] == obj) {

@@ -16,7 +16,6 @@
 #endif
 
 #include "cppns/util/Comparison.h"
-#include "cppns/util/PlatformDefinition.h"
 
 #ifdef __cpp_lib_ranges
 #include <algorithm>
@@ -62,10 +61,6 @@
 
 #define CONTAINS(c, x, ...) FIND(c, x, __VA_ARGS__) != c.end()
 #define CONTAINS_IF(c, func, ...) FIND_IF(c, func, __VA_ARGS__) != c.end()
-
-// Makes it easy to see if a function is guaranteed or not
-#define GUARANTEED = 0;
-#define NOT_GUARANTEED { throw std::runtime_error("Attempted Usage of unimplemented function in TContainer."); }
 
 template <typename>
 struct TContainerTraits;
@@ -379,23 +374,20 @@ struct TSequenceContainer : SContainer {
 		return derived(*this).contains(inFunction);
 	}
 
-	template <typename... TOtherType,
-		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
-	>
+	template <typename... TOtherType
+	REQUIRES(std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>)
 	[[nodiscard]] bool containsAll(const TOtherType&... obj) {
 		return derived(*this).containsAll(obj...);
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] bool containsAll(const TFunc&... inFunctions) {
 		return derived(*this).containsAll(inFunctions...);
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
 		return derived(*this).containsOne(inFunctions...);
 	}
@@ -404,16 +396,14 @@ struct TSequenceContainer : SContainer {
 	template <typename TOtherType>
 	[[nodiscard]] size_t find(const TOtherType& obj) const { return derived(*this).find(obj); }
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] size_t findFirst(const TFunc&... inFunctions) {
 		return derived(*this).findFirst(inFunctions...);
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] size_t findLast(const TFunc&... inFunctions) {
 		return derived(*this).findLast(inFunctions...);
 	}
@@ -489,9 +479,8 @@ struct TSequenceContainer : SContainer {
 		derived(*this).popAt(index);
 	}
 	// Removes a certain object from the container
-	template <typename TOtherType, bool b = !bIsLimitedAccess,
-		std::enable_if_t<b, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES_STATIC(!bIsLimitedAccess)
 	void pop(const TOtherType& obj) {
 		derived(*this).pop(obj);
 	}
@@ -501,9 +490,8 @@ struct TSequenceContainer : SContainer {
 		derived(*this).sort();
 	}
 
-	template <typename Func, bool b = !bIsLimitedAccess && !bIsForwardOnly,
-		std::enable_if_t<b, int> = 0
-	>
+	template <typename Func
+	REQUIRES_STATIC(!bIsLimitedAccess && !bIsForwardOnly)
 	void sort(Func&& func) {
 		derived(*this).sort(std::forward<Func>(func));
 	}

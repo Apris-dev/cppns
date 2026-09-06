@@ -11,14 +11,12 @@ struct TSet : TSelfAssociativeContainer<TSet<TType>> {
 
 	TSet() = default;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_copy_constructible_v<TOtherType>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_copy_constructible_v<TOtherType>)
 	TSet(TInitializerList<TType> init): m_Container(init) {}
 
-	template <typename... TArgs,
-		std::enable_if_t<std::conjunction_v<std::is_constructible<TType, TArgs>...>, int> = 0
-	>
+	template <typename... TArgs
+	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
 	explicit TSet(TArgs&&... args) {
 		m_Container.reserve(sizeof...(TArgs));
 		(m_Container.emplace(std::forward<TArgs>(args)), ...);
@@ -60,9 +58,8 @@ struct TSet : TSelfAssociativeContainer<TSet<TType>> {
 		return m_Container.end();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	bool contains(const TOtherType& obj) const {
 		if constexpr (std::is_same_v<TType, TOtherType>) {
 			return ASSOCIATIVE_CONTAINS(m_Container, obj);
@@ -125,9 +122,8 @@ struct TSet : TSelfAssociativeContainer<TSet<TType>> {
 		m_Container.erase(m_Container.begin());
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	void pop(const TOtherType& obj) {
 		if constexpr (std::is_same_v<TType, TOtherType>) {
 			m_Container.erase(obj);

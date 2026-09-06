@@ -11,14 +11,12 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 
 	constexpr_20 TVector() = default;
 
-	template <typename TOtherType = TType,
-		std::enable_if_t<std::is_copy_constructible_v<TOtherType>, int> = 0
-	>
+	template <typename TOtherType = TType
+	REQUIRES(std::is_copy_constructible_v<TOtherType>)
 	constexpr_20 TVector(TInitializerList<TType> init): m_Container(init) {}
 
-	template <typename... TArgs,
-		std::enable_if_t<std::conjunction_v<std::is_constructible<TType, TArgs>...>, int> = 0
-	>
+	template <typename... TArgs
+	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
 	constexpr_20 explicit TVector(TArgs&&... args) {
 		m_Container.reserve(sizeof...(TArgs));
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
@@ -90,9 +88,8 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return index < getSize();
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
@@ -101,36 +98,32 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return CONTAINS_IF(m_Container, inFunction);
 	}
 
-	template <typename... TOtherType,
-		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
-	>
+	template <typename... TOtherType
+	REQUIRES(std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>)
 	[[nodiscard]] bool containsAll(const TOtherType&... obj) {
 		bool res = true;
 		((res &= CONTAINS(m_Container, obj)), ...);
 		return res;
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] bool containsAll(const TFunc&... inFunctions) {
 		bool res = true;
 		((res &= CONTAINS_IF(m_Container, inFunctions)), ...);
 		return res;
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
 		bool res = false;
 		((res |= CONTAINS_IF(m_Container, inFunctions)), ...);
 		return res;
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
@@ -139,9 +132,8 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return DISTANCE_IF(m_Container, inFunction);
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] size_t findFirst(const TFunc&... inFunctions) {
 		auto func = [&](const auto& obb) {
 			bool res = false;
@@ -152,9 +144,8 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return find(func);
 	}
 
-	template <typename... TFunc,
-		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
-	>
+	template <typename... TFunc
+	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
 	[[nodiscard]] size_t findLast(const TFunc&... inFunctions) {
 		auto func = [&](const auto& obb) {
 			bool res = false;
@@ -242,9 +233,8 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		m_Container.erase(m_Container.begin() + index);
 	}
 
-	template <typename TOtherType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TType, TOtherType>, int> = 0
-	>
+	template <typename TOtherType
+	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
 	void pop(const TOtherType& obj) {
 		ERASE(m_Container, obj);
 	}

@@ -2,8 +2,6 @@
 
 #include <type_traits>
 
-#include "cppns/util/PlatformDefinition.h"
-
 #ifdef USING_CPPNS_ARCHIVE
 #include "cppns/archive/Archive.h"
 #endif
@@ -105,7 +103,8 @@ namespace sstl {
 	struct deleter {
 		constexpr deleter() noexcept = default;
 
-		template <typename TOtherType, std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0>
+		template <typename TOtherType
+		REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
 		deleter(const deleter<TOtherType>&) noexcept {}
 
 		void operator()(TType* ptr) const noexcept {
@@ -143,7 +142,8 @@ namespace sstl {
 		constexpr delayed_deleter() noexcept = default;
 		constexpr delayed_deleter(const Func fn) noexcept: fn(fn) {}
 
-		template <typename TOtherType, std::enable_if_t<std::is_convertible_v<TOtherType*, TType*>, int> = 0>
+		template <typename TOtherType
+		REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
 		delayed_deleter(const delayed_deleter<TOtherType>& otr) noexcept: fn(otr.fn) {}
 
 		void operator()(void* ptr) const noexcept {
@@ -170,9 +170,8 @@ struct TUnfurled {
 	using Type = TType;
 	constexpr static bool isManaged = false;
 
-	template <typename TOtherType = TType, typename... TArgs,
-		std::enable_if_t<std::is_convertible_v<TOtherType, TType>, int> = 0
-	>
+	template <typename TOtherType = TType, typename... TArgs
+	REQUIRES(std::is_convertible_v<TOtherType, TType>)
 	constexpr static TType create(TArgs&&... args)
 #ifdef __cpp_lib_is_nothrow_convertible
 noexcept(std::is_nothrow_convertible_v<TOtherType, TType>) {

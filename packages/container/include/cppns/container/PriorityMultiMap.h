@@ -4,18 +4,16 @@
 #include "Container.h"
 #include "cppns/util/InitializerList.h"
 
-template <typename TKeyType, typename TValueType,
-          std::enable_if_t<sutil::is_less_than_comparable_v<TKeyType>, int> = 0
->
+template <typename TKeyType, typename TValueType
+REQUIRES(sutil::is_less_than_comparable_v<TKeyType>)
 struct TPriorityMultiMap : TAssociativeContainer<TPriorityMultiMap<TKeyType, TValueType>> {
 
 	using Super = TAssociativeContainer<TPriorityMultiMap>;
 
 	TPriorityMultiMap() = default;
 
-	template <typename TOtherValueType = TValueType,
-		std::enable_if_t<std::is_copy_constructible_v<TOtherValueType>, int> = 0
-	>
+	template <typename TOtherValueType = TValueType
+	REQUIRES(std::is_copy_constructible_v<TOtherValueType>)
 	TPriorityMultiMap(TInitializerList<TPair<TKeyType, TValueType>> init) {
 		for (auto& pair : init) {
 			m_Container.emplace(pair.first(), pair.second());
@@ -83,18 +81,16 @@ struct TPriorityMultiMap : TAssociativeContainer<TPriorityMultiMap<TKeyType, TVa
 		return ASSOCIATIVE_CONTAINS(m_Container, key);
 	}
 
-	template <typename TOtherValueType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TValueType, TOtherValueType>, int> = 0
-	>
+	template <typename TOtherValueType
+	REQUIRES(sutil::is_equality_comparable_v<TValueType, TOtherValueType>)
 	bool contains(const TOtherValueType& obj) const {
 		return std::find_if(m_Container.begin(), m_Container.end(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
 			return pair.second == obj;
 		}) != m_Container.end();
 	}
 
-	template <typename TOtherValueType,
-		std::enable_if_t<sutil::is_equality_comparable_v<TValueType, TOtherValueType>, int> = 0
-	>
+	template <typename TOtherValueType
+	REQUIRES(sutil::is_equality_comparable_v<TValueType, TOtherValueType>)
 	[[nodiscard]] TKeyType find(const TOtherValueType& obj) const {
 		return std::find_if(m_Container.begin(), m_Container.end(), [&obj](const std::pair<TKeyType, const TValueType&>& pair) {
 			return pair.second == obj;

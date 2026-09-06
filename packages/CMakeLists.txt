@@ -1,4 +1,5 @@
 set(PACKAGES
+        cppns
         util
         memory
         container
