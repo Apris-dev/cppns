@@ -51,7 +51,6 @@ jobs:
 
         # Run CMake Build
       - name: Run CMake
-        if: matrix.platform.arch != 'arm64'
         uses: lukka/run-cmake@v10
         with:
           configurePreset: 'ninja-multi-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}'
