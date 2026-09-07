@@ -15,17 +15,40 @@
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe"
       },
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
       "toolset": {
         "value": "host=x64",
         "strategy": "external"
       }
     },
     {
-      "name": "ninja-multi-mingw",
+      "name": "ninja-multi-msvc-x64",
+      "inherits": "ninja-multi-msvc",
+      "displayName": "Ninja Multi-Config (MSVC x64)",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      }
+    },
+    {
+      "name": "ninja-multi-msvc-x86",
+      "inherits": "ninja-multi-msvc",
+      "displayName": "Ninja Multi-Config (MSVC x86)",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      }
+    },
+    {
+      "name": "ninja-multi-msvc-arm64",
+      "inherits": "ninja-multi-msvc",
+      "displayName": "Ninja Multi-Config (MSVC ARM64)",
+      "architecture": {
+        "value": "ARM64",
+        "strategy": "external"
+      }
+    },
+    {
+      "name": "ninja-multi-mingw-x64",
       "binaryDir": "${sourceDir}/bin/${presetName}",
       "displayName": "Ninja Multi-Config (MinGW)",
       "generator": "Ninja Multi-Config",
@@ -35,7 +58,7 @@
       }
     },
     {
-      "name": "ninja-multi-gcc",
+      "name": "ninja-multi-gcc-x64",
       "binaryDir": "${sourceDir}/bin/${presetName}",
       "displayName": "Ninja Multi-Config (GCC)",
       "generator": "Ninja Multi-Config",
@@ -45,7 +68,7 @@
       }
     },
     {
-      "name": "ninja-multi-clang",
+      "name": "ninja-multi-clang-x64",
       "binaryDir": "${sourceDir}/bin/${presetName}",
       "displayName": "Ninja Multi-Config (Clang)",
       "generator": "Ninja Multi-Config",
@@ -57,57 +80,57 @@
   ],
   "buildPresets": [
     {
-      "name": "ninja-debug-msvc",
-      "configurePreset": "ninja-multi-msvc",
+      "name": "ninja-debug-msvc-x64",
+      "configurePreset": "ninja-multi-msvc-x64",
       "displayName": "Build (MSVC-Debug)",
       "description": "Build with Ninja (MSVC-Debug)",
       "configuration": "Debug"
     },
     {
-      "name": "ninja-release-msvc",
-      "configurePreset": "ninja-multi-msvc",
+      "name": "ninja-release-msvc-x64",
+      "configurePreset": "ninja-multi-msvc-x64",
       "displayName": "Build (MSVC-Release)",
       "description": "Build with Ninja (MSVC-Release)",
       "configuration": "Release"
     },
     {
-      "name": "ninja-debug-mingw",
-      "configurePreset": "ninja-multi-mingw",
+      "name": "ninja-debug-mingw-x64",
+      "configurePreset": "ninja-multi-mingw-x64",
       "displayName": "Build (MinGW-Debug)",
       "description": "Build with Ninja (MinGW-Debug)",
       "configuration": "Debug"
     },
     {
-      "name": "ninja-release-mingw",
-      "configurePreset": "ninja-multi-mingw",
+      "name": "ninja-release-mingw-x64",
+      "configurePreset": "ninja-multi-mingw-x64",
       "displayName": "Build (MinGW-Release)",
       "description": "Build with Ninja (MinGW-Release)",
       "configuration": "Release"
     },
     {
-      "name": "ninja-debug-gcc",
-      "configurePreset": "ninja-multi-gcc",
+      "name": "ninja-debug-gcc-x64",
+      "configurePreset": "ninja-multi-gcc-x64",
       "displayName": "Build (GCC-Debug)",
       "description": "Build with Ninja (GCC-Debug)",
       "configuration": "Debug"
     },
     {
-      "name": "ninja-release-gcc",
-      "configurePreset": "ninja-multi-gcc",
+      "name": "ninja-release-gcc-x64",
+      "configurePreset": "ninja-multi-gcc-x64",
       "displayName": "Build (GCC-Release)",
       "description": "Build with Ninja (GCC-Release)",
       "configuration": "Release"
     },
     {
-      "name": "ninja-debug-clang",
-      "configurePreset": "ninja-multi-clang",
+      "name": "ninja-debug-clang-x64",
+      "configurePreset": "ninja-multi-clang-x64",
       "displayName": "Build (Clang-Debug)",
       "description": "Build with Ninja (Clang-Debug)",
       "configuration": "Debug"
     },
     {
-      "name": "ninja-release-clang",
-      "configurePreset": "ninja-multi-clang",
+      "name": "ninja-release-clang-x64",
+      "configurePreset": "ninja-multi-clang-x64",
       "displayName": "Build (Clang-Release)",
       "description": "Build with Ninja (Clang-Release)",
       "configuration": "Release"
@@ -115,50 +138,50 @@
   ],
   "testPresets": [
     {
-      "name": "test-msvc-debug",
-      "configurePreset": "ninja-multi-msvc",
+      "name": "test-debug-msvc-x64",
+      "configurePreset": "ninja-multi-msvc-x64",
       "displayName": "Test (MSVC-Debug)",
       "configuration": "Debug"
     },
     {
-      "name": "test-msvc-release",
-      "configurePreset": "ninja-multi-msvc",
+      "name": "test-release-msvc-x64",
+      "configurePreset": "ninja-multi-msvc-x64",
       "displayName": "Test (MSVC-Release)",
       "configuration": "Release"
     },
     {
-      "name": "test-mingw-debug",
-      "configurePreset": "ninja-multi-mingw",
+      "name": "test-debug-mingw-x64",
+      "configurePreset": "ninja-multi-mingw-x64",
       "displayName": "Test (MinGW-Debug)",
       "configuration": "Debug"
     },
     {
-      "name": "test-mingw-release",
-      "configurePreset": "ninja-multi-mingw",
+      "name": "test-release-mingw-x64",
+      "configurePreset": "ninja-multi-mingw-x64",
       "displayName": "Test (MinGW-Release)",
       "configuration": "Release"
     },
     {
-      "name": "test-gcc-debug",
-      "configurePreset": "ninja-multi-gcc",
+      "name": "test-debug-gcc-x64",
+      "configurePreset": "ninja-multi-gcc-x64",
       "displayName": "Test (GCC-Debug)",
       "configuration": "Debug"
     },
     {
-      "name": "test-gcc-release",
-      "configurePreset": "ninja-multi-gcc",
+      "name": "test-release-gcc-x64",
+      "configurePreset": "ninja-multi-gcc-x64",
       "displayName": "Test (GCC-Release)",
       "configuration": "Release"
     },
     {
-      "name": "test-clang-debug",
-      "configurePreset": "ninja-multi-clang",
+      "name": "test-debug-clang-x64",
+      "configurePreset": "ninja-multi-clang-x64",
       "displayName": "Test (Clang-Debug)",
       "configuration": "Debug"
     },
     {
-      "name": "test-clang-release",
-      "configurePreset": "ninja-multi-clang",
+      "name": "test-release-clang-x64",
+      "configurePreset": "ninja-multi-clang-x64",
       "displayName": "Test (Clang-Release)",
       "configuration": "Release"
     }
