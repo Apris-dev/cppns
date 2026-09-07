@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     env:
       vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
-      VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture }}-${{ matrix.platform.name }}
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.platform.triplet }}
     strategy:
       fail-fast: false
       matrix:
@@ -20,15 +20,40 @@ jobs:
           - 20
           - 23
 
-        architecture:
-          - x64
+        include:
+          # GCC
+          - architecture: x64
+            vcpkg_triplet: x64-linux
+            platform: { name: linux, os: ubuntu-24.04, compiler: gcc }
 
-        platform:
-          - { name: linux, os: ubuntu-24.04, compiler: gcc }
-          - { name: linux, os: ubuntu-24.04, compiler: clang }
-          - { name: osx, os: macos-15, compiler: clang }
-          - { name: windows, os: windows-2022, compiler: msvc }
-          - { name: windows, os: windows-2022, compiler: mingw }
+          # Clang
+          - architecture: x64
+            vcpkg_triplet: x64-linux
+            platform: { name: linux, os: ubuntu-24.04, compiler: clang }
+
+          # Apple-Clang
+          - architecture: x64
+            vcpkg_triplet: x64-osx
+            platform: { name: osx, os: macos-15, compiler: clang }
+
+          # MSVC
+          - architecture: x64
+            vcpkg_triplet: x64-windows
+            platform: { name: windows, os: windows-2022, compiler: msvc }
+
+          - architecture: x86
+            vcpkg_triplet: x86-windows
+            platform: { name: windows, os: windows-2022, compiler: msvc }
+
+          - architecture: arm64
+            vcpkg_triplet: arm64-windows
+            platform: { name: windows, os: windows-2022, compiler: msvc }
+
+          # MinGW
+          - architecture: x64
+            vcpkg_triplet: x64-mingw-dynamic
+            platform: { name: windows, os: windows-2022, compiler: mingw }
+
     steps:
       # Checkout project, including submodules
       - uses: actions/checkout@v4
