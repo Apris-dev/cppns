@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     env:
       vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
-      VCPKG_DEFAULT_TRIPLET: ${{ matrix.platform.triplet }}
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
     strategy:
       fail-fast: false
       matrix:
@@ -20,40 +20,14 @@ jobs:
           - 20
           - 23
 
-        include:
-          # GCC
-          - architecture: x64
-            vcpkg_triplet: x64-linux
-            platform: { name: linux, os: ubuntu-24.04, compiler: gcc }
-
-          # Clang
-          - architecture: x64
-            vcpkg_triplet: x64-linux
-            platform: { name: linux, os: ubuntu-24.04, compiler: clang }
-
-          # Apple-Clang
-          - architecture: x64
-            vcpkg_triplet: x64-osx
-            platform: { name: osx, os: macos-15, compiler: clang }
-
-          # MSVC
-          - architecture: x64
-            vcpkg_triplet: x64-windows
-            platform: { name: windows, os: windows-2022, compiler: msvc }
-
-          - architecture: x86
-            vcpkg_triplet: x86-windows
-            platform: { name: windows, os: windows-2022, compiler: msvc }
-
-          - architecture: arm64
-            vcpkg_triplet: arm64-windows
-            platform: { name: windows, os: windows-2022, compiler: msvc }
-
-          # MinGW
-          - architecture: x64
-            vcpkg_triplet: x64-mingw-dynamic
-            platform: { name: windows, os: windows-2022, compiler: mingw }
-
+        platform:
+          - { arch: x64, triplet: x64-linux, name: linux, os: ubuntu-24.04, compiler: gcc }
+          - { arch: x64, triplet: x64-linux, name: linux, os: ubuntu-24.04, compiler: clang }
+          - { arch: x64, triplet: x64-osx, name: macos, os: macos-15, compiler: clang }
+          - { arch: x64, triplet: x64-windows, name: windows, os: windows-2022, compiler: msvc }
+          - { arch: x86, triplet: x86-windows, name: windows, os: windows-2022, compiler: msvc }
+          - { arch: arm64, triplet: arm64-windows, name: windows, os: windows-2022, compiler: msvc }
+          - { arch: x64, triplet: x64-mingw-dynamic, name: windows, os: windows-2022, compiler: mingw }
     steps:
       # Checkout project, including submodules
       - uses: actions/checkout@v4
