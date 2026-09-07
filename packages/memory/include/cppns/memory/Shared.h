@@ -39,8 +39,8 @@ struct TShared {
 		return *this;
 	}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 explicit TShared(TOtherType* ptr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
@@ -50,11 +50,11 @@ struct TShared {
 	: m_ptr(ptr, sstl::deleter<TType>()) {}
 
 	// prefer init because SharedFrom works there
-	template <typename... TArgs
-	REQUIRES(std::conjunction_v<
+	template <typename... TArgs>
+	requires std::conjunction_v<
 		std::negation<std::is_null_pointer<std::decay_t<TArgs>>>...,
 		std::negation<sstl::is_managed<TArgs>>...
-	>)
+	>
 	constexpr_23 explicit TShared(TArgs&&... args) noexcept {
 		m_ptr = std::shared_ptr<TType>(new TType(std::forward<TArgs>(args)...), sstl::deleter<TType>());
 		if constexpr (sstl::is_initializable_v<TType>) {
@@ -72,8 +72,8 @@ struct TShared {
 		}
 	}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 TShared(const TShared<TOtherType>& otr) = delete;
 
 	/*
@@ -83,8 +83,8 @@ struct TShared {
 	constexpr_23 TShared(const TShared& otr) noexcept
 	: m_ptr(otr.m_ptr) {}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 TShared(TShared<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
@@ -93,8 +93,8 @@ struct TShared {
 #endif
 	: m_ptr(std::move(otr.m_ptr)) {}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	TShared& operator=(const TShared<TOtherType>& otr) = delete;
 
 	/*
@@ -103,8 +103,8 @@ struct TShared {
 
 	constexpr_23 TShared& operator=(const TShared& otr) noexcept = default;
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 TShared& operator=(TShared<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
@@ -158,8 +158,8 @@ struct TShared {
 		return static_cast<bool>(m_ptr);
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator<(const TShared& fst, const TOtherType& snd) noexcept {
 		return fst.get() < snd.get();
 	}
@@ -171,8 +171,8 @@ struct TShared {
 		return *fst < otr;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator<=(const TShared& fst, const TOtherType& snd) noexcept {
 		return fst.get() <= snd.get();
 	}
@@ -184,8 +184,8 @@ struct TShared {
 		return *fst <= otr;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator>(const TShared& fst, const TOtherType& snd) noexcept {
 		return fst.get() > snd.get();
 	}
@@ -197,8 +197,8 @@ struct TShared {
 		return *fst > otr;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator>=(const TShared& fst, const TOtherType& snd) noexcept {
 		return fst.get() >= snd.get();
 	}
@@ -210,8 +210,8 @@ struct TShared {
 		return *fst >= otr;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator==(const TShared& fst, const TOtherType& snd) noexcept {
 		return fst.get() == snd.get();
 	}
@@ -233,8 +233,8 @@ struct TShared {
 		return snd == fst;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator!=(const TShared& fst, const TOtherType& snd) noexcept {
 		return fst.get() != snd.get();
 	}
@@ -292,8 +292,8 @@ struct TUnfurled<TShared<TType>> {
 	constexpr static bool isManaged = true;
 	constexpr static auto get = &TShared<TType>::get;
 
-	template <typename TOtherType = TType, typename... TArgs
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType, typename... TArgs>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 static TShared<TType> create(TArgs&&... args)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {

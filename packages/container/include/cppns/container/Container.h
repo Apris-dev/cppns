@@ -53,12 +53,6 @@
 #define SHUFFLE(c, r) std::shuffle(c.begin(), c.end(), r);
 #endif
 
-#if USING_CXX20
-	#define ASSOCIATIVE_CONTAINS(c, x) c.contains(x)
-#else
-	#define ASSOCIATIVE_CONTAINS(c, x) c.find(x) != c.end()
-#endif
-
 #define CONTAINS(c, x, ...) FIND(c, x, __VA_ARGS__) != c.end()
 #define CONTAINS_IF(c, func, ...) FIND_IF(c, func, __VA_ARGS__) != c.end()
 
@@ -313,18 +307,18 @@ struct TSequenceContainer : SContainer {
 	[[nodiscard]] const TType& top() const { return derived(*this).top(); }
 
 	// Gets the first element possible, or the 'top' of the container
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	[[nodiscard]] TType& bottom() {
+	[[nodiscard]] TType& bottom()
+	requires (!bIsLimitedAccess) {
 		return derived(*this).bottom();
 	}
 	// Gets the first element possible, or the 'top' of the container
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	[[nodiscard]] const TType& bottom() const {
+	[[nodiscard]] const TType& bottom() const
+	requires (!bIsLimitedAccess) {
 		return derived(*this).bottom();
 	}
 
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	[[nodiscard]] Iterator begin() noexcept {
+	[[nodiscard]] Iterator begin() noexcept
+	requires (!bIsLimitedAccess) {
 		return derived(*this).begin();
 	}
 
@@ -333,18 +327,18 @@ struct TSequenceContainer : SContainer {
 		return derived(*this).begin();
 	}
 
-	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsForwardOnly)
-	[[nodiscard]] ReverseIterator rbegin() noexcept {
+	[[nodiscard]] ReverseIterator rbegin() noexcept
+	requires (!bIsLimitedAccess && !bIsForwardOnly) {
 		return derived(*this).rbegin();
 	}
 
-	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsForwardOnly)
-	[[nodiscard]] ConstReverseIterator rbegin() const noexcept {
+	[[nodiscard]] ConstReverseIterator rbegin() const noexcept
+	requires (!bIsLimitedAccess && !bIsForwardOnly) {
 		return derived(*this).rbegin();
 	}
 
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	[[nodiscard]] Iterator end() noexcept {
+	[[nodiscard]] Iterator end() noexcept
+	requires (!bIsLimitedAccess) {
 		return derived(*this).end();
 	}
 
@@ -353,13 +347,13 @@ struct TSequenceContainer : SContainer {
 		return derived(*this).end();
 	}
 
-	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsForwardOnly)
-	[[nodiscard]] ReverseIterator rend() noexcept {
+	[[nodiscard]] ReverseIterator rend() noexcept
+	requires (!bIsLimitedAccess && !bIsForwardOnly) {
 		return derived(*this).rend();
 	}
 
-	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsForwardOnly)
-	[[nodiscard]] ConstReverseIterator rend() const noexcept {
+	[[nodiscard]] ConstReverseIterator rend() const noexcept
+	requires (!bIsLimitedAccess && !bIsForwardOnly) {
 		return derived(*this).rend();
 	}
 
@@ -374,20 +368,20 @@ struct TSequenceContainer : SContainer {
 		return derived(*this).contains(inFunction);
 	}
 
-	template <typename... TOtherType
-	REQUIRES(std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>)
+	template <typename... TOtherType>
+	requires std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>
 	[[nodiscard]] bool containsAll(const TOtherType&... obj) {
 		return derived(*this).containsAll(obj...);
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] bool containsAll(const TFunc&... inFunctions) {
 		return derived(*this).containsAll(inFunctions...);
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
 		return derived(*this).containsOne(inFunctions...);
 	}
@@ -396,35 +390,35 @@ struct TSequenceContainer : SContainer {
 	template <typename TOtherType>
 	[[nodiscard]] size_t find(const TOtherType& obj) const { return derived(*this).find(obj); }
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] size_t findFirst(const TFunc&... inFunctions) {
 		return derived(*this).findFirst(inFunctions...);
 	}
 
-	template <typename... TFunc
-	REQUIRES(std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>)
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] size_t findLast(const TFunc&... inFunctions) {
 		return derived(*this).findLast(inFunctions...);
 	}
 
 	// Get an element at a specified index
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	[[nodiscard]] TType& get(size_t index) {
+	[[nodiscard]] TType& get(size_t index)
+	requires (!bIsLimitedAccess) {
 		return derived(*this).get(index);
 	}
 	// Get an element at a specified index
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	[[nodiscard]] const TType& get(size_t index) const {
+	[[nodiscard]] const TType& get(size_t index) const
+	requires (!bIsLimitedAccess) {
 		return derived(*this).get(index);
 	}
 
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	[[nodiscard]] TType& operator[](const size_t index) {
+	[[nodiscard]] TType& operator[](const size_t index)
+	requires (!bIsLimitedAccess) {
 		return get(index);
 	}
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	[[nodiscard]] const TType& operator[](const size_t index) const {
+	[[nodiscard]] const TType& operator[](const size_t index) const
+	requires (!bIsLimitedAccess) {
 		return get(index);
 	}
 
@@ -435,8 +429,8 @@ struct TSequenceContainer : SContainer {
 	void resize(size_t amt, std::function<TType(size_t)> func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
-	ENABLE_FUNC_IF(bIsContiguousMemory)
-	void reserve(size_t amt) {
+	void reserve(size_t amt)
+	requires bIsContiguousMemory {
 		derived(*this).reserve(amt);
 	}
 
@@ -447,24 +441,24 @@ struct TSequenceContainer : SContainer {
 	// Adds an element to the container, returning the index where it was added
 	size_t push(TType&& obj) { return derived(*this).push(std::move(obj)); }
 	// Inserts an element at a specified index
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	void push(size_t index, const TType& obj) {
+	void push(size_t index, const TType& obj)
+	requires (!bIsLimitedAccess) {
 		derived(*this).push(index, obj);
 	}
 	// Inserts an element at a specified index
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	void push(size_t index, TType&& obj) {
+	void push(size_t index, TType&& obj)
+	requires (!bIsLimitedAccess) {
 		derived(*this).push(index, std::move(obj));
 	}
 
 	// Replaces an element at a specified index, and returns the original
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	void replace(size_t index, const TType& obj) {
+	void replace(size_t index, const TType& obj)
+	requires (!bIsLimitedAccess) {
 		derived(*this).push(index, obj);
 	}
 	// Replaces an element at a specified index, and returns the original
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	void replace(size_t index, TType&& obj) {
+	void replace(size_t index, TType&& obj)
+	requires (!bIsLimitedAccess) {
 		derived(*this).replace(index, std::move(obj));
 	}
 
@@ -474,24 +468,24 @@ struct TSequenceContainer : SContainer {
 	// Removes the topmost element from the container
 	void pop() { derived(*this).pop(); }
 	// Removes an element at the specified index
-	ENABLE_FUNC_IF(!bIsLimitedAccess)
-	void popAt(size_t index) {
+	void popAt(size_t index)
+	requires (!bIsLimitedAccess) {
 		derived(*this).popAt(index);
 	}
 	// Removes a certain object from the container
-	template <typename TOtherType
-	REQUIRES_STATIC(!bIsLimitedAccess)
+	template <typename TOtherType>
+	requires (!bIsLimitedAccess)
 	void pop(const TOtherType& obj) {
 		derived(*this).pop(obj);
 	}
 
-	ENABLE_FUNC_IF(!bIsLimitedAccess && !bIsForwardOnly)
-	void sort() {
+	void sort()
+	requires (!bIsLimitedAccess && !bIsForwardOnly) {
 		derived(*this).sort();
 	}
 
-	template <typename Func
-	REQUIRES_STATIC(!bIsLimitedAccess && !bIsForwardOnly)
+	template <typename Func>
+	requires (!bIsLimitedAccess && !bIsForwardOnly)
 	void sort(Func&& func) {
 		derived(*this).sort(std::forward<Func>(func));
 	}
@@ -619,8 +613,7 @@ struct TAssociativeContainer : SContainer {
 	void resize(size_t amt, std::function<TPair<TKeyType, TValueType>()> func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
-	ENABLE_FUNC_IF(bHasHashing)
-	void reserve(size_t amt) { derived(*this).reserve(amt); }
+	void reserve(size_t amt) requires bHasHashing { derived(*this).reserve(amt); }
 
 	// Adds a defaulted element to the container
 	TPair<TKeyType, const TValueType&> push() { return derived(*this).push(); }
@@ -716,21 +709,17 @@ struct TSelfAssociativeContainer : SContainer {
 
 	[[nodiscard]] ConstIterator begin() const noexcept { return derived(*this).begin(); }
 
-	ENABLE_FUNC_IF(!bIsForwardOnly)
-	[[nodiscard]] ReverseIterator rbegin() noexcept { return derived(*this).rbegin(); }
+	[[nodiscard]] ReverseIterator rbegin() noexcept requires (!bIsForwardOnly) { return derived(*this).rbegin(); }
 
-	ENABLE_FUNC_IF(!bIsForwardOnly)
-	[[nodiscard]] ConstReverseIterator rbegin() const noexcept { return derived(*this).rbegin(); }
+	[[nodiscard]] ConstReverseIterator rbegin() const noexcept requires (!bIsForwardOnly) { return derived(*this).rbegin(); }
 
 	[[nodiscard]] Iterator end() noexcept { return derived(*this).end(); }
 
 	[[nodiscard]] ConstIterator end() const noexcept { return derived(*this).end(); }
 
-	ENABLE_FUNC_IF(!bIsForwardOnly)
-	[[nodiscard]] ReverseIterator rend() noexcept { return derived(*this).rend(); }
+	[[nodiscard]] ReverseIterator rend() noexcept requires (!bIsForwardOnly) { return derived(*this).rend(); }
 
-	ENABLE_FUNC_IF(!bIsForwardOnly)
-	[[nodiscard]] ConstReverseIterator rend() const noexcept { return derived(*this).rend(); }
+	[[nodiscard]] ConstReverseIterator rend() const noexcept requires (!bIsForwardOnly) { return derived(*this).rend(); }
 
 	// Checks if a certain index is contained within the container
 	[[nodiscard]] bool isValid(const size_t index) const {
@@ -748,8 +737,7 @@ struct TSelfAssociativeContainer : SContainer {
 	void resize(size_t amt, std::function<TType()> func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
-	ENABLE_FUNC_IF(bHasHashing)
-	void reserve(size_t amt) { derived(*this).reserve(amt); }
+	void reserve(size_t amt) requires bHasHashing{ derived(*this).reserve(amt); }
 
 	// Adds a defaulted element to the container
 	const TType& push() { return derived(*this).push(); }

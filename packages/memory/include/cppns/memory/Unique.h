@@ -26,8 +26,8 @@ struct TUnique {
 		return *this;
 	}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 explicit TUnique(TOtherType* ptr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
@@ -36,11 +36,11 @@ struct TUnique {
 #endif
 	: m_ptr(ptr, sstl::delayed_deleter<TOtherType>(&sstl::delete_impl<TOtherType>)) {}
 
-	template <typename... TArgs
-	REQUIRES(std::conjunction_v<
+	template <typename... TArgs>
+	requires std::conjunction_v<
 		std::negation<std::is_null_pointer<std::decay_t<TArgs>>>...,
 		std::negation<sstl::is_managed<TArgs>>...
-	>)
+	>
 	constexpr_23 explicit TUnique(TArgs&&... args) noexcept {
 		m_ptr = std::unique_ptr<TType, sstl::delayed_deleter<TType>>(new TType(std::forward<TArgs>(args)...), sstl::delayed_deleter<TType>(&sstl::delete_impl<TType>));
 		if constexpr (sstl::is_initializable_v<TType>) {
@@ -58,12 +58,12 @@ struct TUnique {
 		}
 	}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 TUnique(const TUnique<TOtherType>&) = delete;
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 TUnique(TUnique<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
@@ -72,12 +72,12 @@ struct TUnique {
 #endif
 	: m_ptr(std::move(otr.m_ptr)) {}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 TUnique& operator=(const TUnique<TOtherType>& otr) = delete;
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 TUnique& operator=(TUnique<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
@@ -127,8 +127,8 @@ struct TUnique {
 		return static_cast<bool>(m_ptr);
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator<(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() < snd.get();
 	}
@@ -140,8 +140,8 @@ struct TUnique {
 		return *fst < otr;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator<=(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() <= snd.get();
 	}
@@ -153,8 +153,8 @@ struct TUnique {
 		return *fst <= otr;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator>(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() > snd.get();
 	}
@@ -166,8 +166,8 @@ struct TUnique {
 		return *fst > otr;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator>=(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() >= snd.get();
 	}
@@ -179,8 +179,8 @@ struct TUnique {
 		return *fst >= otr;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	constexpr_23 friend bool operator==(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() == snd.get();
 	}
@@ -202,8 +202,8 @@ struct TUnique {
 		return snd == fst;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sstl::is_managed_v<TOtherType>)
+	template <typename TOtherType>
+	requires sstl::is_managed_v<TOtherType>
 	friend bool operator!=(const TUnique& fst, const TOtherType& snd) noexcept {
 		return fst.get() != snd.get();
 	}
@@ -260,8 +260,8 @@ struct TUnfurled<TUnique<TType>> {
 	constexpr static bool isManaged = true;
 	constexpr static auto get = &TUnique<TType>::get;
 
-	template <typename TOtherType = TType, typename... TArgs
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType, typename... TArgs>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	constexpr_23 static TUnique<TType> create(TArgs&&... args)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {

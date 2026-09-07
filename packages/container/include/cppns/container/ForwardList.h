@@ -11,12 +11,12 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 
 	TForwardList() = default;
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_copy_constructible_v<TOtherType>)
+	template <typename TOtherType = TType>
+	requires std::is_copy_constructible_v<TOtherType>
 	TForwardList(TInitializerList<TType> init): m_Container(init) {}
 
-	template <typename... TArgs
-	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
+	template <typename... TArgs>
+	requires std::conjunction_v<std::is_constructible<TType, TArgs>...>
 	explicit TForwardList(TArgs&&... args) {
 		(m_Container.emplace_front(std::forward<TArgs>(args)), ...);
 	}
@@ -75,8 +75,8 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		return index < getSize();
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
@@ -112,8 +112,8 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		return res;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
@@ -160,8 +160,8 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		return *itr;
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	void resize(size_t amt) {
+	void resize(size_t amt)
+	requires std::is_default_constructible_v<TType> {
 		m_Container.resize(amt);
 	}
 
@@ -172,46 +172,46 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		}
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	TType& push() {
+	TType& push()
+	requires std::is_default_constructible_v<TType> {
 		m_Container.emplace_front();
 		return get(getSize() - 1);
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	size_t push(const TType& obj) {
+	size_t push(const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		m_Container.emplace_front(obj);
 		return getSize() - 1;
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	size_t push(TType&& obj) {
+	size_t push(TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		m_Container.emplace_front(std::move(obj));
 		return getSize() - 1;
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	void push(const size_t index, const TType& obj) {
+	void push(const size_t index, const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		auto itr = m_Container.before_begin();
 		std::advance(itr, index);
 		m_Container.insert_after(itr, obj);
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	void push(const size_t index, TType&& obj) {
+	void push(const size_t index, TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		auto itr = m_Container.before_begin();
 		std::advance(itr, index);
 		m_Container.insert_after(itr, std::move(obj));
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	void replace(const size_t index, const TType& obj) {
+	void replace(const size_t index, const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		popAt(index);
 		push(index, obj);
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	void replace(const size_t index, TType&& obj) {
+	void replace(const size_t index, TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		popAt(index);
 		push(index, std::move(obj));
 	}
@@ -230,8 +230,8 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		m_Container.erase_after(itr);
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	void pop(const TOtherType& obj) {
 		ERASE(m_Container, obj);
 	}

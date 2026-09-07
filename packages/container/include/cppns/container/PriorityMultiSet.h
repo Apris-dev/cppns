@@ -4,20 +4,20 @@
 #include "Container.h"
 #include "cppns/util/InitializerList.h"
 
-template <typename TType
-REQUIRES(sutil::is_less_than_comparable_v<TType>)
+template <typename TType>
+requires sutil::is_less_than_comparable_v<TType>
 struct TPriorityMultiSet : TSelfAssociativeContainer<TPriorityMultiSet<TType>> {
 
 	using Super = TSelfAssociativeContainer<TPriorityMultiSet>;
 
 	TPriorityMultiSet() = default;
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_copy_constructible_v<TOtherType>)
+	template <typename TOtherType = TType>
+	requires std::is_copy_constructible_v<TOtherType>
 	TPriorityMultiSet(TInitializerList<TType> init): m_Container(init) {}
 
-	template <typename... TArgs
-	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
+	template <typename... TArgs>
+	requires std::conjunction_v<std::is_constructible<TType, TArgs>...>
 	explicit TPriorityMultiSet(TArgs&&... args) {
 		(m_Container.emplace(std::forward<TArgs>(args)), ...);
 	}
@@ -74,18 +74,18 @@ struct TPriorityMultiSet : TSelfAssociativeContainer<TPriorityMultiSet<TType>> {
 		return m_Container.rend();
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	bool contains(const TOtherType& obj) const {
 		if constexpr (std::is_same_v<TType, TOtherType>) {
-			return ASSOCIATIVE_CONTAINS(m_Container, obj);
+			return m_Container.contains(obj);
 		} else {
 			return CONTAINS(m_Container, obj);
 		}
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	void resize(const size_t amt) {
+	void resize(const size_t amt)
+	requires std::is_default_constructible_v<TType> {
 		for (size_t i = getSize(); i < amt; ++i) {
 			m_Container.emplace();
 		}
@@ -97,31 +97,31 @@ struct TPriorityMultiSet : TSelfAssociativeContainer<TPriorityMultiSet<TType>> {
 		}
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	const TType& push() {
+	const TType& push()
+	requires std::is_default_constructible_v<TType> {
 		m_Container.emplace();
 		return top();
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	void push(const TType& obj) {
+	void push(const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		m_Container.emplace(obj);
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	void push(TType&& obj) {
+	void push(TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		m_Container.emplace(std::move(obj));
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	void replace(const TType& tgt, const TType& obj) {
+	void replace(const TType& tgt, const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		// Since this container is unordered, replacing doesn't need to set at the same index
 		pop(tgt);
 		m_Container.insert(obj);
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	void replace(const TType& tgt, TType&& obj) {
+	void replace(const TType& tgt, TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		pop(tgt);
 		m_Container.insert(std::move(obj));
 	}
@@ -134,8 +134,8 @@ struct TPriorityMultiSet : TSelfAssociativeContainer<TPriorityMultiSet<TType>> {
 		m_Container.erase(m_Container.begin());
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	void pop(const TOtherType& obj) {
 		if constexpr (std::is_same_v<TType, TOtherType>) {
 			m_Container.erase(obj);

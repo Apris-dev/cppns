@@ -13,27 +13,27 @@ struct TSpan {
 
     TSpan() = delete;
 
-    template <typename TOtherContainerType
-	REQUIRES(std::is_same_v<TTrueType, typename TContainerTraits<TOtherContainerType>::Type>)
+    template <typename TOtherContainerType>
+	requires std::is_same_v<TTrueType, typename TContainerTraits<TOtherContainerType>::Type>
     TSpan(const TSequenceContainer<TOtherContainerType>& inContainer) {
         for (const auto& elem : inContainer) {
             m_Container.push(elem);
         }
     }
 
-    template <typename TOtherContainerType
-    REQUIRES(std::conjunction_v<
+    template <typename TOtherContainerType>
+    requires std::conjunction_v<
         std::is_same<TType, typename TContainerTraits<TOtherContainerType>::KeyType>,
         std::is_same<TOptValueType, typename TContainerTraits<TOtherContainerType>::ValueType>
-    >)
+    >
     TSpan(const TAssociativeContainer<TOtherContainerType>& inContainer) {
         for (const auto& elem : inContainer) {
             m_Container.push(elem);
         }
     }
 
-    template <typename TOtherContainerType
-	REQUIRES(std::is_same_v<TTrueType, typename TContainerTraits<TOtherContainerType>::Type>)
+    template <typename TOtherContainerType>
+	requires std::is_same_v<TTrueType, typename TContainerTraits<TOtherContainerType>::Type>
     TSpan(const TSelfAssociativeContainer<TOtherContainerType>& inContainer) {
         for (const auto& elem : inContainer) {
             m_Container.push(elem);

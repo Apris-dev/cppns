@@ -268,11 +268,11 @@ public:
 		}
 	}
 
-	template <typename... TArgs
-	REQUIRES(std::conjunction_v<
+	template <typename... TArgs>
+	requires std::conjunction_v<
 		std::negation<std::is_null_pointer<std::decay_t<TArgs>>>...,
 		std::negation<std::is_same<std::decay_t<TArgs>, TThreadSafe>>...
-	>)
+	>
 	explicit TThreadSafe(TArgs&&... args) noexcept {
 		m_obj = TType{std::forward<TArgs>(args)...};
 		if constexpr (sstl::is_initializable_v<TType>) {
@@ -286,8 +286,8 @@ public:
 	TThreadSafe(TThreadSafe&& otr) noexcept
 	: TThreadSafe(std::move(otr.m_obj)) {}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	TThreadSafe(const TThreadSafe<TOtherType>& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
@@ -296,8 +296,8 @@ public:
 #endif
 	: TThreadSafe(otr.m_obj) {}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	TThreadSafe(TThreadSafe<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>)
@@ -316,8 +316,8 @@ public:
 		return *this;
 	}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	TThreadSafe& operator=(const TThreadSafe<TOtherType>& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
@@ -328,8 +328,8 @@ public:
 		return *this;
 	}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	TThreadSafe& operator=(TThreadSafe<TOtherType>& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {
@@ -340,8 +340,8 @@ public:
 		return *this;
 	}
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_convertible_v<TOtherType*, TType*>)
+	template <typename TOtherType = TType>
+	requires std::is_convertible_v<TOtherType*, TType*>
 	TThreadSafe& operator=(TThreadSafe<TOtherType>&& otr)
 #ifdef __cpp_lib_is_nothrow_convertible
 	noexcept(std::is_nothrow_convertible_v<TOtherType*, TType*>) {

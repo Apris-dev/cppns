@@ -15,14 +15,14 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 
 	constexpr_20 TMinHeap() = default;
 
-	template <typename TOtherType = TType
-	REQUIRES(std::is_copy_constructible_v<TOtherType>)
+	template <typename TOtherType = TType>
+	requires std::is_copy_constructible_v<TOtherType>
 	constexpr_20 TMinHeap(TInitializerList<TType> init): m_Container(init) {
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
-	template <typename... TArgs
-	REQUIRES(std::conjunction_v<std::is_constructible<TType, TArgs>...>)
+	template <typename... TArgs>
+	requires std::conjunction_v<std::is_constructible<TType, TArgs>...>
 	constexpr_20 explicit TMinHeap(TArgs&&... args) {
 		m_Container.reserve(sizeof...(TArgs));
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
@@ -97,8 +97,8 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 		return index < getSize();
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	bool contains(const TOtherType& obj) const {
 		return CONTAINS(m_Container, obj);
 	}
@@ -134,8 +134,8 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 		return res;
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	size_t find(const TOtherType& obj) const {
 		return DISTANCE(m_Container, obj);
 	}
@@ -178,8 +178,8 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 		return m_Container[index];
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	void resize(size_t amt) {
+	void resize(size_t amt)
+	requires std::is_default_constructible_v<TType> {
 		m_Container.resize(amt);
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
@@ -197,47 +197,47 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 		m_Container.reserve(amt);
 	}
 
-	ENABLE_FUNC_IF(std::is_default_constructible_v<TType>)
-	TType& push() {
+	TType& push()
+	requires std::is_default_constructible_v<TType> {
 		m_Container.emplace_back();
 		std::push_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 		return get(getSize() - 1);
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	size_t push(const TType& obj) {
+	size_t push(const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		m_Container.emplace_back(obj);
 		std::push_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 		return getSize() - 1;
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	size_t push(TType&& obj) {
+	size_t push(TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		m_Container.emplace_back(std::move(obj));
 		std::push_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 		return getSize() - 1;
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	void push(const size_t index, const TType& obj) {
+	void push(const size_t index, const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		m_Container.insert(m_Container.begin() + index, obj);
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	void push(const size_t index, TType&& obj) {
+	void push(const size_t index, TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		m_Container.insert(m_Container.begin() + index, std::move(obj));
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
-	ENABLE_FUNC_IF(std::is_copy_constructible_v<TType>)
-	void replace(const size_t index, const TType& obj) {
+	void replace(const size_t index, const TType& obj)
+	requires std::is_copy_constructible_v<TType> {
 		popAt(index);
 		push(index, obj);
 	}
 
-	ENABLE_FUNC_IF(std::is_move_constructible_v<TType>)
-	void replace(const size_t index, TType&& obj) {
+	void replace(const size_t index, TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		popAt(index);
 		push(index, std::move(obj));
 	}
@@ -256,8 +256,8 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
-	template <typename TOtherType
-	REQUIRES(sutil::is_equality_comparable_v<TType, TOtherType>)
+	template <typename TOtherType>
+	requires sutil::is_equality_comparable_v<TType, TOtherType>
 	void pop(const TOtherType& obj) {
 		ERASE(m_Container, obj);
 	}

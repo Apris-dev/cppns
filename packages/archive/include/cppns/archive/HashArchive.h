@@ -75,8 +75,8 @@ private:
     }
 
 #ifndef __cpp_lib_bitops
-    template <typename TType
-	REQUIRES(std::is_unsigned_v<TType>)
+    template <typename TType>
+	requires std::is_unsigned_v<TType>
     constexpr TType rotl(const TType& n, const int rotation) noexcept {
         const TType m = (std::numeric_limits<TType>::digits - 1);
         const TType c = rotation & m;
