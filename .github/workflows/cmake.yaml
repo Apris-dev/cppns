@@ -2,16 +2,17 @@ name: Multiplatform CMake Run
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
-    name: c++${{ matrix.cxx_standard }}-${{ matrix.platform.name }}-${{ matrix.platform.compiler }}-cmake-run
+    name: c++${{ matrix.cxx_standard }}-${{ matrix.platform.name }}-${{ matrix.platform.compiler }}-${{ matrix.architecture }}-cmake-run
     runs-on: ${{ matrix.platform.os }}
     env:
       vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.architecture }}-${{ matrix.platform.name }}
     strategy:
       fail-fast: false
       matrix:
@@ -19,10 +20,13 @@ jobs:
           - 20
           - 23
 
+        architecture:
+          - x64
+
         platform:
           - { name: linux, os: ubuntu-24.04, compiler: gcc }
           - { name: linux, os: ubuntu-24.04, compiler: clang }
-          - { name: macos, os: macos-15, compiler: clang }
+          - { name: osx, os: macos-15, compiler: clang }
           - { name: windows, os: windows-2022, compiler: msvc }
           - { name: windows, os: windows-2022, compiler: mingw }
     steps:
@@ -50,7 +54,7 @@ jobs:
       - name: Run CMake
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: 'ninja-multi-${{ matrix.platform.compiler }}'
+          configurePreset: 'ninja-multi-${{ matrix.platform.compiler }}-${{ matrix.architecture }}'
           configurePresetAdditionalArgs: "['-DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }}']"
-          buildPreset: 'ninja-release-${{ matrix.platform.compiler }}'
-          testPreset: 'test-${{ matrix.platform.compiler }}-release'
+          buildPreset: 'ninja-release-${{ matrix.platform.compiler }}-${{ matrix.architecture }}'
+          testPreset: 'test-release-${{ matrix.platform.compiler }}-${{ matrix.architecture }}'
