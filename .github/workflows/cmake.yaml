@@ -8,11 +8,11 @@ on:
 
 jobs:
   build:
-    name: c++${{ matrix.cxx_standard }}-${{ matrix.platform.name }}-${{ matrix.platform.compiler }}-${{ matrix.architecture }}-cmake-run
+    name: c++${{ matrix.cxx_standard }}-${{ matrix.platform.name }}-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}-cmake-run
     runs-on: ${{ matrix.platform.os }}
     env:
       vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
-      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.platform.triplet }}
     strategy:
       fail-fast: false
       matrix:
@@ -53,7 +53,7 @@ jobs:
       - name: Run CMake
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: 'ninja-multi-${{ matrix.platform.compiler }}-${{ matrix.architecture }}'
+          configurePreset: 'ninja-multi-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}'
           configurePresetAdditionalArgs: "['-DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }}']"
-          buildPreset: 'ninja-release-${{ matrix.platform.compiler }}-${{ matrix.architecture }}'
-          testPreset: 'test-release-${{ matrix.platform.compiler }}-${{ matrix.architecture }}'
+          buildPreset: 'ninja-release-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}'
+          testPreset: 'test-release-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}'
