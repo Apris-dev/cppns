@@ -10,9 +10,6 @@ jobs:
   build:
     name: c++${{ matrix.cxx_standard }}-${{ matrix.platform.name }}-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}-cmake-run
     runs-on: ${{ matrix.platform.os }}
-    env:
-      vcpkgCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
-      VCPKG_DEFAULT_TRIPLET: ${{ matrix.platform.triplet }}
     strategy:
       fail-fast: false
       matrix:
@@ -28,6 +25,9 @@ jobs:
           - { arch: x86, triplet: x86-windows, name: windows, os: windows-2022, compiler: msvc, notest: false }
           - { arch: arm64, triplet: arm64-windows, name: windows, os: windows-2022, compiler: msvc, notest: true }
           - { arch: x64, triplet: x64-mingw-dynamic, name: windows, os: windows-2022, compiler: mingw, notest: false }
+    env:
+      vcpkgCommitId: '9e593bb18ea69cc5095e012465dcd675a822ed0d'
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.platform.triplet }}
     steps:
       # Checkout project, including submodules
       - uses: actions/checkout@v4
