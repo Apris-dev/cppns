@@ -32,6 +32,7 @@
       "name": "ninja-multi-msvc-x86",
       "inherits": "ninja-multi-msvc",
       "displayName": "Ninja Multi-Config (MSVC x86)",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-x86.cmake",
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -41,6 +42,7 @@
       "name": "ninja-multi-msvc-arm64",
       "inherits": "ninja-multi-msvc",
       "displayName": "Ninja Multi-Config (MSVC ARM64)",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-arm64.cmake",
       "architecture": {
         "value": "ARM64",
         "strategy": "external"

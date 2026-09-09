@@ -56,4 +56,4 @@ jobs:
           configurePreset: 'ninja-multi-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}'
           configurePresetAdditionalArgs: "['-DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }}']"
           buildPreset: 'ninja-release-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}'
-          testPreset: ${{ matrix.platform.notest && '' || format('test-release-{0}-{1}', matrix.platform.compiler, matrix.platform.arch) }}
+          testPreset: 'test-release-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}'
