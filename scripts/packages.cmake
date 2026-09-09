@@ -33,6 +33,7 @@ function(define_project
     message(STATUS "${PROJECT_NAME}: Using compiler ${CMAKE_CXX_COMPILER_ID} on ${CMAKE_SYSTEM}!")
 
     message(STATUS "cppns: Compiling for ${CMAKE_SYSTEM_PROCESSOR} on host ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+    message(STATUS "cppns: Is Cross-Compiling: ${CMAKE_CROSSCOMPILING}")
 
     # Set the project of the current scope
     set(CURRENT_SCOPE_PROJECT ${PROJECT_NAME} PARENT_SCOPE)
