@@ -20,6 +20,34 @@
       }
     },
     {
+      "name": "Debug-MSVC-x86",
+      "generator": "Ninja",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-x86.cmake",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "MSVC-x86"
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Debug-MSVC-ARM64",
+      "generator": "Ninja",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-arm64.cmake",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "MSVC-ARM64"
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
       "name": "Debug-MinGW",
       "inherits": "base",
       "generator": "Ninja",

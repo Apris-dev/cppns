@@ -8,21 +8,26 @@ project(
         LANGUAGES CXX C
 )
 
+if (${PROJECT_IS_TOP_LEVEL})
+    # Set default CXX_STANDARD if top level project
+    if (NOT CMAKE_CXX_STANDARD)
+        set(CMAKE_CXX_STANDARD 23)
+    endif ()
+
+    if (NOT CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_EMULATOR)
+        option(CPPNS_TEST "Enable testing cppns features" On)
+    endif ()
+
+endif ()
+
 # Enable testing if a top level project, otherwise it can be enabled optionally
-if (${PROJECT_IS_TOP_LEVEL} AND (NOT CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_EMULATOR))
-    option(CPPNS_TEST "Enable testing cppns features" On)
-else ()
+if (NOT DEFINED CPPNS_TARGET)
     option(CPPNS_TEST "Enable testing cppns features" Off)
 endif ()
 
 if(CPPNS_TEST)
     message(STATUS "cppns: Enabled Testing")
     enable_testing()
-
-    # Set default CXX_STANDARD if testing
-    if (NOT CMAKE_CXX_STANDARD)
-        set(CMAKE_CXX_STANDARD 23)
-    endif ()
 endif()
 
 # If CXX Standard is not defined, fallback to c++20
