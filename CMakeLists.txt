@@ -9,7 +9,7 @@ project(
 )
 
 # Enable testing if a top level project, otherwise it can be enabled optionally
-if (${PROJECT_IS_TOP_LEVEL})# AND NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "ARM64")
+if (${PROJECT_IS_TOP_LEVEL} AND NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "ARM64")
     option(CPPNS_TEST "Enable testing cppns features" On)
 else ()
     option(CPPNS_TEST "Enable testing cppns features" Off)
