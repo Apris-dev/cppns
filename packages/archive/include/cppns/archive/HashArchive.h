@@ -65,21 +65,13 @@ private:
     }
 
     // a hash function with another name as to not confuse with std::hash
-    // This will be chosen when size_t is 32 bit
     constexpr size_t distribute(const size_t& n) noexcept {
+        // Limit to 32 bit if size_t is 32 bit
         if constexpr (std::is_same_v<size_t, uint32_t>) {
-            return distribute32(static_cast<uint32_t>(n));
+            return 3423571495ul * xorshift(0x55555555ul * xorshift(n,16),16);
         } else {
-            return distribute64(static_cast<uint64_t>(n));
+            return 17316035218449499591ull * xorshift(0x5555555555555555ull * xorshift(n,32),32);
         }
-    }
-
-    constexpr uint32_t distribute32(const uint32_t& n) noexcept {
-        return 3423571495ul * xorshift(0x55555555ul * xorshift(n,16),16);
-    }
-
-    constexpr uint64_t distribute64(const uint64_t& n) noexcept {
-        return 17316035218449499591ull * xorshift(0x5555555555555555ull * xorshift(n,32),32);
     }
 
 #ifndef __cpp_lib_bitops
