@@ -24,7 +24,7 @@ if (${USE_BOOTSTRAPPER})
         add_package_executable(TestBootstrap
                 TestExec.cpp
         )
-        add_test(TestBootstrap TestBootstrap)
+        add_test(NAME TestBootstrap COMMAND TestBootstrap)
 
         link_package(PUBLIC TestTrueMain)
     endblock()
