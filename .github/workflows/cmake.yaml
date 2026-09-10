@@ -20,8 +20,10 @@ jobs:
         platform:
           - { arch: x64, triplet: x64-linux, name: linux, os: ubuntu-24.04, compiler: gcc }
           - { arch: arm64, triplet: arm64-linux, name: linux, os: ubuntu-24.04, compiler: gcc }
+          - { arch: x86, triplet: x86-linux, name: linux, os: ubuntu-24.04, compiler: gcc }
           - { arch: x64, triplet: x64-linux, name: linux, os: ubuntu-24.04, compiler: clang }
           - { arch: arm64, triplet: arm64-linux, name: linux, os: ubuntu-24.04, compiler: clang }
+          - { arch: x86, triplet: x86-linux, name: linux, os: ubuntu-24.04, compiler: clang }
           - { arch: x64, triplet: x64-osx, name: macos, os: macos-15, compiler: clang }
           - { arch: x64, triplet: x64-windows, name: windows, os: windows-2022, compiler: msvc }
           - { arch: x86, triplet: x86-windows, name: windows, os: windows-2022, compiler: msvc }
@@ -64,6 +66,20 @@ jobs:
           aarch64-linux-gnu-gcc --version
           aarch64-linux-gnu-g++ --version
           qemu-aarch64-static --version
+
+        # Install QEMU and x86 cross-compiler/toolchain for x86 builds on linux
+      - name: Install QEMU and x86 GCC/G++
+        if: matrix.platform.triplet == 'x86-linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc-i686-linux-gnu \
+            g++-i686-linux-gnu \
+            qemu-user-static
+          
+          i686-linux-gnu-gcc --version
+          i686-linux-gnu-g++ --version
+          qemu-i386-static --version
 
         # Run CMake Build
       - name: Run CMake
