@@ -73,6 +73,19 @@
       }
     },
     {
+      "name": "Debug-Clang-ARM64",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-arm64.cmake",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "Clang"
+        }
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
       "name": "Debug-GCC",
       "inherits": "base",
       "vendor": {
@@ -87,7 +100,7 @@
     {
       "name": "Debug-GCC-ARM64",
       "inherits": "base",
-      "toolchainFile": "${sourceDir}/scripts/toolchains/linux-arm64.cmake",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-arm64.cmake",
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "GCC-ARM64"
