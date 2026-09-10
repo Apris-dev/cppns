@@ -52,3 +52,43 @@
         #define USING_MINGW 0
     #endif
 #endif
+
+#if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64)
+    #define USING_X64 1
+    #define USING_64_BIT 1
+#elif defined(__i386__) || defined(_M_IX86)
+    #define USING_X86 1
+    #define USING_32_BIT 1
+#elif defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
+    #define USING_ARM64 1
+    #define USING_64_BIT 1
+#elif defined(__arm__) || defined(_M_ARM)
+    #define USING_ARM 1
+    #define USING_32_BIT 1
+#else
+    #error "Unsupported CPU architecture"
+#endif
+
+#ifndef USING_64_BIT
+    #define USING_64_BIT 0
+#endif
+
+#ifndef USING_32_BIT
+    #define USING_32_BIT 0
+#endif
+
+#ifndef USING_X64
+    #define USING_X64 0
+#endif
+
+#ifndef USING_X86
+    #define USING_X86 0
+#endif
+
+#ifndef USING_ARM64
+    #define USING_ARM64 0
+#endif
+
+#ifndef USING_ARM
+    #define USING_ARM 0
+#endif
