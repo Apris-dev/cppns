@@ -112,7 +112,7 @@ endfunction()
 # Set target properties and other sorts of variables
 macro (_set_target_defaults TARGET_NAME)
     # Ensure target is using CXX
-    set_target_properties(${TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+    set_property(TARGET ${TARGET_NAME} PROPERTY LINKER_LANGUAGE CXX)
 
     # Get cpp version from project and set target properties
     get_target_property(CXX_VERSION ${CURRENT_SCOPE_PROJECT}-settings CXX_STANDARD)
@@ -248,7 +248,7 @@ function(_add_exec TARGET_NAME)
                     ${ARGN}
                     ${CMAKE_BINARY_DIR}/Bootstrapper.cpp
             )
-            set_target_properties(${TARGET_NAME} PROPERTIES
+            set_property(TARGET ${TARGET_NAME} PROPERTY
                     ENABLE_EXPORTS ON
             )
 
@@ -265,6 +265,11 @@ function(_add_exec TARGET_NAME)
         add_executable(${TARGET_NAME}
                 ${ARGN}
         )
+    endif ()
+
+    # Tell user this target is using an emulator
+    if (CMAKE_CROSSCOMPILING AND DEFINED CMAKE_CROSSCOMPILING_EMULATOR)
+        message(STATUS "cppns: Executable ${TARGET_NAME} is using an emulator (${CMAKE_CROSSCOMPILING_EMULATOR})!")
     endif ()
 endfunction()
 
@@ -312,7 +317,7 @@ function(add_package_test TEST_NAME)
     target_link_libraries(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME} ${CURRENT_SCOPE_PACKAGE})
 
     # Add CTest
-    add_test(${CURRENT_SCOPE_PACKAGE}-${TEST_NAME} ${CURRENT_SCOPE_PACKAGE}-${TEST_NAME})
+    add_test(NAME ${CURRENT_SCOPE_PACKAGE}-${TEST_NAME} COMMAND ${CURRENT_SCOPE_PACKAGE}-${TEST_NAME})
 
     # Set the test of the current scope
     set(CURRENT_SCOPE_TEST ${TEST_NAME} PARENT_SCOPE)
