@@ -54,7 +54,8 @@ cppns_main() {
             hasher2 << s;
             hasher2 << s2;
 
-            std::cout << "Hash: " << hasher.get() << std::endl;
+            std::cout << "Hash1: " << hasher.get() << std::endl;
+            std::cout << "Hash2: " << hasher2.get() << std::endl;
 
             assert(hasher.get() != 0 && hasher2.get() != 0);
             assert(hasher.get() == hasher2.get());
