@@ -51,27 +51,19 @@ jobs:
       - name: Prints output of run-vcpkg's action
         run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}'"
 
-        # Install QEMU for arm64 builds on linux
-      - name: Install QEMU
+        # Install QEMU and ARM64 cross-compiler/toolchain for arm64 builds on linux
+      - name: Install QEMU and ARM64 GCC/G++
         if: matrix.platform.triplet == 'arm64-linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            qemu-user-static
-          
-          qemu-aarch64-static --version
-
-        # Install ARM64 cross-compiler for gcc on linux
-      - name: Install ARM64 GCC/G++
-        if: matrix.platform.triplet == 'arm64-linux' && matrix.platform.compiler == 'gcc'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
             gcc-aarch64-linux-gnu \
-            g++-aarch64-linux-gnu
+            g++-aarch64-linux-gnu \
+            qemu-user-static
           
           aarch64-linux-gnu-gcc --version
           aarch64-linux-gnu-g++ --version
+          qemu-aarch64-static --version
 
         # Run CMake Build
       - name: Run CMake
