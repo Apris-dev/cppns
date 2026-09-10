@@ -7,6 +7,6 @@ set(CMAKE_CXX_COMPILER /bin/aarch64-linux-gnu-g++)
 
 # Requires qemu-user-static on debian
 set(CMAKE_CROSSCOMPILING_EMULATOR
-        "/usr/bin/qemu-aarch64;-L;/usr/aarch64-linux-gnu"
+        "/usr/bin/qemu-aarch64-static;-L;/usr/aarch64-linux-gnu"
         CACHE STRING "ARM64 QEMU emulator"
 )
