@@ -10,10 +10,6 @@
       "name": "ninja-multi-msvc",
       "binaryDir": "${sourceDir}/bin/${presetName}",
       "generator": "Ninja Multi-Config",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl.exe",
-        "CMAKE_CXX_COMPILER": "cl.exe"
-      },
       "toolset": {
         "value": "host=x64",
         "strategy": "external"
@@ -23,6 +19,7 @@
       "name": "ninja-multi-msvc-x64",
       "inherits": "ninja-multi-msvc",
       "displayName": "Ninja Multi-Config (MSVC x64)",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-x64.cmake",
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -53,20 +50,14 @@
       "binaryDir": "${sourceDir}/bin/${presetName}",
       "displayName": "Ninja Multi-Config (MinGW x64)",
       "generator": "Ninja Multi-Config",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "gcc.exe",
-        "CMAKE_CXX_COMPILER": "g++.exe"
-      }
+      "toolchainFile": "${sourceDir}/scripts/toolchains/mingw-x64.cmake"
     },
     {
       "name": "ninja-multi-gcc-x64",
       "binaryDir": "${sourceDir}/bin/${presetName}",
       "displayName": "Ninja Multi-Config (GCC x64)",
       "generator": "Ninja Multi-Config",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++"
-      }
+      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-x64.cmake"
     },
     {
       "name": "ninja-multi-gcc-x86",
@@ -87,10 +78,7 @@
       "binaryDir": "${sourceDir}/bin/${presetName}",
       "displayName": "Ninja Multi-Config (Clang x64)",
       "generator": "Ninja Multi-Config",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
-      }
+      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-x64.cmake"
     },
     {
       "name": "ninja-multi-clang-x86",

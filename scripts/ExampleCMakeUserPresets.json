@@ -4,19 +4,20 @@
     {
       "name": "base",
       "hidden": true,
-      "binaryDir": "${sourceDir}/bin/${presetName}"
+      "binaryDir": "${sourceDir}/bin/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
     },
     {
       "name": "Debug-MSVC",
       "generator": "Ninja",
       "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-x64.cmake",
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "MSVC"
         }
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
@@ -28,9 +29,6 @@
         "jetbrains.com/clion": {
           "toolchain": "MSVC-x86"
         }
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
@@ -42,34 +40,37 @@
         "jetbrains.com/clion": {
           "toolchain": "MSVC-ARM64"
         }
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "Debug-MinGW",
       "inherits": "base",
       "generator": "Ninja",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/mingw-x64.cmake",
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "MinGW"
         }
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "Debug-Clang",
       "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-x64.cmake",
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "Clang"
         }
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Debug-Clang-x86",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-x86.cmake",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "Clang"
+        }
       }
     },
     {
@@ -80,21 +81,26 @@
         "jetbrains.com/clion": {
           "toolchain": "Clang"
         }
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "Debug-GCC",
       "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-x64.cmake",
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "GCC"
         }
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Debug-GCC-x86",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-x86.cmake",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "GCC-x86"
+        }
       }
     },
     {
@@ -105,33 +111,26 @@
         "jetbrains.com/clion": {
           "toolchain": "GCC-ARM64"
         }
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "Debug-MUSL-Clang",
       "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-x64.cmake",
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "MUSL-Clang"
         }
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "Debug-MUSL-GCC",
       "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-x64.cmake",
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "MUSL-GCC"
         }
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
       }
     }
   ]
