@@ -3,14 +3,22 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "PlatformDefinition.h"
+
 using uint8 = std::uint8_t;
-using uint16 = std::uint16_t;
-using uint32 = std::uint32_t;
-using uint64 = std::uint64_t;
 using int8 = std::int8_t;
+
+using uint16 = std::uint16_t;
 using int16 = std::int16_t;
+
+using uint32 = std::uint32_t;
 using int32 = std::int32_t;
-using int64 = std::int64_t;
+
+// Only explicitly include 64 bit values on 64 bit machines
+#if USING_64_BIT
+    using uint64 = std::uint64_t;
+    using int64 = std::int64_t;
+#endif
 
 using smallest = uint8;
 #if USING_WINDOWS || USING_APPLE
