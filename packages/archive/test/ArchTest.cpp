@@ -18,7 +18,7 @@ cppns_main() {
         std::cout << path.getFilename() << std::endl;
 
         {
-            CFileArchive<EOpenType::BINARY_WRITE> fileArchive(path);
+            CFileArchive<File::OpenType::BINARY_WRITE> fileArchive(path);
 
             const size_t v = 5;
             fileArchive << v;
@@ -29,7 +29,7 @@ cppns_main() {
         assert(std::filesystem::exists(path.get()));
 
         {
-            CFileArchive<EOpenType::BINARY_READ> fileArchive(path);
+            CFileArchive<File::OpenType::BINARY_READ> fileArchive(path);
 
             size_t v;
             fileArchive >> v;

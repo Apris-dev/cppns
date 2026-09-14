@@ -3,3 +3,5 @@ add_interface_package(cppns-archive
         include/cppns/archive/HashArchive.h
         include/cppns/archive/FileArchive.h
 )
+
+link_package(INTERFACE cppns-container)
