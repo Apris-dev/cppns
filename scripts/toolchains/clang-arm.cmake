@@ -11,6 +11,8 @@ set(CMAKE_CXX_COMPILER_TARGET arm-linux-gnueabihf)
 set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN /usr)
 set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN /usr)
 
+set(QEMU_LD_PREFIX "/usr/arm-linux-gnu/lib")
+
 # Requires qemu-user-static on debian
 set(CMAKE_CROSSCOMPILING_EMULATOR
         "qemu-arm-static;-L;/usr/arm-linux-gnu"
