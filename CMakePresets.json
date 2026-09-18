@@ -26,6 +26,16 @@
       }
     },
     {
+      "name": "ninja-multi-msvc-arm64",
+      "inherits": "ninja-multi-msvc",
+      "displayName": "Ninja Multi-Config (MSVC ARM64)",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-arm64.cmake",
+      "architecture": {
+        "value": "ARM64",
+        "strategy": "external"
+      }
+    },
+    {
       "name": "ninja-multi-msvc-x86",
       "inherits": "ninja-multi-msvc",
       "displayName": "Ninja Multi-Config (MSVC x86)",
@@ -36,12 +46,12 @@
       }
     },
     {
-      "name": "ninja-multi-msvc-arm64",
+      "name": "ninja-multi-msvc-arm",
       "inherits": "ninja-multi-msvc",
-      "displayName": "Ninja Multi-Config (MSVC ARM64)",
-      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-arm64.cmake",
+      "displayName": "Ninja Multi-Config (MSVC ARM)",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-arm.cmake",
       "architecture": {
-        "value": "ARM64",
+        "value": "ARM",
         "strategy": "external"
       }
     },
@@ -60,6 +70,13 @@
       "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-x64.cmake"
     },
     {
+      "name": "ninja-multi-gcc-arm64",
+      "binaryDir": "${sourceDir}/bin/${presetName}",
+      "displayName": "Ninja Multi-Config (GCC ARM64)",
+      "generator": "Ninja Multi-Config",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-arm64.cmake"
+    },
+    {
       "name": "ninja-multi-gcc-x86",
       "binaryDir": "${sourceDir}/bin/${presetName}",
       "displayName": "Ninja Multi-Config (GCC x86)",
@@ -67,11 +84,11 @@
       "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-x86.cmake"
     },
     {
-      "name": "ninja-multi-gcc-arm64",
+      "name": "ninja-multi-gcc-arm",
       "binaryDir": "${sourceDir}/bin/${presetName}",
-      "displayName": "Ninja Multi-Config (GCC ARM64)",
+      "displayName": "Ninja Multi-Config (GCC ARM)",
       "generator": "Ninja Multi-Config",
-      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-arm64.cmake"
+      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-arm.cmake"
     },
     {
       "name": "ninja-multi-clang-x64",
@@ -81,6 +98,13 @@
       "toolchainFile": "${sourceDir}/scripts/toolchains/clang-x64.cmake"
     },
     {
+      "name": "ninja-multi-clang-arm64",
+      "binaryDir": "${sourceDir}/bin/${presetName}",
+      "displayName": "Ninja Multi-Config (Clang ARM64)",
+      "generator": "Ninja Multi-Config",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-arm64.cmake"
+    },
+    {
       "name": "ninja-multi-clang-x86",
       "binaryDir": "${sourceDir}/bin/${presetName}",
       "displayName": "Ninja Multi-Config (Clang x86)",
@@ -88,11 +112,11 @@
       "toolchainFile": "${sourceDir}/scripts/toolchains/clang-x86.cmake"
     },
     {
-      "name": "ninja-multi-clang-arm64",
+      "name": "ninja-multi-clang-arm",
       "binaryDir": "${sourceDir}/bin/${presetName}",
-      "displayName": "Ninja Multi-Config (Clang ARM64)",
+      "displayName": "Ninja Multi-Config (Clang ARM)",
       "generator": "Ninja Multi-Config",
-      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-arm64.cmake"
+      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-arm.cmake"
     }
   ],
   "buildPresets": [
@@ -103,15 +127,21 @@
       "configuration": "Debug"
     },
     {
+      "name": "ninja-debug-msvc-arm64",
+      "configurePreset": "ninja-multi-msvc-arm64",
+      "displayName": "Build (MSVC-Debug ARM64)",
+      "configuration": "Debug"
+    },
+    {
       "name": "ninja-debug-msvc-x86",
       "configurePreset": "ninja-multi-msvc-x86",
       "displayName": "Build (MSVC-Debug x86)",
       "configuration": "Debug"
     },
     {
-      "name": "ninja-debug-msvc-arm64",
-      "configurePreset": "ninja-multi-msvc-arm64",
-      "displayName": "Build (MSVC-Debug ARM64)",
+      "name": "ninja-debug-msvc-arm",
+      "configurePreset": "ninja-multi-msvc-arm",
+      "displayName": "Build (MSVC-Debug ARM)",
       "configuration": "Debug"
     },
     {
@@ -121,14 +151,20 @@
       "configuration": "Release"
     },
     {
+      "name": "ninja-release-msvc-arm64",
+      "configurePreset": "ninja-multi-msvc-arm64",
+      "displayName": "Build (MSVC-Release)",
+      "configuration": "Release"
+    },
+    {
       "name": "ninja-release-msvc-x86",
       "configurePreset": "ninja-multi-msvc-x86",
       "displayName": "Build (MSVC-Release)",
       "configuration": "Release"
     },
     {
-      "name": "ninja-release-msvc-arm64",
-      "configurePreset": "ninja-multi-msvc-arm64",
+      "name": "ninja-release-msvc-arm",
+      "configurePreset": "ninja-multi-msvc-arm",
       "displayName": "Build (MSVC-Release)",
       "configuration": "Release"
     },
@@ -151,15 +187,21 @@
       "configuration": "Debug"
     },
     {
+      "name": "ninja-debug-gcc-arm64",
+      "configurePreset": "ninja-multi-gcc-arm64",
+      "displayName": "Build (GCC-Debug ARM64)",
+      "configuration": "Debug"
+    },
+    {
       "name": "ninja-debug-gcc-x86",
       "configurePreset": "ninja-multi-gcc-x86",
       "displayName": "Build (GCC-Debug x86)",
       "configuration": "Debug"
     },
     {
-      "name": "ninja-debug-gcc-arm64",
-      "configurePreset": "ninja-multi-gcc-arm64",
-      "displayName": "Build (GCC-Debug ARM64)",
+      "name": "ninja-debug-gcc-arm",
+      "configurePreset": "ninja-multi-gcc-arm",
+      "displayName": "Build (GCC-Debug ARM)",
       "configuration": "Debug"
     },
     {
@@ -169,15 +211,21 @@
       "configuration": "Release"
     },
     {
+      "name": "ninja-release-gcc-arm64",
+      "configurePreset": "ninja-multi-gcc-arm64",
+      "displayName": "Build (GCC-Release ARM64)",
+      "configuration": "Release"
+    },
+    {
       "name": "ninja-release-gcc-x86",
       "configurePreset": "ninja-multi-gcc-x86",
       "displayName": "Build (GCC-Release x86)",
       "configuration": "Release"
     },
     {
-      "name": "ninja-release-gcc-arm64",
-      "configurePreset": "ninja-multi-gcc-arm64",
-      "displayName": "Build (GCC-Release ARM64)",
+      "name": "ninja-release-gcc-arm",
+      "configurePreset": "ninja-multi-gcc-arm",
+      "displayName": "Build (GCC-Release ARM)",
       "configuration": "Release"
     },
     {
@@ -187,15 +235,21 @@
       "configuration": "Debug"
     },
     {
+      "name": "ninja-debug-clang-arm64",
+      "configurePreset": "ninja-multi-clang-arm64",
+      "displayName": "Build (Clang-Debug ARM64)",
+      "configuration": "Debug"
+    },
+    {
       "name": "ninja-debug-clang-x86",
       "configurePreset": "ninja-multi-clang-x86",
       "displayName": "Build (Clang-Debug x86)",
       "configuration": "Debug"
     },
     {
-      "name": "ninja-debug-clang-arm64",
-      "configurePreset": "ninja-multi-clang-arm64",
-      "displayName": "Build (Clang-Debug ARM64)",
+      "name": "ninja-debug-clang-arm",
+      "configurePreset": "ninja-multi-clang-arm",
+      "displayName": "Build (Clang-Debug ARM)",
       "configuration": "Debug"
     },
     {
@@ -205,15 +259,21 @@
       "configuration": "Release"
     },
     {
+      "name": "ninja-release-clang-arm64",
+      "configurePreset": "ninja-multi-clang-arm64",
+      "displayName": "Build (Clang-Release ARM64)",
+      "configuration": "Release"
+    },
+    {
       "name": "ninja-release-clang-x86",
       "configurePreset": "ninja-multi-clang-x86",
       "displayName": "Build (Clang-Release x86)",
       "configuration": "Release"
     },
     {
-      "name": "ninja-release-clang-arm64",
-      "configurePreset": "ninja-multi-clang-arm64",
-      "displayName": "Build (Clang-Release ARM64)",
+      "name": "ninja-release-clang-arm",
+      "configurePreset": "ninja-multi-clang-arm",
+      "displayName": "Build (Clang-Release ARM)",
       "configuration": "Release"
     }
   ],
@@ -225,15 +285,21 @@
       "configuration": "Debug"
     },
     {
+      "name": "test-debug-msvc-arm64",
+      "configurePreset": "ninja-multi-msvc-arm64",
+      "displayName": "Test (MSVC-Debug ARM64)",
+      "configuration": "Debug"
+    },
+    {
       "name": "test-debug-msvc-x86",
       "configurePreset": "ninja-multi-msvc-x86",
       "displayName": "Test (MSVC-Debug x86)",
       "configuration": "Debug"
     },
     {
-      "name": "test-debug-msvc-arm64",
-      "configurePreset": "ninja-multi-msvc-arm64",
-      "displayName": "Test (MSVC-Debug ARM64)",
+      "name": "test-debug-msvc-arm",
+      "configurePreset": "ninja-multi-msvc-arm",
+      "displayName": "Test (MSVC-Debug ARM)",
       "configuration": "Debug"
     },
     {
@@ -243,15 +309,21 @@
       "configuration": "Release"
     },
     {
+      "name": "test-release-msvc-arm64",
+      "configurePreset": "ninja-multi-msvc-arm64",
+      "displayName": "Test (MSVC-Release ARM64)",
+      "configuration": "Release"
+    },
+    {
       "name": "test-release-msvc-x86",
       "configurePreset": "ninja-multi-msvc-x86",
       "displayName": "Test (MSVC-Release x86)",
       "configuration": "Release"
     },
     {
-      "name": "test-release-msvc-arm64",
-      "configurePreset": "ninja-multi-msvc-arm64",
-      "displayName": "Test (MSVC-Release ARM64)",
+      "name": "test-release-msvc-arm",
+      "configurePreset": "ninja-multi-msvc-arm",
+      "displayName": "Test (MSVC-Release ARM)",
       "configuration": "Release"
     },
     {
@@ -273,15 +345,21 @@
       "configuration": "Debug"
     },
     {
+      "name": "test-debug-gcc-arm64",
+      "configurePreset": "ninja-multi-gcc-arm64",
+      "displayName": "Test (GCC-Debug ARM64)",
+      "configuration": "Debug"
+    },
+    {
       "name": "test-debug-gcc-x86",
       "configurePreset": "ninja-multi-gcc-x86",
       "displayName": "Test (GCC-Debug x86)",
       "configuration": "Debug"
     },
     {
-      "name": "test-debug-gcc-arm64",
-      "configurePreset": "ninja-multi-gcc-arm64",
-      "displayName": "Test (GCC-Debug ARM64)",
+      "name": "test-debug-gcc-arm",
+      "configurePreset": "ninja-multi-gcc-arm",
+      "displayName": "Test (GCC-Debug ARM)",
       "configuration": "Debug"
     },
     {
@@ -291,15 +369,21 @@
       "configuration": "Release"
     },
     {
+      "name": "test-release-gcc-arm64",
+      "configurePreset": "ninja-multi-gcc-arm64",
+      "displayName": "Test (GCC-Release ARM64)",
+      "configuration": "Release"
+    },
+    {
       "name": "test-release-gcc-x86",
       "configurePreset": "ninja-multi-gcc-x86",
       "displayName": "Test (GCC-Release x86)",
       "configuration": "Release"
     },
     {
-      "name": "test-release-gcc-arm64",
-      "configurePreset": "ninja-multi-gcc-arm64",
-      "displayName": "Test (GCC-Release ARM64)",
+      "name": "test-release-gcc-arm",
+      "configurePreset": "ninja-multi-gcc-arm",
+      "displayName": "Test (GCC-Release ARM)",
       "configuration": "Release"
     },
     {
@@ -309,15 +393,21 @@
       "configuration": "Debug"
     },
     {
+      "name": "test-debug-clang-arm64",
+      "configurePreset": "ninja-multi-clang-arm64",
+      "displayName": "Test (Clang-Debug ARM64)",
+      "configuration": "Debug"
+    },
+    {
       "name": "test-debug-clang-x86",
       "configurePreset": "ninja-multi-clang-x86",
       "displayName": "Test (Clang-Debug x86)",
       "configuration": "Debug"
     },
     {
-      "name": "test-debug-clang-arm64",
-      "configurePreset": "ninja-multi-clang-arm64",
-      "displayName": "Test (Clang-Debug ARM64)",
+      "name": "test-debug-clang-arm",
+      "configurePreset": "ninja-multi-clang-arm",
+      "displayName": "Test (Clang-Debug ARM)",
       "configuration": "Debug"
     },
     {
@@ -327,15 +417,21 @@
       "configuration": "Release"
     },
     {
+      "name": "test-release-clang-arm64",
+      "configurePreset": "ninja-multi-clang-arm64",
+      "displayName": "Test (Clang-Release ARM64)",
+      "configuration": "Release"
+    },
+    {
       "name": "test-release-clang-x86",
       "configurePreset": "ninja-multi-clang-x86",
       "displayName": "Test (Clang-Release x86)",
       "configuration": "Release"
     },
     {
-      "name": "test-release-clang-arm64",
-      "configurePreset": "ninja-multi-clang-arm64",
-      "displayName": "Test (Clang-Release ARM64)",
+      "name": "test-release-clang-arm",
+      "configurePreset": "ninja-multi-clang-arm",
+      "displayName": "Test (Clang-Release ARM)",
       "configuration": "Release"
     }
   ]

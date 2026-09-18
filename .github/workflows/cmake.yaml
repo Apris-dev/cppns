@@ -21,13 +21,16 @@ jobs:
           - { arch: x64, triplet: x64-linux, name: linux, os: ubuntu-24.04, compiler: gcc }
           - { arch: arm64, triplet: arm64-linux, name: linux, os: ubuntu-24.04, compiler: gcc }
           - { arch: x86, triplet: x86-linux, name: linux, os: ubuntu-24.04, compiler: gcc }
+          - { arch: arm, triplet: arm-linux, name: linux, os: ubuntu-24.04, compiler: gcc }
           - { arch: x64, triplet: x64-linux, name: linux, os: ubuntu-24.04, compiler: clang }
           - { arch: arm64, triplet: arm64-linux, name: linux, os: ubuntu-24.04, compiler: clang }
           - { arch: x86, triplet: x86-linux, name: linux, os: ubuntu-24.04, compiler: clang }
+          - { arch: arm, triplet: arm-linux, name: linux, os: ubuntu-24.04, compiler: clang }
           - { arch: x64, triplet: x64-osx, name: macos, os: macos-15, compiler: clang }
           - { arch: x64, triplet: x64-windows, name: windows, os: windows-2022, compiler: msvc }
-          - { arch: x86, triplet: x86-windows, name: windows, os: windows-2022, compiler: msvc }
           - { arch: arm64, triplet: arm64-windows, name: windows, os: windows-2022, compiler: msvc }
+          - { arch: x86, triplet: x86-windows, name: windows, os: windows-2022, compiler: msvc }
+          - { arch: arm, triplet: arm-windows, name: windows, os: windows-2022, compiler: msvc }
           - { arch: x64, triplet: x64-mingw-dynamic, name: windows, os: windows-2022, compiler: mingw }
     env:
       vcpkgCommitId: '9e593bb18ea69cc5095e012465dcd675a822ed0d'
@@ -80,6 +83,20 @@ jobs:
           i686-linux-gnu-gcc --version
           i686-linux-gnu-g++ --version
           qemu-i386-static --version
+
+        # Install QEMU and ARM cross-compiler/toolchain for arm builds on linux
+      - name: Install QEMU and arm GCC/G++
+        if: matrix.platform.triplet == 'arm-linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc-arm-linux-gnueabihf \
+            g++-arm-linux-gnueabihf \
+            qemu-user-static
+          
+          arm-linux-gnueabihf-gcc --version
+          arm-linux-gnueabihf-g++ --version
+          qemu-arm-static --version
 
         # Run CMake Build
       - name: Run CMake
