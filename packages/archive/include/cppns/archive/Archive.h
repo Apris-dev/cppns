@@ -141,18 +141,6 @@ protected:
 
 	virtual size_t read(void* inValue, size_t inElementSize, size_t inCount) = 0;
 
-	std::string readUntil(const char terminator) {
-		std::string res;
-		char c;
-		while (true) {
-			const size_t n = read(&c, sizeof(char));
-			if (n == 0 || c == terminator)
-				break;
-			res += c;
-		}
-		return res;
-	}
-
 public:
 
 	virtual ~CInputArchive() = default;
@@ -183,7 +171,11 @@ public:
 	}
 
 	friend CInputArchive& operator>>(CInputArchive& inArchive, std::string& inValue) {
-		inValue = inArchive.readUntil('\0');
+		inValue.clear();
+		std::string::value_type c;
+		while (inArchive.read(&c, sizeof(c)) != 0 && c != '\0') {
+			inValue += c;
+		}
 		return inArchive;
 	}
 

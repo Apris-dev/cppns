@@ -9,14 +9,20 @@
 #include <libloaderapi.h>
 #define PATH_SEPARATOR '\\'
 #define LINE_ENDING "\r\n"
+#define USING_LF 0
+#define USING_CRLF 1
 #elif USING_LINUX
 #include <unistd.h>
 #define PATH_SEPARATOR '/'
 #define LINE_ENDING "\n"
+#define USING_LF 1
+#define USING_CRLF 0
 #elif USING_APPLE
 #include <mach-o/dyld.h>
 #define PATH_SEPARATOR '/'
 #define LINE_ENDING "\n"
+#define USING_LF 1
+#define USING_CRLF 0
 #endif
 
 //inline std::string gTempPath = std::filesystem::temp_directory_path().string();
