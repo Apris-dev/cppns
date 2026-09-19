@@ -217,7 +217,7 @@ public:
 	}
 
 	template <typename TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType*& ptr) {
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType* ptr) {
 		inArchive << reinterpret_cast<size_t>(ptr);
 		return inArchive;
 	}
