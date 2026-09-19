@@ -194,6 +194,11 @@ public:
 		return inArchive;
 	}
 
+	friend COArchive& operator<<(COArchive& inArchive, const char* inValue) {
+		inArchive << std::string(inValue);
+		return inArchive;
+	}
+
 	friend COArchive& operator<<(COArchive& inArchive, const std::string& inValue) {
 		inArchive.write(inValue.data(), sizeof(std::string::value_type), inValue.size());
 		constexpr static char terminator = '\0';
