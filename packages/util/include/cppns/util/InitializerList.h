@@ -29,7 +29,7 @@ CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TInitializer
 
 // Initializer lists cannot be written to, but can be read from
 template <typename TType>
-COutputArchive& operator<<(COutputArchive& inArchive, const TInitializerList<TType>& list) {
+COArchive& operator<<(COArchive& inArchive, const TInitializerList<TType>& list) {
     inArchive << list.size();
     for (const auto& obj : list)
         inArchive << obj;

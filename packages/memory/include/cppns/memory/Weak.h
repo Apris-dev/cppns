@@ -218,14 +218,14 @@ noexcept {
 	}
 
 #ifdef USING_CPPNS_ARCHIVE
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TWeak& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TWeak& inValue) {
 		if (auto ptr = inValue.m_ptr.lock()) {
 			inArchive >> *inValue.get();
 		}
 		return inArchive;
 	}
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TWeak& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const TWeak& inValue) {
 		if (auto ptr = inValue.m_ptr.lock()) {
 			inArchive << *inValue.get();
 		}

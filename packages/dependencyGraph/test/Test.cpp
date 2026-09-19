@@ -27,7 +27,7 @@ struct SResource {
 
     explicit SResource(const size_t inId): id(inId) {}
 
-    friend COutputArchive& operator<<(COutputArchive& archive, const SResource& resource) {
+    friend COArchive& operator<<(COArchive& archive, const SResource& resource) {
         archive << resource.id;
         return archive;
     }

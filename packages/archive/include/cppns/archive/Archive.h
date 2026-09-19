@@ -110,7 +110,7 @@ protected:
 
 };
 
-class CInputArchive {
+class CIArchive {
 
 protected:
 
@@ -122,18 +122,18 @@ protected:
 
 public:
 
-	virtual ~CInputArchive() = default;
+	virtual ~CIArchive() = default;
 
 	template <typename TType>
 	requires std::is_arithmetic_v<TType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TType& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TType& inValue) {
 		inArchive.read(&inValue, sizeof(TType));
 		return inArchive;
 	}
 
 	template <typename TType>
 	requires std::is_enum_v<TType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TType& inEnum) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TType& inEnum) {
 		using EnumType = std::underlying_type_t<TType>;
 		EnumType value;
 		inArchive >> value;
@@ -142,14 +142,14 @@ public:
 	}
 
 	template <typename TType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TType*& ptr) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TType*& ptr) {
 		size_t value;
 		inArchive >> value;
 		ptr = reinterpret_cast<TType*>(value);
 		return inArchive;
 	}
 
-	friend CInputArchive& operator>>(CInputArchive& inArchive, std::string& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, std::string& inValue) {
 		inValue.clear();
 		std::string::value_type c;
 		while (inArchive.read(&c, sizeof(c)) != 0 && c != '\0') {
@@ -159,7 +159,7 @@ public:
 	}
 };
 
-class COutputArchive {
+class COArchive {
 
 protected:
 
@@ -171,30 +171,30 @@ protected:
 
 public:
 
-	virtual ~COutputArchive() = default;
+	virtual ~COArchive() = default;
 
 	template <typename TType>
 	requires std::is_arithmetic_v<TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const TType& inValue) {
 		inArchive.write(&inValue, sizeof(TType));
 		return inArchive;
 	}
 
 	template <typename TType>
 	requires std::is_enum_v<TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType& inEnum) {
+	friend COArchive& operator<<(COArchive& inArchive, const TType& inEnum) {
 		using EnumType = std::underlying_type_t<TType>;
 		inArchive << static_cast<EnumType>(inEnum);
 		return inArchive;
 	}
 
 	template <typename TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType* ptr) {
+	friend COArchive& operator<<(COArchive& inArchive, const TType* ptr) {
 		inArchive << reinterpret_cast<size_t>(ptr);
 		return inArchive;
 	}
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const std::string& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const std::string& inValue) {
 		inArchive.write(inValue.data(), sizeof(std::string::value_type), inValue.size());
 		constexpr static char terminator = '\0';
 		inArchive.write(&terminator, sizeof(terminator));
@@ -202,4 +202,4 @@ public:
 	}
 };
 
-class CArchive : public CInputArchive, public COutputArchive {};
+class CArchive : public CIArchive, public COArchive {};

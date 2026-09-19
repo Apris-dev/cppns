@@ -525,7 +525,7 @@ struct TSequenceContainer : SContainer {
 	}
 
 #ifdef USING_CPPNS_ARCHIVE
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TSequenceContainer& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TSequenceContainer& inValue) {
 		size_t size;
 		inArchive >> size;
 		inValue.resize(size, [&](size_t) {
@@ -536,7 +536,7 @@ struct TSequenceContainer : SContainer {
 		return inArchive;
 	}
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TSequenceContainer& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const TSequenceContainer& inValue) {
 		inArchive << inValue.getSize();
 		for (const TType& obj : inValue) {
 			inArchive << obj;
@@ -653,7 +653,7 @@ struct TAssociativeContainer : SContainer {
 	}
 
 #ifdef USING_CPPNS_ARCHIVE
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TAssociativeContainer& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TAssociativeContainer& inValue) {
 		size_t size;
 		inArchive >> size;
 		inValue.resize(size, [&] {
@@ -664,7 +664,7 @@ struct TAssociativeContainer : SContainer {
 		return inArchive;
 	}
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TAssociativeContainer& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const TAssociativeContainer& inValue) {
 		inArchive << inValue.getSize();
 		for (const auto& pair : inValue) {
 			inArchive << pair;
@@ -773,7 +773,7 @@ struct TSelfAssociativeContainer : SContainer {
 	}
 
 #ifdef USING_CPPNS_ARCHIVE
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TSelfAssociativeContainer& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TSelfAssociativeContainer& inValue) {
 		size_t size;
 		inArchive >> size;
 		inValue.resize(size, [&] {
@@ -784,7 +784,7 @@ struct TSelfAssociativeContainer : SContainer {
 		return inArchive;
 	}
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TSelfAssociativeContainer& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const TSelfAssociativeContainer& inValue) {
 		inArchive << inValue.getSize();
 		for (const TType& obj : inValue) {
 			inArchive << obj;

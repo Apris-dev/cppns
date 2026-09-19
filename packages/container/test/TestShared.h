@@ -28,7 +28,7 @@ struct Abstract {
     }
 
 #ifdef USING_CPPNS_ARCHIVE
-    friend COutputArchive& operator<<(COutputArchive& inArchive, const Abstract& obj) {
+    friend COArchive& operator<<(COArchive& inArchive, const Abstract& obj) {
         inArchive << obj.id;
         return inArchive;
     }
@@ -71,7 +71,7 @@ struct Parent : Abstract{
     }
 
 #ifdef USING_CPPNS_ARCHIVE
-    friend COutputArchive& operator<<(COutputArchive& inArchive, const Parent& obj) {
+    friend COArchive& operator<<(COArchive& inArchive, const Parent& obj) {
         inArchive << obj.id;
         return inArchive;
     }
@@ -115,7 +115,7 @@ struct SObject : Parent {
     }
 
 #ifdef USING_CPPNS_ARCHIVE
-    friend COutputArchive& operator<<(COutputArchive& inArchive, const SObject& obj) {
+    friend COArchive& operator<<(COArchive& inArchive, const SObject& obj) {
         inArchive << obj.id;
         return inArchive;
     }

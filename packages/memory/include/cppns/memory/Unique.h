@@ -226,12 +226,12 @@ struct TUnique {
 	}
 
 #ifdef USING_CPPNS_ARCHIVE
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TUnique& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TUnique& inValue) {
 		inArchive >> *inValue.get();
 		return inArchive;
 	}
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TUnique& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const TUnique& inValue) {
 		inArchive << *inValue.get();
 		return inArchive;
 	}

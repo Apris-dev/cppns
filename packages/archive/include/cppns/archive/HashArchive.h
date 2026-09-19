@@ -10,7 +10,7 @@
 
 #include "Archive.h"
 
-class CHashArchive : public COutputArchive {
+class CHashArchive : public COArchive {
 
 public:
 

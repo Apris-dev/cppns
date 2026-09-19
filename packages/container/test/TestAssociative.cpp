@@ -29,7 +29,7 @@ enum class MapEnum : uint8_t {
 };
 
 #ifdef USING_CPPNS_ARCHIVE
-inline COutputArchive& operator<<(COutputArchive& inArchive, const MapEnum& obj) {
+inline COArchive& operator<<(COArchive& inArchive, const MapEnum& obj) {
 	inArchive << (size_t)obj;
 	return inArchive;
 }

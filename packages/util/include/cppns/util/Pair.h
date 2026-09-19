@@ -156,13 +156,13 @@ struct TPair {
     	return inArchive;
     }
 
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TPair& pair) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TPair& pair) {
     	inArchive >> pair.first();
     	inArchive >> pair.second();
     	return inArchive;
     }
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TPair& pair) {
+	friend COArchive& operator<<(COArchive& inArchive, const TPair& pair) {
     	inArchive << pair.first();
     	inArchive << pair.second();
     	return inArchive;
