@@ -3,6 +3,10 @@
 #include <type_traits>
 #include <utility>
 
+#ifdef USING_CPPNS_ARCHIVE
+#include "cppns/archive/Archive.h"
+#endif
+
 #if !USING_MSVC
 template <typename TType>
 using implicitly_default_constructible = std::__is_implicitly_default_constructible<TType>;
@@ -144,6 +148,26 @@ struct TPair {
 	const auto& value() const { return _pair.second; }
 	auto& object() { return _pair.second; }
 	const auto& object() const { return _pair.second; }
+
+#ifdef USING_CPPNS_ARCHIVE
+	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TPair& pair) {
+    	inArchive << pair.first();
+    	inArchive << pair.second();
+    	return inArchive;
+    }
+
+	friend CInputArchive& operator>>(CInputArchive& inArchive, TPair& pair) {
+    	inArchive >> pair.first();
+    	inArchive >> pair.second();
+    	return inArchive;
+    }
+
+	friend COutputArchive& operator<<(COutputArchive& inArchive, const TPair& pair) {
+    	inArchive << pair.first();
+    	inArchive << pair.second();
+    	return inArchive;
+    }
+#endif
 
 private:
 

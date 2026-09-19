@@ -3,10 +3,6 @@
 #include <charconv>
 #include <string>
 
-#include "cppns/util/InitializerList.h"
-#include "cppns/util/Pair.h"
-
-//TODO: delimiter template?
 class CBaseStringArchive {
 
 protected:
@@ -83,23 +79,6 @@ public:
 		inArchive << reinterpret_cast<size_t>(ptr);
 		return inArchive;
 	}
-
-	template <typename TKeyType, typename TValueType>
-	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
-		inArchive << pair.first();
-		inArchive << pair.second();
-		return inArchive;
-	}
-
-	// Initializer lists cannot be written to, but can be read from
-	template <typename TType>
-	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TInitializerList<TType>& list) {
-		for (const auto& obj : list)
-			inArchive << obj;
-		return inArchive;
-	}
-
-protected:
 
 };
 
@@ -178,13 +157,6 @@ public:
 		}
 		return inArchive;
 	}
-
-	template <typename TKeyType, typename TValueType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TPair<TKeyType, TValueType>& pair) {
-		inArchive >> pair.first();
-		inArchive >> pair.second();
-		return inArchive;
-	}
 };
 
 class COutputArchive {
@@ -226,22 +198,6 @@ public:
 		inArchive.write(inValue.data(), sizeof(std::string::value_type), inValue.size());
 		constexpr static char terminator = '\0';
 		inArchive.write(&terminator, sizeof(terminator));
-		return inArchive;
-	}
-
-	template <typename TKeyType, typename TValueType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
-		inArchive << pair.first();
-		inArchive << pair.second();
-		return inArchive;
-	}
-
-	// Initializer lists cannot be written to, but can be read from
-	template <typename TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TInitializerList<TType>& list) {
-		inArchive << list.size();
-		for (const auto& obj : list)
-			inArchive << obj;
 		return inArchive;
 	}
 };
