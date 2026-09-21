@@ -204,7 +204,7 @@ protected:
 
 // An archive that can process files, uses standard c since it is faster
 template <File::OpenType TOpenType>
-class CBinaryFileArchive : public CBaseFileArchive<TOpenType>, public CArchive {
+class CBinaryFileArchive : public CBaseFileArchive<TOpenType>, public CBinaryArchive {
 
 public:
 
@@ -223,7 +223,7 @@ protected:
 };
 
 template <File::OpenType TOpenType>
-class CStringFileArchive : public CBaseFileArchive<TOpenType>, public CBaseStringArchive {
+class CStringFileArchive : public CBaseFileArchive<TOpenType>, public CSArchive {
 
 protected:
 

@@ -4,7 +4,7 @@
 
 #include "Archive.h"
 
-class CPathArchive : public CBaseStringArchive {
+class CPathArchive : public CSArchive {
 
 public:
 
@@ -46,7 +46,15 @@ protected:
         return 0;
     }
 
-    size_t read(const size_t amount) override {
+    virtual size_t read(std::wstring& outValue) override {
+        return 0;
+    }
+
+    virtual size_t write(const std::wstring& inValue) override {
+        return 0;
+    }
+
+    virtual size_t read(const size_t amount) override {
 	    str.erase(0, amount);
         return 0;
     }

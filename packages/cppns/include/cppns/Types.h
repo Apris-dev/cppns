@@ -14,11 +14,9 @@ using int16 = std::int16_t;
 using uint32 = std::uint32_t;
 using int32 = std::int32_t;
 
-// Only explicitly include 64 bit values on 64 bit machines
-#if USING_64_BIT
-    using uint64 = std::uint64_t;
-    using int64 = std::int64_t;
-#endif
+// Note: 64 bit types on 32 bit machines are likely the same as the 32 bit types
+using uint64 = std::uint64_t;
+using int64 = std::int64_t;
 
 using smallest = uint8;
 #if USING_WINDOWS || USING_APPLE

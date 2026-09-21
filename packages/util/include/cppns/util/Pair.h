@@ -150,7 +150,7 @@ struct TPair {
 	const auto& object() const { return _pair.second; }
 
 #ifdef USING_CPPNS_ARCHIVE
-	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TPair& pair) {
+	friend CSArchive& operator<<(CSArchive& inArchive, const TPair& pair) {
     	inArchive << pair.first();
     	inArchive << pair.second();
     	return inArchive;
