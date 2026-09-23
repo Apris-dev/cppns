@@ -21,6 +21,7 @@ cppns_main() {
         fileArchive << v;
         fileArchive << "test";
         fileArchive << "test200";
+        fileArchive << true;
     }
 
     assert(std::filesystem::exists(path.get()));
@@ -34,22 +35,27 @@ cppns_main() {
         fileArchive >> s;
         std::string s2;
         fileArchive >> s2;
+        bool b;
+        fileArchive >> b;
 
         std::cout << v << std::endl;
         std::cout << s << std::endl;
         std::cout << s2 << std::endl;
+        std::cout << (b ? "true" : "false") << std::endl;
 
-        assert(v == 5 && s == "test" && s2 == "test200");
+        assert(v == 5 && s == "test" && s2 == "test200" && b == true);
 
         CHashArchive hasher;
         hasher << v;
         hasher << s;
         hasher << s2;
+        hasher << b;
 
         CHashArchive hasher2;
         hasher2 << v;
         hasher2 << s;
         hasher2 << s2;
+        hasher2 << b;
 
         std::cout << "Hash1: " << hasher.get() << std::endl;
         std::cout << "Hash2: " << hasher2.get() << std::endl;
