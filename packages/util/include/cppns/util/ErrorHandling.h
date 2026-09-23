@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <format>
+#include <cassert>
 
 namespace Error {
 	template <typename TType>
@@ -23,6 +24,8 @@ namespace Error {
 		/*explicit type(const std::string_view inMessage) : BaseClass(name, desc, inMessage) {} */ \
 	}
 
+// Undefine assert, because of header guards
+// If this is included cassert should not override our assert
 #ifdef assert
 	#undef assert
 #endif
