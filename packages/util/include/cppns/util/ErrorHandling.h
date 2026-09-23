@@ -23,32 +23,72 @@ namespace Error {
 		/*explicit type(const std::string_view inMessage) : BaseClass(name, desc, inMessage) {} */ \
 	}
 
+#ifdef assert
+	#undef assert
+#endif
+
+// Redefine assert with our own custom logic
+#define assert(cond, ...) \
+	if (!(cond)) Error::Assert(#cond, ##__VA_ARGS__)
+
 namespace Error {
 	class Runtime : public std::runtime_error {
 	public:
 
-		Runtime(const std::string_view inErrorName, const std::string_view inErrorDescription, const std::string_view inError) : std::runtime_error(convertToMessage(inErrorName, inErrorDescription, inError).c_str()) {}
-
-		Runtime(const std::string_view inErrorName, const std::string_view inErrorDescription) : Runtime(inErrorName, inErrorDescription, getGenericMessage()) {}
+		Runtime(const std::string_view inErrorName, const std::string_view inErrorDescription) : std::runtime_error(convertToMessage(inErrorName, inErrorDescription).c_str()) {}
 
 	private:
-		static std::string convertToMessage(const std::string_view inErrorName, const std::string_view inErrorDescription, const std::string_view inError) {
+		static std::string convertToMessage(const std::string_view inErrorName, const std::string_view inErrorDescription) {
 			std::stringstream s;
-			s << "A " << inErrorName << " Occurred! " << inErrorDescription << " Error: " << inError;
+			const int error = errno;
+			s << "A " << inErrorName << " Occurred! " << inErrorDescription;
+			if (error > 0) {
+				s << " C++ Error: ";
+#if USING_MSVC
+				char buffer[256];
+				strerror_s(buffer, sizeof(buffer), error);
+				s << buffer;
+#else
+				s << std::strerror(error);
+#endif
+			}
 			return s.str();
 		}
+	};
 
-		static std::string getGenericMessage() {
+	class Assert {
+	public:
+
+		Assert() {
 			const int error = errno;
-			if (error <= 0)
-				return "Unknown Error Occurred!";
+			errno = 0;
+			assertError("C++ Error", error);
+		}
+		explicit Assert(const std::string_view inAssertion) {
+			throw Runtime("Assertion Failure", std::format("Assertion {} failed", inAssertion));
+		}
+		Assert(const std::string_view inAssertion, const std::string_view inAssertionDescription) {
+			throw Runtime("Assertion Failure", std::format("Assertion {} failed. Reason: {}", inAssertion, inAssertionDescription));
+		}
+		explicit Assert(const int error) { assertError("Error", error); }
+		explicit Assert(FILE* inFile) {
+			if (const int error = ferror(inFile); error > 0) {
+				assertError("File Error", error);
+			}
+		}
+
+	private:
+		static void assertError(std::string_view errorName, const int error) {
+			if (error <= 0) return;
 #if USING_MSVC
 			char buffer[256];
 			strerror_s(buffer, sizeof(buffer), error);
-			return buffer;
+			std::string msg = buffer;
 #else
-			return std::strerror(error);
+			std::string msg = std::strerror(error);
 #endif
+
+			throw Runtime(errorName, msg);
 		}
 	};
 }

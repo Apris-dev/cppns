@@ -13,6 +13,7 @@
 namespace Error::File {
 		CREATE_ERROR_TYPE(Open, "File Open Exception", "Couldn't open File {}!", Error::Runtime);
 		CREATE_ERROR_TYPE(InvalidOpenMode, "Invalid Open Mode Exception", "Invalid Open Mode provided when trying to open file {}!", Error::Runtime);
+		CREATE_ERROR_TYPE(InvalidOperation, "Invalid Operation Exception", "Invalid File Operation, Error: {}", Error::Runtime);
 }
 
 namespace File {
@@ -60,21 +61,20 @@ public:
 	explicit CBaseFileArchive(const std::string& inFilePath): filePath(inFilePath) {
 		const char* mode = getOpenTypeMode(TOpenType);
 
-		try {
-			#if USING_MSVC
-				fopen_s(&mFile, filePath.c_str(), mode);
-			#else
-				mFile = fopen(filePath.c_str(), mode);
-			#endif
-		} catch (std::runtime_error& e) {
-			throw Error::File::Open(filePath);
-		}
+		// Do before opening, as these require read
+		lineEndings = getLineEndingFromFile();
+		mBomOffset = getBomOffset();
+
+		#if USING_MSVC
+			fopen_s(&mFile, filePath.c_str(), mode);
+		#else
+			mFile = fopen(filePath.c_str(), mode);
+		#endif
+
+		Error::Assert{mFile};
 
 		if (mFile == nullptr)
 			throw Error::File::Open(filePath);
-
-		lineEndings = getLineEndingFromFile();
-		mBomOffset = getBomOffset();
 
 		// Put pointer after BOM
 		seekFromStart(0);
@@ -82,6 +82,7 @@ public:
 
 	virtual ~CBaseFileArchive() {
 		fclose(mFile);
+		Error::Assert{mFile};
 	}
 
 	[[nodiscard]] constexpr static bool isBinary() { return TOpenType & File::OpenType::BINARY; }
@@ -109,6 +110,10 @@ public:
 	}
 
 	[[nodiscard]] size_t getLines() const {
+		if (!(TOpenType & File::OpenType::READ)) {
+			throw Error::File::InvalidOperation("getLines() requires file read!");
+		}
+
 		char buffer[256];
 		size_t bytes_read;
 		size_t lines = 1; // Initial Line
@@ -125,6 +130,8 @@ public:
 			}
 		}
 
+		Error::Assert{mFile};
+
 		seekFromStart(loc);
 
 		return lines;
@@ -136,23 +143,27 @@ protected:
 		return ftell(mFile) - mBomOffset;
 	}
 
-	void seek(const int inOffset) const {
+	void seek(const long inOffset) const {
 		fseek(this->mFile, inOffset, SEEK_CUR);
+		Error::Assert{mFile};
 	}
 
-	void seekFromStart(int inOffset) const {
+	void seekFromStart(long inOffset) const {
 		inOffset += mBomOffset;
 		fseek(this->mFile, inOffset, SEEK_SET);
+		Error::Assert{mFile};
 	}
 
 	void setStart() const {
 		rewind(mFile);
+		Error::Assert{mFile};
 		if (mBomOffset > 0)
 			seek(mBomOffset);
 	}
 
-	void seekFromEnd(const int inOffset) const {
+	void seekFromEnd(const long inOffset) const {
 		fseek(this->mFile, inOffset, SEEK_END);
+		Error::Assert{mFile};
 	}
 
 	// Always use binary mode since they act the same on each platform
@@ -175,8 +186,17 @@ protected:
 
 	File::LineEnding getLineEndingFromFile() const {
 
-		const long loc = tell();
-		setStart();
+		FILE* file;
+#if USING_MSVC
+		fopen_s(&file, filePath.c_str(), "rb");
+#else
+		file = fopen(filePath.c_str(), "rb");
+#endif
+
+		Error::Assert{file};
+
+		if (file == nullptr)
+			throw Error::File::Open();
 
 		int prev = EOF;
 		int c;
@@ -189,7 +209,7 @@ protected:
 #endif
 
 		// Read the first line ending and assume other line endings are like that
-		while ((c = fgetc(mFile)) != EOF) {
+		while ((c = fgetc(file)) != EOF) {
 			if (c == '\n') {
 				lineEnding = prev == '\r' ? File::LineEnding::CRLF : File::LineEnding::LF;
 				break;
@@ -201,27 +221,42 @@ protected:
 			prev = c;
 		}
 
+		Error::Assert{file};
+
 		// If file ends with a trailing lone '\r' and nothing after it assume CR line endings
 		if (c == EOF && prev == '\r') {
 			lineEnding = File::LineEnding::CR;
 		}
 
-		seekFromStart(loc);
+		fclose(file);
+
+		Error::Assert{file};
 
 		return lineEnding;
 	}
 
 	long getBomOffset() const {
-		const long current = ftell(mFile);
-		if (current < 0)
-			return -1;
+
+		FILE* file;
+#if USING_MSVC
+		fopen_s(&file, filePath.c_str(), "rb");
+#else
+		file = fopen(filePath.c_str(), "rb");
+#endif
+
+		Error::Assert{file};
+
+		if (file == nullptr)
+			throw Error::File::Open();
 
 		constexpr static unsigned char BOM[] = { 0xEF, 0xBB, 0xBF };
 		unsigned char readValue[sizeof(BOM)];
 
-		fseek(mFile, 0, SEEK_SET);
-		const size_t n = fread(readValue, 1, sizeof(readValue), mFile);
-		fseek(mFile, current, SEEK_SET);
+		const size_t n = fread(readValue, 1, sizeof(readValue), file);
+		Error::Assert{file};
+
+		fclose(file);
+		Error::Assert{file};
 
 		return n == sizeof(readValue) && memcmp(readValue, BOM, sizeof(BOM)) == 0 ? sizeof(BOM) : 0;
 	}
@@ -229,7 +264,7 @@ protected:
 	File::LineEnding lineEndings;
 	std::string filePath;
 	FILE* mFile = nullptr;
-	size_t mBomOffset;
+	long mBomOffset;
 
 };
 
@@ -244,11 +279,15 @@ public:
 protected:
 
 	virtual size_t write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
-		return fwrite(inValue, inElementSize, inCount, this->mFile);
+		const size_t res = fwrite(inValue, inElementSize, inCount, this->mFile);
+		Error::Assert{this->mFile};
+		return res;
 	}
 
 	virtual size_t read(void* inValue, const size_t inElementSize, const size_t inCount) override {
-		return fread(inValue, inElementSize, inCount, this->mFile);
+		const size_t res = fread(inValue, inElementSize, inCount, this->mFile);
+		Error::Assert{this->mFile};
+		return res;
 	}
 
 };
@@ -282,6 +321,8 @@ protected:
 			outValue.append(buffer, len);
 		}
 
+		Error::Assert{this->mFile};
+
 		return outValue.size() * sizeof(std::string::value_type);
 	}
 
@@ -291,7 +332,9 @@ protected:
 
 	virtual size_t write(const std::string& inValue) override {
 		const std::string line = this->isEmpty() ? inValue : File::getLineEndingString(this->lineEndings) + inValue;
-		return fwrite(line.data(), sizeof(std::string::value_type), line.size(), this->mFile);
+		const size_t res = fwrite(line.data(), sizeof(std::string::value_type), line.size(), this->mFile);
+		Error::Assert{this->mFile};
+		return res;
 	}
 
 	virtual size_t write(const std::wstring& inValue) override {
