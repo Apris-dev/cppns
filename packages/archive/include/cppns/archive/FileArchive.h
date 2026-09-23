@@ -110,31 +110,31 @@ public:
 	}
 
 	[[nodiscard]] size_t getLines() const {
-		if (!(TOpenType & File::OpenType::READ)) {
+		if constexpr (!isRead()) {
 			throw Error::File::InvalidOperation("getLines() requires file read!");
-		}
+		} else {
+			char buffer[256];
+			size_t bytes_read;
+			size_t lines = 1; // Initial Line
 
-		char buffer[256];
-		size_t bytes_read;
-		size_t lines = 1; // Initial Line
+			const size_t loc = tell();
+			seekFromStart(0);
 
-		const size_t loc = tell();
-		seekFromStart(0);
-
-		//TODO: support other line endings
-		while ((bytes_read = fread(buffer, 1, sizeof(buffer), mFile)) > 0) {
-			for (size_t i = 0; i < bytes_read; i++) {
-				if (buffer[i] == '\n') {
-					lines++;
+			//TODO: support other line endings
+			while ((bytes_read = fread(buffer, 1, sizeof(buffer), mFile)) > 0) {
+				for (size_t i = 0; i < bytes_read; i++) {
+					if (buffer[i] == '\n') {
+						lines++;
+					}
 				}
 			}
+
+			Error::Assert{mFile};
+
+			seekFromStart(loc);
+
+			return lines;
 		}
-
-		Error::Assert{mFile};
-
-		seekFromStart(loc);
-
-		return lines;
 	}
 
 protected:
