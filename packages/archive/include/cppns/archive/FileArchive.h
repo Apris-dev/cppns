@@ -12,6 +12,7 @@
 
 namespace Error::File {
 		CREATE_ERROR_TYPE(OpenException, "File Open Exception", "Couldn't open File!", Error::Runtime);
+		CREATE_ERROR_TYPE(InvalidOpenMode, "Invalid Open Mode", "Invalid Open Mode provided when trying to open file!", Error::Runtime);
 }
 
 namespace File {
@@ -59,11 +60,16 @@ public:
 	explicit CBaseFileArchive(const std::string& inFilePath) {
 		const char* mode = getOpenTypeMode(TOpenType);
 
-#if USING_MSVC
-		fopen_s(&mFile, inFilePath.c_str(), mode);
-#else
-		mFile = fopen(inFilePath.c_str(), mode);
-#endif
+		try {
+			#if USING_MSVC
+				fopen_s(&mFile, inFilePath.c_str(), mode);
+			#else
+				mFile = fopen(inFilePath.c_str(), mode);
+			#endif
+		} catch (std::runtime_error& e) {
+			throw Error::File::OpenException();
+		}
+
 		if (mFile == nullptr)
 			throw Error::File::OpenException();
 
@@ -103,9 +109,12 @@ public:
 	}
 
 	[[nodiscard]] size_t getLines() const {
-		char buffer[8192];
+		char buffer[256];
 		size_t bytes_read;
-		size_t lines = 0;
+		size_t lines = 1; // Initial Line
+
+		const size_t loc = tell();
+		seekFromStart(0);
 
 		//TODO: support other line endings
 		while ((bytes_read = fread(buffer, 1, sizeof(buffer), mFile)) > 0) {
@@ -115,6 +124,8 @@ public:
 				}
 			}
 		}
+
+		seekFromStart(loc);
 
 		return lines;
 	}
@@ -145,7 +156,7 @@ protected:
 	}
 
 	// Always use binary mode since they act the same on each platform
-	static const char* getOpenTypeMode(const File::OpenType& inOpenType) noexcept {
+	static const char* getOpenTypeMode(const File::OpenType& inOpenType) {
 		switch (inOpenType) {
 		case File::OpenType::BINARY:
 			return "b";
@@ -157,9 +168,9 @@ protected:
 			return "wb";
 		case File::OpenType::READWRITE:
 		case File::OpenType::BINARY_READWRITE:
-			return "rwb";
+			return "wb+";
 		}
-		return "";
+		throw Error::File::InvalidOpenMode();
 	}
 
 	File::LineEnding getLineEndingFromFile() const {

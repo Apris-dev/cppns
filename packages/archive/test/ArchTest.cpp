@@ -66,13 +66,15 @@ cppns_main() {
     std::cout << path.getFilename() << std::endl;
 
     {
-        CFileArchive<File::OpenType::WRITE> fileArchive(path);
+        CFileArchive<File::OpenType::READWRITE> fileArchive(path);
 
         const size_t v = 5;
         fileArchive << v;
         fileArchive << "test";
         fileArchive << "test200";
         fileArchive << true;
+
+        assert(fileArchive.getLines() == 4);
     }
 
     assert(std::filesystem::exists(path.get()));
