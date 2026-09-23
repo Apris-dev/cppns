@@ -7,7 +7,7 @@ cppns_main() {
 
     CPathArchive path(gExecutablePath);
 
-    assert(!path.get().empty());
+    assert(!path.get().empty(), "Path is empty!");
 
     path << "input.dat";
 
@@ -24,7 +24,8 @@ cppns_main() {
         fileArchive << true;
     }
 
-    assert(std::filesystem::exists(path.get()));
+    // TODO: path func for this
+    assert(std::filesystem::exists(path.get()), "Path does not exist!");
 
     {
         CFileArchive<File::OpenType::BINARY_READ> fileArchive(path);
@@ -43,7 +44,7 @@ cppns_main() {
         std::cout << s2 << std::endl;
         std::cout << (b ? "true" : "false") << std::endl;
 
-        assert(v == 5 && s == "test" && s2 == "test200" && b == true);
+        assert(v == 5 && s == "test" && s2 == "test200" && b == true, "Not all read values are correct!");
 
         CHashArchive hasher;
         hasher << v;
@@ -60,8 +61,8 @@ cppns_main() {
         std::cout << "Hash1: " << hasher.get() << std::endl;
         std::cout << "Hash2: " << hasher2.get() << std::endl;
 
-        assert(hasher.get() != 0 && hasher2.get() != 0);
-        assert(hasher.get() == hasher2.get());
+        assert(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
+        assert(hasher.get() == hasher2.get(), "Hashes should be equal!");
     }
 
     path.previous();
@@ -80,10 +81,10 @@ cppns_main() {
         fileArchive << "test200";
         fileArchive << true;
 
-        assert(fileArchive.getLines() == 4);
+        assert(fileArchive.getLines() == 4, "Number of read lines should be 4!");
     }
 
-    assert(std::filesystem::exists(path.get()));
+    assert(std::filesystem::exists(path.get()), "Path does not exist!");
 
     {
         CFileArchive<File::OpenType::READ> fileArchive(path);
@@ -102,7 +103,7 @@ cppns_main() {
         std::cout << s2 << std::endl;
         std::cout << (b ? "true" : "false") << std::endl;
 
-        assert(v == 5 && s == "test" && s2 == "test200" && b == true);
+        assert(v == 5 && s == "test" && s2 == "test200" && b == true, "Not all read values are correct!");
 
         CHashArchive hasher;
         hasher << v;
@@ -119,8 +120,8 @@ cppns_main() {
         std::cout << "Hash1: " << hasher.get() << std::endl;
         std::cout << "Hash2: " << hasher2.get() << std::endl;
 
-        assert(hasher.get() != 0 && hasher2.get() != 0);
-        assert(hasher.get() == hasher2.get());
+        assert(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
+        assert(hasher.get() == hasher2.get(), "Hashes should be equal!");
     }
 
     return 0;
