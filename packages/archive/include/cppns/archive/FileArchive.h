@@ -92,12 +92,31 @@ public:
 
 	[[nodiscard]] bool isEnd() const { return feof(mFile); }
 
+	[[nodiscard]] bool isEmpty() const { return getFileSize() <= 0; }
+
 	[[nodiscard]] size_t getFileSize() const {
 		const auto loc = tell();
 		seekFromEnd(0);
 		const auto res = tell();
 		seekFromStart(loc);
 		return res;
+	}
+
+	[[nodiscard]] size_t getLines() const {
+		char buffer[8192];
+		size_t bytes_read;
+		size_t lines = 0;
+
+		//TODO: support other line endings
+		while ((bytes_read = fread(buffer, 1, sizeof(buffer), mFile)) > 0) {
+			for (size_t i = 0; i < bytes_read; i++) {
+				if (buffer[i] == '\n') {
+					lines++;
+				}
+			}
+		}
+
+		return lines;
 	}
 
 protected:
@@ -229,20 +248,13 @@ protected:
 
 	using CBaseFileArchive<TOpenType>::CBaseFileArchive;
 
-	// Reads file without changing cursor location
-	[[nodiscard]] virtual std::string get() const override {
-		const auto loc = ftell(this->mFile);
-		auto res = this->readFile();
-		seekFromStart(loc);
-		return res;
-	}
-
 	virtual size_t read(std::string& outValue) override {
 		outValue.clear();
 		char buffer[256];
 
 		// Read 256 bytes and check for line terminator
 		// fgets reads until a line terminator, so we dont have to worry about over-reading
+		//TODO: support other line endings
 		while (fgets(buffer, sizeof(buffer), this->mFile)) {
 			std::size_t len = std::strlen(buffer);
 
@@ -261,9 +273,17 @@ protected:
 		return outValue.size() * sizeof(std::string::value_type);
 	}
 
+	virtual size_t read(std::wstring& outValue) override {
+		return 0;
+	}
+
 	virtual size_t write(const std::string& inValue) override {
-		const std::string line = inValue + this->lineEndings;
+		const std::string line = this->isEmpty() ? inValue : File::getLineEndingString(this->lineEndings) + inValue;
 		return fwrite(line.data(), sizeof(std::string::value_type), line.size(), this->mFile);
+	}
+
+	virtual size_t write(const std::wstring& inValue) override {
+		return 0;
 	}
 };
 

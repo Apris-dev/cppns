@@ -318,21 +318,25 @@ protected:
 
 #define MAKE_READ(x) \
 	virtual size_t read(x& inValue) final override { \
-		std::string str = get(); \
-		const std::from_chars_result result = std::from_chars(str.data(), str.data() + str.size(), inValue); \
-		if (result.ec == std::errc()) { \
-			const size_t loc = result.ptr - str.data(); \
-			read(loc); \
-		} \
-		return 0; \
+		std::string str; \
+		const size_t loc = read(str); \
+		std::from_chars(str.data(), str.data() + str.size(), inValue); \
+		return loc; \
 	}
 
 	/*
 	 * Integral Types
 	 */
 
-	virtual size_t read(bool& inValue) final override { \
-		return 0;
+	virtual size_t read(bool& inValue) final override {
+		std::string str;
+		const size_t loc = read(str);
+		if (str == "true") {
+			inValue = true;
+		} else {
+			inValue = false;
+		}
+		return loc;
 	}
 
 	MAKE_READ(char)
@@ -361,10 +365,6 @@ protected:
 	MAKE_READ(long double)
 #undef MAKE_READ
 
-	[[nodiscard]] virtual std::string get() const = 0;
-
-	virtual largest read(size_t amount) = 0;
-
 };
 
 class CSOArchive : public COArchive {
@@ -383,7 +383,10 @@ protected:
 	 * Integral Types
 	 */
 
-	MAKE_WRITE(bool)
+	virtual size_t write(const bool& inValue) final override { \
+		return write(inValue ? "true" : "false"); \
+	}
+
 	MAKE_WRITE(char)
 
 	MAKE_WRITE(unsigned char)
