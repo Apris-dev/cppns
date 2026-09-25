@@ -31,6 +31,14 @@ namespace File {
 		return (static_cast<uint8>(fst) & static_cast<uint8>(snd)) != 0;
 	}
 
+	enum class Format : uint8 {
+		ANSI,
+		UTF8,
+		// TODO: support below types
+		UTF16,
+		UTF32
+	};
+
 	enum class LineEnding : uint8 {
 		LF,
 		CR,
