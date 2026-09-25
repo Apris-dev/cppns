@@ -51,7 +51,11 @@ namespace File {
 }
 
 // An archive that can process files, uses standard c since it is faster
-template <File::OpenType TOpenType>
+#if USING_CRLF
+template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::CRLF>
+#else
+template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::LF>
+#endif
 class CBaseFileArchive {
 
 public:
@@ -60,10 +64,6 @@ public:
 
 	explicit CBaseFileArchive(const std::string& inFilePath): filePath(inFilePath) {
 		const char* mode = getOpenTypeMode(TOpenType);
-
-		// Do before opening, as these require read
-		lineEndings = getLineEndingFromFile();
-		mBomOffset = getBomOffset();
 
 		#if USING_MSVC
 			fopen_s(&mFile, filePath.c_str(), mode);
@@ -76,8 +76,8 @@ public:
 		if (mFile == nullptr)
 			throw Error::File::Open(filePath);
 
-		// Put pointer after BOM
-		seekFromStart(0);
+		lineEndings = getLineEndingFromFile();
+		mBomOffset = getBomOffset();
 	}
 
 	virtual ~CBaseFileArchive() {
@@ -120,11 +120,29 @@ public:
 			const size_t loc = tell();
 			seekFromStart(0);
 
-			//TODO: support other line endings
+			// To check for CRLF across two reads
+			bool pendingCR = false;
 			while ((bytes_read = fread(buffer, 1, sizeof(buffer), mFile)) > 0) {
 				for (size_t i = 0; i < bytes_read; i++) {
-					if (buffer[i] == '\n') {
-						lines++;
+					const char c = buffer[i];
+
+					if (pendingCR) {
+						if (c == '\n') {
+							// CRLF
+							++lines;
+							pendingCR = false;
+							continue;
+						}
+
+						// Previous CR was standalone.
+						++lines;
+						pendingCR = false;
+					}
+
+					if (c == '\r') {
+						pendingCR = true;
+					} else if (c == '\n') {
+						++lines;
 					}
 				}
 			}
@@ -185,31 +203,22 @@ protected:
 	}
 
 	File::LineEnding getLineEndingFromFile() const {
+		// Is being overwritten, we don't care about previous file's line endings
+		if (isWrite())
+			return TLineEnding;
 
-		FILE* file;
-#if USING_MSVC
-		fopen_s(&file, filePath.c_str(), "rb");
-#else
-		file = fopen(filePath.c_str(), "rb");
-#endif
+		// Assume platform specific line endings in case there are none in the file
+		auto lineEnding = TLineEnding;
 
-		Error::Assert{file};
-
-		if (file == nullptr)
-			throw Error::File::Open();
+		const long loc = tell();
+		seekFromStart(0);
 
 		int prev = EOF;
 		int c;
 
-		// Assume platform specific line endings in case there are non in the file
-#if USING_CRLF
-		auto lineEnding = File::LineEnding::CRLF;
-#else
-		auto lineEnding = File::LineEnding::LF;
-#endif
-
 		// Read the first line ending and assume other line endings are like that
-		while ((c = fgetc(file)) != EOF) {
+		while ((c = fgetc(mFile)) != EOF) {
+			Error::Assert{mFile};
 			if (c == '\n') {
 				lineEnding = prev == '\r' ? File::LineEnding::CRLF : File::LineEnding::LF;
 				break;
@@ -221,50 +230,50 @@ protected:
 			prev = c;
 		}
 
-		Error::Assert{file};
+		Error::Assert{mFile};
 
-		// If file ends with a trailing lone '\r' and nothing after it assume CR line endings
-		if (c == EOF && prev == '\r') {
+		// If file ends with a lone '\r' and nothing after it assume CR line endings
+		if (prev == '\r')
 			lineEnding = File::LineEnding::CR;
-		}
 
-		fclose(file);
-
-		Error::Assert{file};
+		seekFromStart(loc);
 
 		return lineEnding;
 	}
 
 	long getBomOffset() const {
-
-		FILE* file;
-#if USING_MSVC
-		fopen_s(&file, filePath.c_str(), "rb");
-#else
-		file = fopen(filePath.c_str(), "rb");
-#endif
-
-		Error::Assert{file};
-
-		if (file == nullptr)
-			throw Error::File::Open();
+		// Binary does not use BOM
+		if (isBinary())
+			return 0;
 
 		constexpr static unsigned char BOM[] = { 0xEF, 0xBB, 0xBF };
+
+		// Is being overwritten, we don't care about previous file's BOM
+		// Instead we want to write it ourselves and skip over it
+		if (isWrite()) {
+			fwrite(BOM, 1, sizeof(BOM), mFile);
+			return sizeof(BOM);
+		}
+
+		seekFromStart(0);
+
 		unsigned char readValue[sizeof(BOM)];
 
-		const size_t n = fread(readValue, 1, sizeof(readValue), file);
-		Error::Assert{file};
+		const size_t n = fread(readValue, 1, sizeof(readValue), mFile);
+		Error::Assert{mFile};
 
-		fclose(file);
-		Error::Assert{file};
+		const long res = n == sizeof(readValue) && memcmp(readValue, BOM, sizeof(BOM)) == 0 ? sizeof(BOM) : 0;
 
-		return n == sizeof(readValue) && memcmp(readValue, BOM, sizeof(BOM)) == 0 ? sizeof(BOM) : 0;
+		// Set to after BOM
+		seekFromStart(res);
+
+		return res;
 	}
 
 	File::LineEnding lineEndings;
 	std::string filePath;
 	FILE* mFile = nullptr;
-	long mBomOffset;
+	long mBomOffset = 0;
 
 };
 
@@ -303,19 +312,28 @@ protected:
 		outValue.clear();
 		char buffer[256];
 
-		// Read 256 bytes and check for line terminator
-		// fgets reads until a line terminator, so we dont have to worry about over-reading
-		//TODO: support other line endings
+		// Read 256 bytes and check for newline
+		// fgets reads until a newline, so we dont have to worry about missing one
 		while (fgets(buffer, sizeof(buffer), this->mFile)) {
 			std::size_t len = std::strlen(buffer);
 
-			if (len > 0 && buffer[len - 1] == '\n') {
-				len--; // drop \n
-				if (len > 0 && buffer[len - 1] == '\r') {
-					len--; // If CRLF drop \r
+			if (len > 0) {
+				// LF line endings
+				if (buffer[len - 1] == '\n') {
+					len--;
+					// CRLF line endings
+					if (buffer[len - 1] == '\r') {
+						len--;
+					}
+					outValue.append(buffer, len);
+					break;
 				}
-				outValue.append(buffer, len);
-				break;
+				// CR line endings
+				if (buffer[len - 1] == '\r') {
+					len--; // drop \r
+					outValue.append(buffer, len);
+					break;
+				}
 			}
 
 			outValue.append(buffer, len);
@@ -326,6 +344,7 @@ protected:
 		return outValue.size() * sizeof(std::string::value_type);
 	}
 
+	//TODO: wstring support?
 	virtual size_t read(std::wstring& outValue) override {
 		return 0;
 	}

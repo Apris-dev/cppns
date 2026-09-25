@@ -75,6 +75,7 @@ namespace Error {
 		}
 		explicit Assert(const int error) { assertError("Error", error); }
 		explicit Assert(FILE* inFile) {
+			if (inFile == nullptr) return;
 			if (const int error = ferror(inFile); error > 0) {
 				assertError("File Error", error);
 			}

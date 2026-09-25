@@ -24,8 +24,7 @@ cppns_main() {
         fileArchive << true;
     }
 
-    // TODO: path func for this
-    assert(std::filesystem::exists(path.get()), "Path does not exist!");
+    assert(path.exists(), "Path does not exist!");
 
     {
         CFileArchive<File::OpenType::BINARY_READ> fileArchive(path);
@@ -75,7 +74,7 @@ cppns_main() {
     {
         CFileArchive<File::OpenType::READWRITE> fileArchive(path);
 
-        const size_t v = 5;
+        constexpr size_t v = 5;
         fileArchive << v;
         fileArchive << "test";
         fileArchive << "test200";
@@ -84,7 +83,7 @@ cppns_main() {
         assert(fileArchive.getLines() == 4, "Number of read lines should be 4!");
     }
 
-    assert(std::filesystem::exists(path.get()), "Path does not exist!");
+    assert(path.exists(), "Path does not exist!");
 
     {
         CFileArchive<File::OpenType::READ> fileArchive(path);

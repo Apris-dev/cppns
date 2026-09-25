@@ -18,6 +18,10 @@ public:
         return str;
     }
 
+    [[nodiscard]] bool exists() const {
+        return std::filesystem::exists(str);
+    }
+
     [[nodiscard]] std::string getFilename() const {
         const auto loc = str.find_last_of(PATH_SEPARATOR, str.size() - 2);
         if (loc == std::string::npos) {
