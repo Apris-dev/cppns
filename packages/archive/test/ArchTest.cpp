@@ -72,12 +72,12 @@ cppns_main() {
     std::cout << path.getFilename() << std::endl;
 
     {
-        CWStringFileArchive<File::OpenType::READWRITE, File::LineEnding::CRLF> fileArchive(path);
+        Cu16stringFileArchive<File::OpenType::READWRITE, File::LineEnding::CRLF> fileArchive(path);
 
         constexpr size_t v = 5;
         fileArchive << v;
-        fileArchive << L"test";
-        fileArchive << L"test200";
+        fileArchive << u"test";
+        fileArchive << u"test200";
         fileArchive << true;
 
         std::cout << fileArchive.getLines() << std::endl;
@@ -88,23 +88,23 @@ cppns_main() {
     assert(path.exists(), "Path does not exist!");
 
     {
-        CWStringFileArchive<File::OpenType::READ, File::LineEnding::CRLF> fileArchive(path);
+        Cu16stringFileArchive<File::OpenType::READ, File::LineEnding::CRLF> fileArchive(path);
 
         size_t v;
         fileArchive >> v;
-        std::wstring s;
+        std::u16string s;
         fileArchive >> s;
-        std::wstring s2;
+        std::u16string s2;
         fileArchive >> s2;
         bool b;
         fileArchive >> b;
 
         std::cout << v << std::endl;
-        std::wcout << s << std::endl;
-        std::wcout << s2 << std::endl;
+        //std::cout << s << std::endl;
+        //std::cout << s2 << std::endl;
         std::cout << (b ? "true" : "false") << std::endl;
 
-        assert(v == 5 && s == L"test" && s2 == L"test200" && b == true, "Not all read values are correct!");
+        assert(v == 5 && s == u"test" && s2 == u"test200" && b == true, "Not all read values are correct!");
 
         CHashArchive hasher;
         hasher << v;

@@ -50,11 +50,11 @@ protected:
         return 0;
     }
 
-    virtual size_t read(std::wstring& outValue) override {
+    virtual size_t read(std::u16string& outValue) override {
         return 0;
     }
 
-    virtual size_t write(const std::wstring& inValue) override {
+    virtual size_t write(const std::u16string& inValue) override {
         return 0;
     }
 

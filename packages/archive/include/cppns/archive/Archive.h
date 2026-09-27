@@ -2,6 +2,7 @@
 
 #include <charconv>
 #include <string>
+#include <codecvt>
 
 class CIArchive {
 
@@ -46,7 +47,7 @@ protected:
 	 */
 
 	virtual size_t read(std::string& inValue) = 0;
-	virtual size_t read(std::wstring& inValue) = 0;
+	virtual size_t read(std::u16string& inValue) = 0;
 
 public:
 
@@ -82,7 +83,7 @@ public:
 		return inArchive;
 	}
 
-	friend CIArchive& operator>>(CIArchive& inArchive, std::wstring& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, std::u16string& inValue) {
 		inArchive.read(inValue);
 		return inArchive;
 	}
@@ -131,10 +132,10 @@ protected:
 	 */
 
 	virtual size_t write(const char* inValue) { return write(std::string(inValue)); }
-	virtual size_t write(const wchar_t* inValue) { return write(std::wstring(inValue)); }
+	virtual size_t write(const char16_t* inValue) { return write(std::u16string(inValue)); }
 
 	virtual size_t write(const std::string& inValue) = 0;
-	virtual size_t write(const std::wstring& inValue) = 0;
+	virtual size_t write(const std::u16string& inValue) = 0;
 
 public:
 
@@ -165,9 +166,9 @@ public:
 		inArchive << std::string(inValue);
 		return inArchive;
 	}
-
-	friend COArchive& operator<<(COArchive& inArchive, const wchar_t* inValue) {
-		inArchive << std::wstring(inValue);
+	
+	friend COArchive& operator<<(COArchive& inArchive, const char16_t* inValue) {
+		inArchive << std::u16string(inValue);
 		return inArchive;
 	}
 
@@ -176,7 +177,7 @@ public:
 		return inArchive;
 	}
 
-	friend COArchive& operator<<(COArchive& inArchive, const std::wstring& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const std::u16string& inValue) {
 		inArchive.write(inValue);
 		return inArchive;
 	}
@@ -239,9 +240,9 @@ protected:
 		return inValue.size() * sizeof(c);
 	}
 
-	virtual size_t read(std::wstring& inValue) final override {
+	virtual size_t read(std::u16string& inValue) final override {
 		inValue.clear();
-		std::wstring::value_type c;
+		std::u16string::value_type c;
 		while (read(&c, sizeof(c)) != 0 && c != L'\0') {
 			inValue += c;
 		}
@@ -304,11 +305,11 @@ protected:
 		return inValue.size() * sizeof(std::string::value_type);
 	}
 
-	virtual size_t write(const std::wstring& inValue) final override {
-		write(inValue.data(), sizeof(std::wstring::value_type), inValue.size());
-		constexpr static wchar_t terminator = L'\0';
+	virtual size_t write(const std::u16string& inValue) final override {
+		write(inValue.data(), sizeof(std::u16string::value_type), inValue.size());
+		constexpr static char16_t terminator = L'\0';
 		write(&terminator, sizeof(terminator));
-		return inValue.size() * sizeof(std::wstring::value_type);
+		return inValue.size() * sizeof(std::u16string::value_type);
 	}
 };
 
@@ -431,10 +432,11 @@ protected:
 
 #define MAKE_READ(x) \
 	virtual size_t read(x& inValue) final override { \
-		std::wstring str; \
-		const size_t loc = read(str); \
-		std::wistringstream iss(str); \
-		iss >> inValue; \
+		std::u16string u16str; \
+		const size_t loc = read(u16str); \
+		std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter; \
+		std::string str = converter.to_bytes(u16str); \
+		std::from_chars(str.data(), str.data() + str.size(), inValue); \
 		return loc; \
 	}
 
@@ -443,9 +445,9 @@ protected:
 	 */
 
 	virtual size_t read(bool& inValue) final override {
-		std::wstring str;
+		std::u16string str;
 		const size_t loc = read(str);
-		if (str == L"true") {
+		if (str == u"true") {
 			inValue = true;
 		} else {
 			inValue = false;
@@ -454,30 +456,30 @@ protected:
 	}
 
 	virtual size_t read(char& inValue) final override {
-		std::wstring str;
+		std::u16string str;
 		const size_t loc = read(str);
-		std::wistringstream iss(str);
-		wchar_t c;
+		std::basic_istringstream<char16_t> iss(str);
+		char16_t c;
 		iss >> c;
 		inValue = static_cast<char>(c);
 		return loc;
 	}
 
 	virtual size_t read(unsigned char& inValue) final override {
-		std::wstring str;
+		std::u16string str;
 		const size_t loc = read(str);
-		std::wistringstream iss(str);
-		wchar_t c;
+		std::basic_istringstream<char16_t> iss(str);
+		char16_t c;
 		iss >> c;
 		inValue = static_cast<char>(c);
 		return loc;
 	}
 
 	virtual size_t read(signed char& inValue) final override {
-		std::wstring str;
+		std::u16string str;
 		const size_t loc = read(str);
-		std::wistringstream iss(str);
-		wchar_t c;
+		std::basic_istringstream<char16_t> iss(str);
+		char16_t c;
 		iss >> c;
 		inValue = static_cast<char>(c);
 		return loc;
@@ -515,15 +517,16 @@ protected:
 
 #define MAKE_WRITE(x) \
 	virtual size_t write(const x& inValue) final override { \
-		return write(std::to_wstring(inValue)); \
+		std::string str = std::to_string(inValue); \
+		return write(std::u16string(str.begin(), str.end())); \
 	}
 
 	/*
 	 * Integral Types
 	 */
 
-	virtual size_t write(const bool& inValue) final override { \
-		return write(inValue ? L"true" : L"false"); \
+	virtual size_t write(const bool& inValue) final override {
+		return write(inValue ? u"true" : u"false");
 	}
 
 	MAKE_WRITE(char)

@@ -55,19 +55,19 @@ namespace File {
 		}
 	}
 
-	static const wchar_t* getLineEndingWString(const LineEnding& inLineEnding) noexcept {
+	static const char16_t* getLineEndingu16string(const LineEnding& inLineEnding) noexcept {
 		switch (inLineEnding) {
 		case LineEnding::CRLF:
-			return L"\r\n";
+			return u"\r\n";
 		case LineEnding::LF:
 		default:
-			return L"\n";
+			return u"\n";
 		}
 	}
 }
 
 // An archive that can process files, uses standard c since it is faster
-template <File::OpenType TOpenType, File::LineEnding TLineEnding, bool TUseWChar = false>
+template <File::OpenType TOpenType, File::LineEnding TLineEnding, bool TUse16Char = false>
 class CBaseFileArchive {
 
 public:
@@ -125,15 +125,19 @@ public:
 		if constexpr (!isRead()) {
 			throw Error::File::InvalidOperation("getLines() requires file read!");
 		} else {
-			if constexpr (TUseWChar) {
-				wchar_t buffer[256];
-				size_t lines = 1; // Initial Line
+			if constexpr (TUse16Char) {
+				std::u16string str;
+				size_t lines = 0; // Initial Line
 
 				const size_t loc = tell();
 				seekFromStart(0);
 
+				while (readUntil(str, u'\n') != EOF) {
+					lines++;
+				}
+
 				// fgets stops at buffer end or at newline.  Check for newline or continue reading
-				while (fgetws(buffer, sizeof(buffer), mFile)) {
+				/*while (fgetws(buffer, sizeof(buffer), mFile)) {
 					const size_t len = std::wcslen(buffer);
 
 					if (len == 0)
@@ -148,7 +152,7 @@ public:
 
 					if (buffer[len - 1] == L'\n')
 						lines++;
-				}
+				}*/
 
 				Error::Assert{mFile};
 
@@ -236,6 +240,31 @@ protected:
 		throw Error::File::InvalidOpenMode(filePath);
 	}
 
+	template <typename CharT>
+	size_t readUntil(std::basic_string<CharT>& out, CharT delim) const {
+		if (feof(mFile))
+			return EOF;
+
+		out.clear();
+
+		size_t bytesRead = 0;
+		while (true) {
+			CharT c;
+
+			if (fread(&c, sizeof(c), 1, mFile) != 1)
+				break;
+
+			bytesRead += sizeof(c);
+
+			if (c == delim)
+				break;
+
+			out.push_back(c);
+		}
+
+		return bytesRead;
+	}
+
 	File::LineEnding getLineEndingFromFile() const {
 		// Is being overwritten, we don't care about previous file's line endings
 		if (isWrite())
@@ -249,9 +278,19 @@ protected:
 
 		int prev = EOF;
 
-		if constexpr (TUseWChar) {
+		if constexpr (TUse16Char) {
 			// Read the first line ending and assume other line endings are like that
-			wint_t c;
+			std::u16string str;
+			while (readUntil(str, u'\n') != EOF) {
+				Error::Assert{mFile};
+				if (str.back() == u'\r') {
+					lineEnding = File::LineEnding::CRLF;
+				} else {
+					lineEnding = File::LineEnding::LF;
+				}
+			}
+
+			/*wint_t c;
 			while ((c = fgetwc(mFile)) != EOF) {
 				Error::Assert{mFile};
 				if (c == L'\n') {
@@ -262,7 +301,7 @@ protected:
 					throw Error::File::UnsupportedLineEndings();
 				}
 				prev = c;
-			}
+			}*/
 		} else {
 			// Read the first line ending and assume other line endings are like that
 			int c;
@@ -291,7 +330,7 @@ protected:
 		if (isBinary())
 			return 0;
 
-		if constexpr (TUseWChar) {
+		if constexpr (TUse16Char) {
 			constexpr static unsigned char BOM[] = { 0xFF, 0xFE };
 
 			// Is being overwritten, we don't care about previous file's BOM
@@ -409,7 +448,7 @@ protected:
 		return outValue.size() * sizeof(std::string::value_type);
 	}
 
-	virtual size_t read(std::wstring& outValue) override {
+	virtual size_t read(std::u16string& outValue) override {
 		return 0;
 	}
 
@@ -420,21 +459,23 @@ protected:
 		return res;
 	}
 
-	virtual size_t write(const std::wstring& inValue) override {
+	virtual size_t write(const std::u16string& inValue) override {
 		return 0;
 	}
 };
 
 template <File::OpenType TOpenType, File::LineEnding TLineEnding>
-class CWStringFileArchive : public CBaseFileArchive<TOpenType, TLineEnding, true>, public CWSArchive {
+class Cu16stringFileArchive : public CBaseFileArchive<TOpenType, TLineEnding, true>, public CWSArchive {
 
 protected:
 
 	using CBaseFileArchive<TOpenType, TLineEnding, true>::CBaseFileArchive;
 
-	virtual size_t read(std::wstring& outValue) override {
-		outValue.clear();
+	virtual size_t read(std::u16string& outValue) override {
+		/*outValue.clear();
 		wchar_t buffer[256];
+
+		std::wstring wstr;
 
 		// Read 256 bytes and check for newline
 		// fgets reads until a newline, so we dont have to worry about missing one
@@ -444,15 +485,15 @@ protected:
 			if (len == 0)
 				continue;
 
-			outValue.append(buffer, len);
+			wstr.append(buffer, len);
 
 			// LF line endings
-			if (outValue.back() == L'\n') {
-				outValue.pop_back();
+			if (wstr.back() == L'\n') {
+				wstr.pop_back();
 
 				// CRLF line endings
-				if (outValue.back() == L'\r')
-					outValue.pop_back();
+				if (wstr.back() == L'\r')
+					wstr.pop_back();
 
 				break;
 			}
@@ -460,16 +501,24 @@ protected:
 
 		Error::Assert{this->mFile};
 
-		return outValue.size() * sizeof(std::string::value_type);
+		outValue = std::u16string(wstr.begin(), wstr.end());*/
+
+		const size_t res = this->readUntil(outValue, u'\n');
+
+		if (outValue.back() == u'\r') {
+			outValue.pop_back();
+		}
+
+		return res;
 	}
 
 	virtual size_t read(std::string& outValue) override {
 		return 0;
 	}
 
-	virtual size_t write(const std::wstring& inValue) override {
-		const std::wstring line = this->isEmpty() ? inValue : File::getLineEndingWString(this->lineEndings) + inValue;
-		const size_t res = fwrite(line.data(), sizeof(std::wstring::value_type), line.size(), this->mFile);
+	virtual size_t write(const std::u16string& inValue) override {
+		const std::u16string line = this->isEmpty() ? inValue : File::getLineEndingu16string(this->lineEndings) + inValue;
+		const size_t res = fwrite(line.data(), sizeof(std::u16string::value_type), line.size(), this->mFile);
 		Error::Assert{this->mFile};
 		return res;
 	}
