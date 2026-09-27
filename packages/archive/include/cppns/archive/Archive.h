@@ -166,6 +166,11 @@ public:
 		return inArchive;
 	}
 
+	friend COArchive& operator<<(COArchive& inArchive, const wchar_t* inValue) {
+		inArchive << std::wstring(inValue);
+		return inArchive;
+	}
+
 	friend COArchive& operator<<(COArchive& inArchive, const std::string& inValue) {
 		inArchive.write(inValue);
 		return inArchive;
@@ -416,3 +421,137 @@ protected:
 };
 
 class CSArchive : public CSIArchive, public CSOArchive {};
+
+class CWSIArchive : public CIArchive {
+
+protected:
+
+	// Inherit string read but don't override
+	using CIArchive::read;
+
+#define MAKE_READ(x) \
+	virtual size_t read(x& inValue) final override { \
+		std::wstring str; \
+		const size_t loc = read(str); \
+		std::wistringstream iss(str); \
+		iss >> inValue; \
+		return loc; \
+	}
+
+	/*
+	 * Integral Types
+	 */
+
+	virtual size_t read(bool& inValue) final override {
+		std::wstring str;
+		const size_t loc = read(str);
+		if (str == L"true") {
+			inValue = true;
+		} else {
+			inValue = false;
+		}
+		return loc;
+	}
+
+	virtual size_t read(char& inValue) final override {
+		std::wstring str;
+		const size_t loc = read(str);
+		std::wistringstream iss(str);
+		wchar_t c;
+		iss >> c;
+		inValue = static_cast<char>(c);
+		return loc;
+	}
+
+	virtual size_t read(unsigned char& inValue) final override {
+		std::wstring str;
+		const size_t loc = read(str);
+		std::wistringstream iss(str);
+		wchar_t c;
+		iss >> c;
+		inValue = static_cast<char>(c);
+		return loc;
+	}
+
+	virtual size_t read(signed char& inValue) final override {
+		std::wstring str;
+		const size_t loc = read(str);
+		std::wistringstream iss(str);
+		wchar_t c;
+		iss >> c;
+		inValue = static_cast<char>(c);
+		return loc;
+	}
+
+	MAKE_READ(unsigned short)
+	MAKE_READ(signed short)
+
+	MAKE_READ(unsigned int)
+	MAKE_READ(signed int)
+
+	MAKE_READ(unsigned long)
+	MAKE_READ(signed long)
+
+	MAKE_READ(unsigned long long)
+	MAKE_READ(signed long long)
+
+	/*
+	 * Floating Point Types
+	 */
+
+	MAKE_READ(float)
+	MAKE_READ(double)
+	MAKE_READ(long double)
+#undef MAKE_READ
+
+};
+
+class CWSOArchive : public COArchive {
+
+protected:
+
+	// Inherit string write but don't override
+	using COArchive::write;
+
+#define MAKE_WRITE(x) \
+	virtual size_t write(const x& inValue) final override { \
+		return write(std::to_wstring(inValue)); \
+	}
+
+	/*
+	 * Integral Types
+	 */
+
+	virtual size_t write(const bool& inValue) final override { \
+		return write(inValue ? L"true" : L"false"); \
+	}
+
+	MAKE_WRITE(char)
+
+	MAKE_WRITE(unsigned char)
+	MAKE_WRITE(signed char)
+
+	MAKE_WRITE(unsigned short)
+	MAKE_WRITE(signed short)
+
+	MAKE_WRITE(unsigned int)
+	MAKE_WRITE(signed int)
+
+	MAKE_WRITE(unsigned long)
+	MAKE_WRITE(signed long)
+
+	MAKE_WRITE(unsigned long long)
+	MAKE_WRITE(signed long long)
+
+	/*
+	 * Floating Point Types
+	 */
+
+	MAKE_WRITE(float)
+	MAKE_WRITE(double)
+	MAKE_WRITE(long double)
+#undef MAKE_WRITE
+
+};
+
+class CWSArchive : public CWSIArchive, public CWSOArchive {};
