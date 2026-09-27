@@ -72,13 +72,15 @@ cppns_main() {
     std::cout << path.getFilename() << std::endl;
 
     {
-        CFileArchive<File::OpenType::READWRITE> fileArchive(path);
+        CFileArchive<File::OpenType::READWRITE, File::LineEnding::CRLF> fileArchive(path);
 
         constexpr size_t v = 5;
         fileArchive << v;
         fileArchive << "test";
         fileArchive << "test200";
         fileArchive << true;
+
+        std::cout << fileArchive.getLines() << std::endl;
 
         assert(fileArchive.getLines() == 4, "Number of read lines should be 4!");
     }

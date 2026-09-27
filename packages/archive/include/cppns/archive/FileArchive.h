@@ -14,6 +14,7 @@ namespace Error::File {
 		CREATE_ERROR_TYPE(Open, "File Open Exception", "Couldn't open File {}!", Error::Runtime);
 		CREATE_ERROR_TYPE(InvalidOpenMode, "Invalid Open Mode Exception", "Invalid Open Mode provided when trying to open file {}!", Error::Runtime);
 		CREATE_ERROR_TYPE(InvalidOperation, "Invalid Operation Exception", "Invalid File Operation, Error: {}", Error::Runtime);
+		CREATE_ERROR_TYPE(UnsupportedLineEndings, "Unsupported Line Endings Exception", "These line endings are unsupported, switch to LF or CRLF!", Error::Runtime);
 }
 
 namespace File {
@@ -32,7 +33,7 @@ namespace File {
 	}
 
 	enum class Format : uint8 {
-		ANSI,
+		BINARY,
 		UTF8,
 		// TODO: support below types
 		UTF16,
@@ -41,7 +42,6 @@ namespace File {
 
 	enum class LineEnding : uint8 {
 		LF,
-		CR,
 		CRLF
 	};
 
@@ -49,8 +49,6 @@ namespace File {
 		switch (inLineEnding) {
 		case LineEnding::CRLF:
 			return "\r\n";
-		case LineEnding::CR:
-			return "\r";
 		case LineEnding::LF:
 		default:
 			return "\n";
@@ -59,11 +57,7 @@ namespace File {
 }
 
 // An archive that can process files, uses standard c since it is faster
-#if USING_CRLF
-template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::CRLF>
-#else
-template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::LF>
-#endif
+template <File::OpenType TOpenType, File::LineEnding TLineEnding>
 class CBaseFileArchive {
 
 public:
@@ -122,37 +116,27 @@ public:
 			throw Error::File::InvalidOperation("getLines() requires file read!");
 		} else {
 			char buffer[256];
-			size_t bytes_read;
 			size_t lines = 1; // Initial Line
 
 			const size_t loc = tell();
 			seekFromStart(0);
 
-			// To check for CRLF across two reads
-			bool pendingCR = false;
-			while ((bytes_read = fread(buffer, 1, sizeof(buffer), mFile)) > 0) {
-				for (size_t i = 0; i < bytes_read; i++) {
-					const char c = buffer[i];
+			// fgets stops at buffer end or at newline.  Check for newline or continue reading
+			while (fgets(buffer, sizeof(buffer), mFile)) {
+				const size_t len = std::strlen(buffer);
 
-					if (pendingCR) {
-						if (c == '\n') {
-							// CRLF
-							++lines;
-							pendingCR = false;
-							continue;
-						}
+				if (len == 0)
+					continue;
 
-						// Previous CR was standalone.
-						++lines;
-						pendingCR = false;
-					}
-
-					if (c == '\r') {
-						pendingCR = true;
-					} else if (c == '\n') {
-						++lines;
+				// Assume CRLF, read next char and add to lines if \n
+				if (buffer[len - 1] == '\r') {
+					if (const int next = fgetc(mFile); next == '\n') {
+						lines++;
 					}
 				}
+
+				if (buffer[len - 1] == '\n')
+					lines++;
 			}
 
 			Error::Assert{mFile};
@@ -232,17 +216,12 @@ protected:
 				break;
 			}
 			if (prev == '\r') {
-				lineEnding = File::LineEnding::CR;
-				break;
+				throw Error::File::UnsupportedLineEndings();
 			}
 			prev = c;
 		}
 
 		Error::Assert{mFile};
-
-		// If file ends with a lone '\r' and nothing after it assume CR line endings
-		if (prev == '\r')
-			lineEnding = File::LineEnding::CR;
 
 		seekFromStart(loc);
 
@@ -286,12 +265,12 @@ protected:
 };
 
 // An archive that can process files, uses standard c since it is faster
-template <File::OpenType TOpenType>
-class CBinaryFileArchive : public CBaseFileArchive<TOpenType>, public CBinaryArchive {
+template <File::OpenType TOpenType, File::LineEnding TLineEnding>
+class CBinaryFileArchive : public CBaseFileArchive<TOpenType, TLineEnding>, public CBinaryArchive {
 
 public:
 
-	using CBaseFileArchive<TOpenType>::CBaseFileArchive;
+	using CBaseFileArchive<TOpenType, TLineEnding>::CBaseFileArchive;
 
 protected:
 
@@ -309,12 +288,12 @@ protected:
 
 };
 
-template <File::OpenType TOpenType>
-class CStringFileArchive : public CBaseFileArchive<TOpenType>, public CSArchive {
+template <File::OpenType TOpenType, File::LineEnding TLineEnding>
+class CStringFileArchive : public CBaseFileArchive<TOpenType, TLineEnding>, public CSArchive {
 
 protected:
 
-	using CBaseFileArchive<TOpenType>::CBaseFileArchive;
+	using CBaseFileArchive<TOpenType, TLineEnding>::CBaseFileArchive;
 
 	virtual size_t read(std::string& outValue) override {
 		outValue.clear();
@@ -323,28 +302,23 @@ protected:
 		// Read 256 bytes and check for newline
 		// fgets reads until a newline, so we dont have to worry about missing one
 		while (fgets(buffer, sizeof(buffer), this->mFile)) {
-			std::size_t len = std::strlen(buffer);
+			const std::size_t len = std::strlen(buffer);
 
-			if (len > 0) {
-				// LF line endings
-				if (buffer[len - 1] == '\n') {
-					len--;
-					// CRLF line endings
-					if (buffer[len - 1] == '\r') {
-						len--;
-					}
-					outValue.append(buffer, len);
-					break;
-				}
-				// CR line endings
-				if (buffer[len - 1] == '\r') {
-					len--; // drop \r
-					outValue.append(buffer, len);
-					break;
-				}
-			}
+			if (len == 0)
+				continue;
 
 			outValue.append(buffer, len);
+
+			// LF line endings
+			if (outValue.back() == '\n') {
+				outValue.pop_back();
+
+				// CRLF line endings
+				if (outValue.back() == '\r')
+					outValue.pop_back();
+
+				break;
+			}
 		}
 
 		Error::Assert{this->mFile};
@@ -369,5 +343,9 @@ protected:
 	}
 };
 
-template <File::OpenType TOpenType>
-using CFileArchive = std::conditional_t<TOpenType & File::OpenType::BINARY, CBinaryFileArchive<TOpenType>, CStringFileArchive<TOpenType>>;
+#if USING_CRLF
+template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::CRLF>
+#else
+template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::LF>
+#endif
+using CFileArchive = std::conditional_t<TOpenType & File::OpenType::BINARY, CBinaryFileArchive<TOpenType, TLineEnding>, CStringFileArchive<TOpenType, TLineEnding>>;
