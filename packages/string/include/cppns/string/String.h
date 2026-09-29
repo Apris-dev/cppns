@@ -9,9 +9,8 @@
 #endif
 
 namespace String {
-    template <typename TType>
-    concept Char = std::is_same_v<TType, char> || std::is_same_v<TType, char8_t> || std::is_same_v<TType, char16_t> || std::is_same_v<TType, char32_t>;
-
+	//TODO: add easy conversions to each (including char arrays)
+	using UTF8 = std::u8string;
 	using UTF16 = std::u16string;
 	using UTF32 = std::u32string;
 }
