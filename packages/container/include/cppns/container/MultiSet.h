@@ -13,6 +13,9 @@ struct TMultiSet : TSelfAssociativeContainer<TMultiSet<TType>> {
 
 	using Super = TSelfAssociativeContainer<TMultiSet>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	TMultiSet() = default;
 
 	template <typename TOtherType = TType>
@@ -26,7 +29,7 @@ struct TMultiSet : TSelfAssociativeContainer<TMultiSet<TType>> {
 		(m_Container.emplace(std::forward<TArgs>(args)), ...);
 	}
 
-	TMultiSet(const std::unordered_multiset<TType>& otr): m_Container(otr) {}
+	TMultiSet(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
@@ -170,17 +173,20 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::unordered_multiset<TType, TContainerHasher<TType>> m_Container;
+	Super::Traits::template SubcontainerTypeHasher<> m_Container;
 };
 
 template <typename TType>
 struct TContainerTraits<TMultiSet<TType>> {
 	using Type = TType;
-	using SubcontainerType = std::unordered_multiset<TType, TContainerHasher<TType>>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::unordered_multiset<TOtherType>;
+	template<typename TOtherType = TType>
+	using SubcontainerTypeHasher = std::unordered_multiset<TOtherType, TContainerHasher<TOtherType>>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_iterator;
 	constexpr static auto ContainerType = EContainerType::SELF_ASSOCIATIVE;
 	constexpr static bool bHasHashing = true;
 	constexpr static bool bIsForwardOnly = false;

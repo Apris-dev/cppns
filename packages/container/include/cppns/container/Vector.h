@@ -9,6 +9,9 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 
 	using Super = TSequenceContainer<TVector>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	constexpr_20 TVector() = default;
 
 	template <typename TOtherType = TType>
@@ -22,7 +25,7 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
 	}
 
-	constexpr_20 TVector(const std::vector<TType>& otr): m_Container(otr) {}
+	constexpr_20 TVector(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
@@ -286,17 +289,18 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::vector<TType> m_Container;
+	TSubcontainerType<> m_Container;
 };
 
 template <typename TType>
 struct TContainerTraits<TVector<TType>> {
 	using Type = TType;
-	using SubcontainerType = std::vector<TType>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::vector<TOtherType>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;

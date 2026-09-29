@@ -9,6 +9,9 @@ struct TList : TSequenceContainer<TList<TType>> {
 
 	using Super = TSequenceContainer<TList>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	TList() = default;
 
 	template <typename TOtherType = TType>
@@ -21,7 +24,7 @@ struct TList : TSequenceContainer<TList<TType>> {
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
 	}
 
-	TList(const std::list<TType>& otr): m_Container(otr) {}
+	TList(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
@@ -298,17 +301,18 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::list<TType> m_Container;
+	TSubcontainerType<> m_Container;
 };
 
 template <typename TType>
 struct TContainerTraits<TList<TType>> {
 	using Type = TType;
-	using SubcontainerType = std::list<TType>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::list<TOtherType>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = false;
 	constexpr static bool bIsLimitedAccess = false;
