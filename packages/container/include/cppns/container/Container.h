@@ -289,6 +289,10 @@ struct TSequenceContainer : SContainer {
 	using Traits = TContainerTraits<TContainerType>;
 
 	using TType = typename Traits::Type;
+
+	template <typename TOtherType = TType>
+	using TSubcontainerType = typename Traits::template SubcontainerType<TOtherType>;
+
 	using Iterator = TVirtualIterator<TContainerType, typename Traits::Iterator>;
 	using ReverseIterator = TVirtualIterator<TContainerType, typename Traits::ReverseIterator>;
 	using ConstIterator = TVirtualIterator<TContainerType, typename Traits::ConstIterator>;
@@ -570,6 +574,10 @@ struct TAssociativeContainer : SContainer {
 
 	using TKeyType = typename Traits::KeyType;
 	using TValueType = typename Traits::ValueType;
+
+	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType>
+	using TSubcontainerType = typename Traits::template SubcontainerType<TOtherKeyType, TOtherValueType>;
+
 	using Iterator = TVirtualIterator<TContainerType, typename Traits::Iterator>;
 	using ReverseIterator = TVirtualIterator<TContainerType, typename Traits::ReverseIterator>;
 	using ConstIterator = TVirtualIterator<TContainerType, typename Traits::ConstIterator>;
@@ -697,6 +705,10 @@ struct TSelfAssociativeContainer : SContainer {
 	using Traits = TContainerTraits<TContainerType>;
 
 	using TType = typename Traits::Type;
+
+	template <typename TOtherType = TType>
+	using TSubcontainerType = typename Traits::template SubcontainerType<TOtherType>;
+
 	using Iterator = TVirtualIterator<TContainerType, typename Traits::Iterator>;
 	using ReverseIterator = TVirtualIterator<TContainerType, typename Traits::ReverseIterator>;
 	using ConstIterator = TVirtualIterator<TContainerType, typename Traits::ConstIterator>;

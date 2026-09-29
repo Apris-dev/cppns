@@ -11,17 +11,21 @@
 namespace String {
     template <typename TType>
     concept Char = std::is_same_v<TType, char> || std::is_same_v<TType, char8_t> || std::is_same_v<TType, char16_t> || std::is_same_v<TType, char32_t>;
+
+	using UTF16 = std::u16string;
+	using UTF32 = std::u32string;
 }
 
 template <>
 struct TContainerTraits<struct CString> {
+	template<typename TType = void>
 	using SubcontainerType = std::string;
-	using Type = SubcontainerType::value_type;
-	static constexpr auto npos = SubcontainerType::npos;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	using Type = SubcontainerType<>::value_type;
+	static constexpr auto npos = SubcontainerType<>::npos;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;
@@ -48,7 +52,7 @@ public:
 
 	constexpr_20 CString(const TType& inChar) { push(inChar); }
 
-    constexpr_20 CString(const std::basic_string<TType>& otr): m_Container(otr) {}
+    constexpr_20 CString(const TSubcontainerType<>& otr): m_Container(otr) {}
     
     [[nodiscard]] constexpr_20 size_t getSize() const {
         return m_Container.size();
@@ -365,17 +369,16 @@ public:
     	return temp;
     }
 
-	constexpr_20 bool operator==(const std::string& otr) const noexcept {
+	constexpr_20 bool operator==(const TSubcontainerType<>& otr) const noexcept {
     	return m_Container == otr;
     }
 
-    constexpr_20 std::strong_ordering operator<=>(const std::string& otr) const {
+    constexpr_20 std::strong_ordering operator<=>(const TSubcontainerType<>& otr) const {
 	    return m_Container <=> otr;
     }
 
 protected:
-    
-    std::basic_string<TType> m_Container;
+	TSubcontainerType<> m_Container;
 };
 
 #undef STR_CONTAINS

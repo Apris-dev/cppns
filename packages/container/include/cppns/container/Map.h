@@ -13,6 +13,9 @@ struct TMap : TAssociativeContainer<TMap<TKeyType, TValueType>> {
 
 	using Super = TAssociativeContainer<TMap>;
 
+	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherKeyType, TOtherValueType>;
+
 	TMap() = default;
 
 	template <typename TOtherValueType = TValueType>
@@ -30,7 +33,7 @@ struct TMap : TAssociativeContainer<TMap<TKeyType, TValueType>> {
 		(m_Container.emplace(std::forward<typename TPairs::KeyType>(args.first()), std::forward<typename TPairs::ValueType>(args.second())), ...);
 	}
 
-	TMap(const std::unordered_map<TKeyType, TValueType>& otr): m_Container(otr) {}
+	TMap(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
@@ -191,18 +194,21 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>> m_Container;
+	Super::Traits::template SubcontainerTypeHasher<> m_Container;
 };
 
 template <typename TKeyType, typename TValueType>
 struct TContainerTraits<TMap<TKeyType, TValueType>> {
 	using KeyType = TKeyType;
 	using ValueType = TValueType;
-	using SubcontainerType = std::unordered_map<TKeyType, TValueType, TContainerHasher<TKeyType>>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_iterator;
+	template<typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType>
+	using SubcontainerType = std::unordered_map<TOtherKeyType, TOtherValueType>;
+	template<typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType>
+	using SubcontainerTypeHasher = std::unordered_map<TOtherKeyType, TOtherValueType, TContainerHasher<TOtherKeyType>>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_iterator;
 	constexpr static auto ContainerType = EContainerType::ASSOCIATIVE;
 	constexpr static bool bHasHashing = true;
 	constexpr static bool bIsForwardOnly = false;

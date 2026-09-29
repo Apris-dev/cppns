@@ -9,6 +9,9 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	using Super = TSequenceContainer<TArray>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	constexpr_20 TArray() {
 		m_IsPopulated.fill(false);
 	}
@@ -39,7 +42,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		(arrayArgsInit(std::forward<TArgs>(args), index), ...);
 	}
 
-	constexpr_20 TArray(const std::array<TType, TSize>& otr): m_Container(otr) {
+	constexpr_20 TArray(const TSubcontainerType<>& otr): m_Container(otr) {
 		m_IsPopulated.fill(true);
 	}
 
@@ -340,18 +343,19 @@ protected:
 		index++;
 	}
 
-	std::array<bool, TSize> m_IsPopulated;
-	std::array<TType, TSize> m_Container;
+	TSubcontainerType<bool> m_IsPopulated;
+	TSubcontainerType<> m_Container;
 };
 
 template <typename TType, size_t TSize>
 struct TContainerTraits<TArray<TType, TSize>> {
 	using Type = TType;
-	using SubcontainerType = std::array<TType, TSize>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::array<TOtherType, TSize>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;

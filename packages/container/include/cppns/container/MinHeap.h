@@ -13,6 +13,9 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 
 	using Super = TSequenceContainer<TMinHeap>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	constexpr_20 TMinHeap() = default;
 
 	template <typename TOtherType = TType>
@@ -29,7 +32,7 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
-	constexpr_20 TMinHeap(const std::vector<TType>& otr): m_Container(otr) {
+	constexpr_20 TMinHeap(const TSubcontainerType<>& otr): m_Container(otr) {
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
@@ -306,17 +309,18 @@ protected:
 		}
 	};
 
-	std::vector<TType> m_Container;
+	TSubcontainerType<> m_Container;
 };
 
 template <typename TType>
 struct TContainerTraits<TMinHeap<TType>> {
 	using Type = TType;
-	using SubcontainerType = std::vector<TType>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::vector<TOtherType>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;

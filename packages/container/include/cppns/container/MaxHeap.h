@@ -13,6 +13,9 @@ struct TMaxHeap : TSequenceContainer<TMaxHeap<TType>> {
 
 	using Super = TSequenceContainer<TMaxHeap>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	constexpr_20 TMaxHeap() = default;
 
 	template <typename TOtherType = TType>
@@ -29,7 +32,7 @@ struct TMaxHeap : TSequenceContainer<TMaxHeap<TType>> {
 		std::make_heap(m_Container.begin(), m_Container.end(), std::less<TType>{});
 	}
 
-	constexpr_20 TMaxHeap(const std::vector<TType>& otr): m_Container(otr) {
+	constexpr_20 TMaxHeap(const TSubcontainerType<>& otr): m_Container(otr) {
 		std::make_heap(m_Container.begin(), m_Container.end(), std::less<TType>{});
 	}
 
@@ -300,18 +303,19 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::vector<TType> m_Container;
+	TSubcontainerType<> m_Container;
 	
 };
 
 template <typename TType>
 struct TContainerTraits<TMaxHeap<TType>> {
 	using Type = TType;
-	using SubcontainerType = std::vector<TType>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::vector<TOtherType>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;
