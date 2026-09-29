@@ -15,6 +15,13 @@
 
 #include "cppns/container/Container.h"
 
+#if USING_CXX23
+#define STR_CONTAINS(c, x) c.contains(x)
+#else
+#define STR_CONTAINS(c, x) c.find(x) != npos
+#endif
+
+
 namespace String {
     template <typename TChar>
     concept Char = std::is_same_v<TChar, char> || std::is_same_v<TChar, char8_t> || std::is_same_v<TChar, char16_t> || std::is_same_v<TChar, char32_t>;
@@ -24,92 +31,89 @@ template <String::Char TChar>
 struct TString : TSequenceContainer<TString<TChar>> {
     
     using Super = TSequenceContainer<TString>;
+	static constexpr auto npos = std::basic_string<TChar>::npos;
 
     constexpr_20 TString() = default;
 
-    constexpr_20 explicit TString(const TChar* inArray): m_Container(inArray) {}
+    constexpr_20 TString(const TChar* inArray): m_Container(inArray) {}
 
-	constexpr_20 explicit TString(const TChar& inChar) { push(inChar); }
+	constexpr_20 TString(const TChar& inChar) { push(inChar); }
 
     constexpr_20 TString(const std::basic_string<TChar>& otr): m_Container(otr) {}
     
-    [[nodiscard]] size_t getSize() const {
+    [[nodiscard]] constexpr_20 size_t getSize() const {
         return m_Container.size();
     }
 
-    [[nodiscard]] bool isEmpty() const {
+    [[nodiscard]] constexpr_20 bool isEmpty() const {
         return m_Container.empty();
     }
 
-    [[nodiscard]] TChar* data() { return m_Container.data(); }
+    [[nodiscard]] constexpr_20 TChar* data() { return m_Container.data(); }
 
-    [[nodiscard]] const TChar* data() const { return m_Container.data(); }
+    [[nodiscard]] constexpr_20 const TChar* data() const { return m_Container.data(); }
 
-    [[nodiscard]] TChar& top() {
+    [[nodiscard]] constexpr_20 TChar& top() {
         return m_Container.front();
     }
 
-    [[nodiscard]] const TChar& top() const {
+    [[nodiscard]] constexpr_20 const TChar& top() const {
         return m_Container.front();
     }
 
-    [[nodiscard]] TChar& bottom() {
+    [[nodiscard]] constexpr_20 TChar& bottom() {
         return m_Container.back();
     }
 
-    [[nodiscard]] const TChar& bottom() const {
+    [[nodiscard]] constexpr_20 const TChar& bottom() const {
         return m_Container.back();
     }
 
-    [[nodiscard]] typename Super::Iterator begin() noexcept {
+    [[nodiscard]] constexpr_20 typename Super::Iterator begin() noexcept {
         return m_Container.begin();
     }
 
-    [[nodiscard]] typename Super::ConstIterator begin() const noexcept {
+    [[nodiscard]] constexpr_20 typename Super::ConstIterator begin() const noexcept {
         return m_Container.begin();
     }
 
-    [[nodiscard]] typename Super::ReverseIterator rbegin() noexcept {
+    [[nodiscard]] constexpr_20 typename Super::ReverseIterator rbegin() noexcept {
         return m_Container.rbegin();
     }
 
-    [[nodiscard]] typename Super::ConstReverseIterator rbegin() const noexcept {
+    [[nodiscard]] constexpr_20 typename Super::ConstReverseIterator rbegin() const noexcept {
         return m_Container.rbegin();
     }
 
-    [[nodiscard]] typename Super::Iterator end() noexcept {
+    [[nodiscard]] constexpr_20 typename Super::Iterator end() noexcept {
         return m_Container.end();
     }
 
-    [[nodiscard]] typename Super::ConstIterator end() const noexcept {
+    [[nodiscard]] constexpr_20 typename Super::ConstIterator end() const noexcept {
         return m_Container.end();
     }
 
-    [[nodiscard]] typename Super::ReverseIterator rend() noexcept {
+    [[nodiscard]] constexpr_20 typename Super::ReverseIterator rend() noexcept {
         return m_Container.rend();
     }
 
-    [[nodiscard]] typename Super::ConstReverseIterator rend() const noexcept {
+    [[nodiscard]] constexpr_20 typename Super::ConstReverseIterator rend() const noexcept {
         return m_Container.rend();
     }
     
-    [[nodiscard]] bool isValid(const size_t index) const {
+    [[nodiscard]] constexpr_20 bool isValid(const size_t index) const {
 		return index < getSize();
 	}
 
 	bool contains(const TChar* inArray) const {
-    	return m_Container.contains(inArray);
+    	return STR_CONTAINS(m_Container, inArray);
     }
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TChar, TOtherType>
 	bool contains(const TOtherType& obj) const {
-		return m_Container.contains(obj);
+		return STR_CONTAINS(m_Container, obj);
 	}
-
-	[[nodiscard]] bool contains(const std::function<bool(const TChar*)>& inFunction) {
-    	return CONTAINS_IF(m_Container, inFunction);
-    }
 
 	[[nodiscard]] bool contains(const std::function<bool(const TChar&)>& inFunction) {
 		return CONTAINS_IF(m_Container, inFunction);
@@ -118,7 +122,7 @@ struct TString : TSequenceContainer<TString<TChar>> {
 	template <String::Char... TOtherType>
 	[[nodiscard]] bool containsAll(const TOtherType*... inArrays) {
     	bool res = true;
-    	((res &= m_Container.contains(inArrays)), ...);
+    	((res &= STR_CONTAINS(m_Container, inArrays)), ...);
     	return res;
     }
 
@@ -126,17 +130,9 @@ struct TString : TSequenceContainer<TString<TChar>> {
 	requires std::conjunction_v<sutil::is_equality_comparable<TChar, TOtherType>...>
 	[[nodiscard]] bool containsAll(const TOtherType&... obj) {
 		bool res = true;
-		((res &= m_Container.contains(obj)), ...);
+		((res &= STR_CONTAINS(m_Container, obj)), ...);
 		return res;
 	}
-
-	template <typename... TFunc>
-	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TChar*>...>
-	[[nodiscard]] bool containsAll(const TFunc&... inFunctions) {
-    	bool res = true;
-    	((res &= CONTAINS_IF(m_Container, inFunctions)), ...);
-    	return res;
-    }
 
 	template <typename... TFunc>
 	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TChar&>...>
@@ -146,11 +142,19 @@ struct TString : TSequenceContainer<TString<TChar>> {
 		return res;
 	}
 
-	template <typename... TFunc>
-	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TChar*>...>
-	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
+	template <String::Char... TOtherType>
+	[[nodiscard]] bool containsOne(const TOtherType*... inArrays) {
     	bool res = false;
-    	((res |= CONTAINS_IF(m_Container, inFunctions)), ...);
+    	((res |= STR_CONTAINS(m_Container, inArrays)), ...);
+    	return res;
+    }
+
+	template <typename... TOtherType,
+		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TChar, TOtherType>...>, int> = 0
+	>
+	[[nodiscard]] bool containsOne(const TOtherType&... obj) {
+    	bool res = false;
+    	((res |= STR_CONTAINS(m_Container, obj)), ...);
     	return res;
     }
 
@@ -172,24 +176,24 @@ struct TString : TSequenceContainer<TString<TChar>> {
 		return m_Container.find(obj);
 	}
 
-	size_t find(const std::function<bool(const TChar*)>& inFunction) {
-    	return DISTANCE_IF(m_Container, inFunction);
-    }
-
 	size_t find(const std::function<bool(const TChar&)>& inFunction) {
 		return DISTANCE_IF(m_Container, inFunction);
 	}
 
-	template <typename... TFunc>
-	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TChar*>...>
-	[[nodiscard]] size_t findFirst(const TFunc&... inFunctions) {
-    	auto func = [&](const auto& obb) {
-    		bool res = false;
-    		((res |= inFunctions(obb)), ...);
-    		return res;
-    	};
+	[[nodiscard]] size_t findFirst(const TChar* inArray) const {
+    	return m_Container.find_first_of(inArray);
+    }
 
-    	return find(func);
+	[[nodiscard]] size_t findFirst(const TChar& obj) const {
+    	return m_Container.find_first_of(obj);
+    }
+
+	[[nodiscard]] size_t findFirstNot(const TChar* inArray) const {
+    	return m_Container.find_first_not_of(inArray);
+    }
+
+	[[nodiscard]] size_t findFirstNot(const TChar& obj) const {
+    	return m_Container.find_first_not_of(obj);
     }
 
 	template <typename... TFunc>
@@ -204,16 +208,20 @@ struct TString : TSequenceContainer<TString<TChar>> {
 		return find(func);
 	}
 
-	template <typename... TFunc>
-	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TChar*>...>
-	[[nodiscard]] size_t findLast(const TFunc&... inFunctions) {
-    	auto func = [&](const auto& obb) {
-    		bool res = false;
-    		((res |= inFunctions(obb)), ...);
-    		return res;
-    	};
+	[[nodiscard]] size_t findLast(const TChar* inArray) const {
+    	return m_Container.find_last_of(inArray);
+    }
 
-    	return DISTANCE_LAST_IF(m_Container, func);
+	[[nodiscard]] size_t findLast(const TChar& obj) const {
+    	return m_Container.find_last_of(obj);
+    }
+
+	[[nodiscard]] size_t findLastNot(const TChar* inArray) const {
+    	return m_Container.find_last_not_of(inArray);
+    }
+
+	[[nodiscard]] size_t findLastNot(const TChar& obj) const {
+    	return m_Container.find_last_not_of(obj);
     }
 
 	template <typename... TFunc>
@@ -255,7 +263,7 @@ struct TString : TSequenceContainer<TString<TChar>> {
 
 	TChar& push()
 	requires std::is_default_constructible_v<TChar> {
-		m_Container.push_back();
+		m_Container.push_back(TChar());
 		return get(getSize() - 1);
 	}
 
@@ -334,7 +342,7 @@ struct TString : TSequenceContainer<TString<TChar>> {
 	}
 
 	template <typename TOtherContainerType>
-	void append(const TSequenceContainer<TOtherContainerType>& otr) {
+	constexpr_20 void append(const TSequenceContainer<TOtherContainerType>& otr) {
 #ifdef __cpp_lib_containers_ranges
 		m_Container.append_range(SContainer::getSubcontainer(otr));
 #else
@@ -342,10 +350,29 @@ struct TString : TSequenceContainer<TString<TChar>> {
 #endif
 	}
 
-	void append(const TChar* inArray) {
+	constexpr_20 void append(const TChar* inArray) {
 		m_Container.append(inArray);
 	}
-    
+
+	constexpr_20 TString& operator+=(const TString& otr) noexcept {
+    	append(otr);
+    	return *this;
+    }
+
+	constexpr_20 TString operator+(const TString& otr) const noexcept {
+    	TString temp = *this;
+    	temp += otr;
+    	return temp;
+    }
+
+	constexpr_20 bool operator==(const std::string& otr) const noexcept {
+    	return m_Container == otr;
+    }
+
+    constexpr_20 std::strong_ordering operator<=>(const std::string& otr) const {
+	    return m_Container <=> otr;
+    }
+
 protected:
     
     friend struct SContainer;
