@@ -5,7 +5,7 @@
 cppns_main() {
 
     {
-        TString str = "hello";
+        CString str = "hello";
         assert(!str.isEmpty());
 
         assert(str == "hello");
@@ -34,7 +34,7 @@ cppns_main() {
     }
 
     {
-        TString<char> str;
+        CString str;
         assert(str.isEmpty());
         str.resize(3);
         assert(!str.isEmpty());
@@ -61,13 +61,13 @@ cppns_main() {
     }
 
     {
-        TString str = "cba";
+        CString str = "cba";
 
         assert(str == "cba");
         str.sort();
         assert(str == "abc");
 
-        TString<char> otr;
+        CString otr;
 
         str.transfer(otr, 0);
         assert(str == "bc");

@@ -202,7 +202,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		}
 	}
 
-	void resize(const size_t amt, std::function<TType(size_t)> func) {
+	void resize(const size_t amt, const std::function<TType(size_t)>& func) {
 		for (size_t i = 0; i < amt; ++i) {
 			if (!m_IsPopulated[i]) {
 				get(i) = std::forward<TType>(func(i));
@@ -215,7 +215,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		resize(TSize);
 	}
 
-	void resize(std::function<TType(size_t)> func) {
+	void resize(const std::function<TType(size_t)>& func) {
 		resize(TSize, func);
 	}
 

@@ -193,7 +193,7 @@ struct TMaxHeap : TSequenceContainer<TMaxHeap<TType>> {
 		std::make_heap(m_Container.begin(), m_Container.end(), std::less<TType>{});
 	}
 
-	void resize(size_t amt, std::function<TType(size_t)> func) {
+	void resize(size_t amt, const std::function<TType(size_t)>& func) {
 		const size_t previousSize = getSize();
 		m_Container.reserve(amt);
 		for (size_t i = previousSize; i < amt; ++i) {

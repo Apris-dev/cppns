@@ -437,7 +437,7 @@ struct TSequenceContainer : SContainer {
 	void resize(size_t amt) { derived(*this).resize(amt); }
 
 	// Fills container with TType& elements with size amt
-	void resize(size_t amt, std::function<TType(size_t)> func) { derived(*this).resize(amt, func); }
+	void resize(size_t amt, const std::function<TType(size_t)>& func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
 	void reserve(size_t amt)
@@ -621,7 +621,7 @@ struct TAssociativeContainer : SContainer {
 	[[nodiscard]] const TValueType& get(const TKeyType& key) const { return derived(*this).get(key); }
 
 	// Fills container with TType& elements with size amt
-	void resize(size_t amt, std::function<TPair<TKeyType, TValueType>()> func) { derived(*this).resize(amt, func); }
+	void resize(size_t amt, const std::function<TPair<TKeyType, TValueType>()>& func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
 	void reserve(size_t amt) requires bHasHashing { derived(*this).reserve(amt); }
@@ -745,7 +745,7 @@ struct TSelfAssociativeContainer : SContainer {
 	void resize(size_t amt) { derived(*this).resize(amt); }
 
 	// Fills container with TType& elements with size amt
-	void resize(size_t amt, std::function<TType()> func) { derived(*this).resize(amt, func); }
+	void resize(size_t amt, const std::function<TType()>& func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
 	void reserve(size_t amt) requires bHasHashing{ derived(*this).reserve(amt); }

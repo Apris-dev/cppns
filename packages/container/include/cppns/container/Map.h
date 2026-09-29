@@ -94,7 +94,7 @@ struct TMap : TAssociativeContainer<TMap<TKeyType, TValueType>> {
 		return m_Container.at(key);
 	}
 
-	void resize(const size_t amt, std::function<TPair<TKeyType, TValueType>()> func) {
+	void resize(const size_t amt, const std::function<TPair<TKeyType, TValueType>()>& func) {
 		m_Container.reserve(amt);
 		for (size_t i = getSize(); i < amt; ++i) {
 			TPair<TKeyType, TValueType> pair = func();
