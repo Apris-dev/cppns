@@ -250,12 +250,12 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 
 	void sort()
 	requires sutil::is_less_than_comparable_v<TType> {
-		std::sort(m_Container.begin(), m_Container.end());
+		SORT(m_Container);
 	}
 
 	template <typename Func>
 	void sort(Func&& func) {
-		std::sort(m_Container.begin(), m_Container.end(), std::forward<Func>(func));
+		SORT_F(m_Container, std::forward<Func>(func));
 	}
 
 	template <typename TOtherContainerType>

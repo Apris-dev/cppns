@@ -42,6 +42,8 @@
 #define DISTANCE_LAST_IF(c, func, ...) std::ranges::distance(c.begin(), FIND_LAST_IF(c, func, __VA_ARGS__))
 #define SIZE(c) std::ranges::distance(c)
 #define SHUFFLE(c, r) std::ranges::shuffle(c, r);
+#define SORT(c) std::ranges::sort(c)
+#define SORT_F(c, func) std::ranges::sort(c, func)
 #else
 #define FIND(c, x, ...) std::find(c.begin(), c.end(), x)
 #define FIND_IF(c, func, ...) std::find_if(c.begin(), c.end(), func)
@@ -51,6 +53,8 @@
 #define DISTANCE_LAST_IF(c, func, ...) std::distance(c.begin(), FIND_LAST_IF(c, func, __VA_ARGS__))
 #define SIZE(c) std::distance(c.begin(), c.end())
 #define SHUFFLE(c, r) std::shuffle(c.begin(), c.end(), r);
+#define SORT(c) std::sort(c.begin(), c.end())
+#define SORT_F(c, func) std::sort(c.begin(), c.end(), func)
 #endif
 
 #define CONTAINS(c, x, ...) FIND(c, x, __VA_ARGS__) != c.end()
