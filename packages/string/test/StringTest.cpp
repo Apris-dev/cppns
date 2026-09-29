@@ -72,6 +72,9 @@ cppns_main() {
         str.transfer(otr, 0);
         assert(str == "bc");
         assert(otr == "a");
+
+        str.pop("bc");
+        assert(str.isEmpty());
     }
 
     return 0;
