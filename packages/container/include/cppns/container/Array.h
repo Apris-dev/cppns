@@ -291,7 +291,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	void pop(const TOtherType& obj) {
+	void erase(const TOtherType& obj) {
 		for (size_t index = 0; index < getSize(); ++index) {
 			if (m_Container[index] == obj) {
 				m_IsPopulated[index] = false;

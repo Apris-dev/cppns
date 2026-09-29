@@ -124,7 +124,7 @@ struct TSet : TSelfAssociativeContainer<TSet<TType>> {
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	void pop(const TOtherType& obj) {
+	void erase(const TOtherType& obj) {
 		if constexpr (std::is_same_v<TType, TOtherType>) {
 			m_Container.erase(obj);
 		} else {

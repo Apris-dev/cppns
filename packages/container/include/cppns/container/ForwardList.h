@@ -241,7 +241,7 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	void pop(const TOtherType& obj) {
+	void erase(const TOtherType& obj) {
 		ERASE(m_Container, obj);
 	}
 
