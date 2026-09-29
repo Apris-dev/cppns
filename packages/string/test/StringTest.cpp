@@ -73,7 +73,7 @@ cppns_main() {
         assert(str == "bc");
         assert(otr == "a");
 
-        str.pop("bc");
+        str.erase("bc");
         assert(str.isEmpty());
     }
 

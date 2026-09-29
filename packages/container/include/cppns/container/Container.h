@@ -486,8 +486,8 @@ struct TSequenceContainer : SContainer {
 	// Removes a certain object from the container
 	template <typename TOtherType>
 	requires (!bIsLimitedAccess)
-	void pop(const TOtherType& obj) {
-		derived(*this).pop(obj);
+	void erase(const TOtherType& obj) {
+		derived(*this).erase(obj);
 	}
 
 	void sort()
@@ -769,7 +769,7 @@ struct TSelfAssociativeContainer : SContainer {
 	void pop() { derived(*this).pop(); }
 	// Removes an element from the container
 	template <typename TOtherType>
-	void pop(const TOtherType& obj) { derived(*this).pop(obj); }
+	void erase(const TOtherType& obj) { derived(*this).erase(obj); }
 
 	// Moves an object from this to container otr
 	template <typename TOtherContainerType, typename TOtherType>

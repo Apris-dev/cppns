@@ -314,13 +314,13 @@ public:
 		m_Container.erase(m_Container.begin() + index);
 	}
 
-	constexpr_20 void pop(const TType* inArray) {
+	constexpr_20 void erase(const TType* inArray) {
     	m_Container.erase(m_Container.find(inArray));
     }
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	constexpr_20 void pop(const TOtherType& obj) {
+	constexpr_20 void erase(const TOtherType& obj) {
     	m_Container.erase(m_Container.find(obj));
 	}
 
