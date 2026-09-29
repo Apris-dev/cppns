@@ -16,11 +16,10 @@
 #include "cppns/container/Container.h"
 
 #if USING_CXX23
-#define STR_CONTAINS(c, x) c.contains(x)
+	#define STR_CONTAINS(c, x) c.contains(x)
 #else
-#define STR_CONTAINS(c, x) c.find(x) != npos
+	#define STR_CONTAINS(c, x) c.find(x) != npos
 #endif
-
 
 namespace String {
     template <typename TChar>
@@ -321,12 +320,12 @@ struct TString : TSequenceContainer<TString<TChar>> {
 
 	void sort()
 	requires sutil::is_less_than_comparable_v<TChar> {
-		std::sort(m_Container.begin(), m_Container.end());
+    	SORT(m_Container);
 	}
 
 	template <typename Func>
 	void sort(Func&& func) {
-		std::sort(m_Container.begin(), m_Container.end(), std::forward<Func>(func));
+    	SORT_F(m_Container, std::forward<Func>(func));
 	}
 
 	template <typename TOtherContainerType>
@@ -403,3 +402,5 @@ TString(const TChar&) -> TString<TChar>;
 
 template <String::Char TChar>
 TString(const TChar*) -> TString<TChar>;
+
+#undef STR_CONTAINS
