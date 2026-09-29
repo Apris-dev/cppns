@@ -178,7 +178,7 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		m_Container.resize(amt);
 	}
 
-	void resize(const size_t amt, std::function<TType(size_t)> func) {
+	void resize(const size_t amt, const std::function<TType(size_t)>& func) {
 		const size_t previousSize = getSize();
 		m_Container.reserve(amt);
 		for (size_t i = previousSize; i < amt; ++i) {

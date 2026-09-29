@@ -91,7 +91,7 @@ struct TPriorityMultiSet : TSelfAssociativeContainer<TPriorityMultiSet<TType>> {
 		}
 	}
 
-	void resize(const size_t amt, std::function<TType()> func) {
+	void resize(const size_t amt, const std::function<TType()>& func) {
 		for (size_t i = getSize(); i < amt; ++i) {
 			m_Container.emplace(std::forward<TType>(func()));
 		}

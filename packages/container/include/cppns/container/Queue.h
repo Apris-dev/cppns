@@ -133,7 +133,7 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 		m_Container.resize(amt);
 	}
 
-	void resize(const size_t amt, std::function<TType(size_t)> func) {
+	void resize(const size_t amt, const std::function<TType(size_t)>& func) {
 		const size_t previousSize = getSize();
 		for (size_t i = previousSize; i < amt; ++i) {
 			m_Container.emplace_back(std::forward<TType>(func(i)));
