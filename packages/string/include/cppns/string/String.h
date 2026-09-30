@@ -21,10 +21,10 @@ struct TContainerTraits<struct CString> {
 	using SubcontainerType = std::string;
 	using Type = SubcontainerType<>::value_type;
 	static constexpr auto npos = SubcontainerType<>::npos;
-	using Iterator = typename SubcontainerType<>::iterator;
-	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
-	using ConstIterator = typename SubcontainerType<>::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
+	using Iterator = SubcontainerType<>::iterator;
+	using ReverseIterator = SubcontainerType<>::reverse_iterator;
+	using ConstIterator = SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;
@@ -44,6 +44,7 @@ protected:
 public:
 
     using Super = TSequenceContainer;
+	static constexpr auto npos = Traits::npos;
 
     constexpr_20 CString() = default;
 
@@ -81,35 +82,35 @@ public:
         return m_Container.back();
     }
 
-    [[nodiscard]] constexpr_20 typename Super::Iterator begin() noexcept {
+    [[nodiscard]] constexpr_20 Iterator begin() noexcept {
         return m_Container.begin();
     }
 
-    [[nodiscard]] constexpr_20 typename Super::ConstIterator begin() const noexcept {
+    [[nodiscard]] constexpr_20 ConstIterator begin() const noexcept {
         return m_Container.begin();
     }
 
-    [[nodiscard]] constexpr_20 typename Super::ReverseIterator rbegin() noexcept {
+    [[nodiscard]] constexpr_20 ReverseIterator rbegin() noexcept {
         return m_Container.rbegin();
     }
 
-    [[nodiscard]] constexpr_20 typename Super::ConstReverseIterator rbegin() const noexcept {
+    [[nodiscard]] constexpr_20 ConstReverseIterator rbegin() const noexcept {
         return m_Container.rbegin();
     }
 
-    [[nodiscard]] constexpr_20 typename Super::Iterator end() noexcept {
+    [[nodiscard]] constexpr_20 Iterator end() noexcept {
         return m_Container.end();
     }
 
-    [[nodiscard]] constexpr_20 typename Super::ConstIterator end() const noexcept {
+    [[nodiscard]] constexpr_20 ConstIterator end() const noexcept {
         return m_Container.end();
     }
 
-    [[nodiscard]] constexpr_20 typename Super::ReverseIterator rend() noexcept {
+    [[nodiscard]] constexpr_20 ReverseIterator rend() noexcept {
         return m_Container.rend();
     }
 
-    [[nodiscard]] constexpr_20 typename Super::ConstReverseIterator rend() const noexcept {
+    [[nodiscard]] constexpr_20 ConstReverseIterator rend() const noexcept {
         return m_Container.rend();
     }
     
@@ -127,7 +128,7 @@ public:
 		return STR_CONTAINS(m_Container, obj);
 	}
 
-	[[nodiscard]] constexpr_20 bool contains(const std::function<bool(const TType&)>& inFunction) {
+	[[nodiscard]] constexpr_23 bool contains(const std::function<bool(const TType&)>& inFunction) {
 		return CONTAINS_IF(m_Container, inFunction);
 	}
 
