@@ -182,19 +182,37 @@ cppns_main() {
     }
 
     // These are all invalid UTF8, they should not be converted properly
-    // TODO: ensure valid UTF8 for CString
     {
         const CString validStr = "héllo 😀";
-        const CString invalidStr0 = "caf\xE9";
-        const CString invalidStr1 = "\xC0\x80";
-        const CString invalidStr2 = "\xED\xA0\x80";
-        const CString invalidStr3 = "\xF4\x90\x80\x80";
+        CString invalidStr0 = "caf\xE9";
+        CString invalidStr1 = "\xC0\x80";
+        CString invalidStr2 = "\xED\xA0\x80";
+        CString invalidStr3 = "\xF4\x90\x80\x80";
+        assert(validStr == "héllo 😀");
         assert(isValidUTF8(validStr));
-        assert(!isValidUTF8(invalidStr0));
-        assert(!isValidUTF8(invalidStr1));
-        assert(!isValidUTF8(invalidStr2));
-        assert(!isValidUTF8(invalidStr3));
+        assert(invalidStr0 == "caf");
+        assert(isValidUTF8(invalidStr0));
+        assert(invalidStr1.isEmpty());
+        assert(isValidUTF8(invalidStr1));
+        assert(invalidStr2.isEmpty());
+        assert(isValidUTF8(invalidStr2));
+        assert(invalidStr3.isEmpty());
+        assert(isValidUTF8(invalidStr3));
+
+        // Weak guarantee
+        // Direct data access cannot be prevented
+        CString invalidStr4;
+        invalidStr4.resize(1);
+        invalidStr4[0] = '\xE9';
+        assert(!isValidUTF8(invalidStr4));
     }
+
+    try {
+        CString str;
+        str.push('\xE9');
+        // Code path should not run, exception should be thrown and caught
+        assert(false);
+    } catch (Error::String::NonUTF8Character& e) {}
 
     return 0;
 }
