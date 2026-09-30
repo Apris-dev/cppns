@@ -20,7 +20,6 @@ struct TContainerTraits<struct CString> {
 	template<typename TType = void>
 	using SubcontainerType = std::string;
 	using Type = SubcontainerType<>::value_type;
-	static constexpr auto npos = SubcontainerType<>::npos;
 	using Iterator = SubcontainerType<>::iterator;
 	using ReverseIterator = SubcontainerType<>::reverse_iterator;
 	using ConstIterator = SubcontainerType<>::const_iterator;
@@ -44,7 +43,7 @@ protected:
 public:
 
     using Super = TSequenceContainer;
-	static constexpr auto npos = Traits::npos;
+	static constexpr auto npos = Traits::SubcontainerType<>::npos;
 
     constexpr_20 CString() = default;
 
