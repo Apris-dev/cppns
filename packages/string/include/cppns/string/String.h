@@ -43,7 +43,7 @@ protected:
 public:
 
     using Super = TSequenceContainer;
-	static constexpr auto npos = Traits::SubcontainerType<>::npos;
+	constexpr static auto npos = Traits::SubcontainerType<>::npos;
 
     constexpr_20 CString() = default;
 
@@ -378,6 +378,107 @@ public:
 
 protected:
 	TSubcontainerType<> m_Container;
+
+private:
+
+	/*
+	 * Conversions
+	 * TODO: move away when doing numeric conversions
+	 */
+
+	constexpr static char32_t ReplacementChar = 0xFFFD;
+
+	// Decodes UTF8 into a UTF32 string, assumes std::string_view contains UTF8
+	// If non-UTF8 is present, it is replaced with 'ReplacementChar'
+	char32_t decodeUTF8(size_t& i) const {
+		// If codepoint only spans 1 byte, no need to decode
+		const auto b0 = static_cast<unsigned char>(get(i++));
+		if (b0 < 0x80)
+			return b0;
+
+		// Calculates the amount of char's the codepoint spans
+		int cpLength;
+		char32_t cp, minCp;
+		if ((b0 & 0xE0) == 0xC0) {
+			cpLength = 1; cp = b0 & 0x1F; minCp = 0x80;
+		} else if ((b0 & 0xF0) == 0xE0) {
+			cpLength = 2; cp = b0 & 0x0F; minCp = 0x800;
+		} else if ((b0 & 0xF8) == 0xF0) {
+			cpLength = 3; cp = b0 & 0x07; minCp = 0x10000;
+		} else {
+			return ReplacementChar;
+		}
+
+		for (int k = 0; k < cpLength; ++k) {
+			// Avoid invalid indexes
+			if (i >= getSize())
+				return ReplacementChar;
+
+			const auto b = static_cast<unsigned char>(get(i));
+			if ((b & 0xC0) != 0x80)
+				return ReplacementChar;  // leave b for the next decode
+
+			cp = (cp << 6) | (b & 0x3F);
+			++i;
+		}
+
+		if (cp < minCp || cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
+			return ReplacementChar;
+		return cp;
+	}
+
+public:
+
+	String::UTF8 toUTF8() const {
+		String::UTF8 str;
+		str.reserve(getSize());
+		for (size_t i = 0; i < getSize();) {
+			char32_t cp = decodeUTF8(i);
+			if (cp < 0x80) {
+				str.push_back(static_cast<char8_t>(cp));
+			} else if (cp < 0x800) {
+				str.push_back(static_cast<char8_t>(0xC0 | (cp >> 6)));
+				str.push_back(static_cast<char8_t>(0x80 | (cp & 0x3F)));
+			} else if (cp < 0x10000) {
+				str.push_back(static_cast<char8_t>(0xE0 | (cp >> 12)));
+				str.push_back(static_cast<char8_t>(0x80 | ((cp >> 6) & 0x3F)));
+				str.push_back(static_cast<char8_t>(0x80 | (cp & 0x3F)));
+			} else {
+				str.push_back(static_cast<char8_t>(0xF0 | (cp >> 18)));
+				str.push_back(static_cast<char8_t>(0x80 | ((cp >> 12) & 0x3F)));
+				str.push_back(static_cast<char8_t>(0x80 | ((cp >> 6) & 0x3F)));
+				str.push_back(static_cast<char8_t>(0x80 | (cp & 0x3F)));
+			}
+		}
+		return str;
+	}
+
+	String::UTF16 toUTF16() const {
+		String::UTF16 str;
+		str.reserve(getSize());  // upper bound in code units
+		for (size_t i = 0; i < getSize();) {
+			char32_t cp = decodeUTF8(i);
+			if (cp < 0x10000) {
+				str.push_back(static_cast<char16_t>(cp));
+			} else {
+				cp -= 0x10000;
+				str.push_back(static_cast<char16_t>(0xD800 + (cp >> 10)));
+				str.push_back(static_cast<char16_t>(0xDC00 + (cp & 0x3FF)));
+			}
+		}
+		return str;
+	}
+
+	String::UTF32 toUTF32() const {
+		String::UTF32 str;
+		str.reserve(getSize());
+		for (size_t i = 0; i < getSize();) {
+			const char32_t cp = decodeUTF8(i);
+			str.push_back(cp);
+		}
+		return str;
+	}
+
 };
 
 #undef STR_CONTAINS

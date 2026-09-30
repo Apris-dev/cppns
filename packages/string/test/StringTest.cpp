@@ -77,5 +77,60 @@ cppns_main() {
         assert(str.isEmpty());
     }
 
+    {
+        const CString str = "héllo 😀";
+
+        assert(!str.isEmpty());
+        assert(str == "héllo 😀");
+
+        const String::UTF8 utf8 = str.toUTF8();
+        const String::UTF16 utf16 = str.toUTF16();
+        const String::UTF32 utf32 = str.toUTF32();
+
+        assert(utf8 == u8"héllo 😀");
+        assert(utf16 == u"héllo 😀");
+        assert(utf32 == U"héllo 😀");
+
+        // é is split between two bytes on UTF8
+        {
+            constexpr auto p = u8"é";
+            constexpr auto first = p[0];
+            constexpr auto second = p[1];
+            assert(utf8[1] == first);
+            assert(utf8[2] == second);
+        }
+
+        // 😀 is split between four bytes on UTF8
+        {
+            constexpr auto p = u8"😀";
+            constexpr auto first = p[0];
+            constexpr auto second = p[1];
+            constexpr auto third = p[2];
+            constexpr auto fourth = p[3];
+            assert(utf8[7] == first);
+            assert(utf8[8] == second);
+            assert(utf8[9] == third);
+            assert(utf8[10] == fourth);
+        }
+
+        // 😀 is split between two bytes on UTF16
+        {
+            constexpr auto p = u"😀";
+            constexpr auto first = p[0];
+            constexpr auto second = p[1];
+            assert(utf16[6] == first);
+            assert(utf16[7] == second);
+        }
+
+        // é is a single codepoint on utf16
+        assert(utf16[1] == u'é');
+
+        // é is a single codepoint on utf32
+        assert(utf32[1] == U'é');
+
+        // 😀 is a single codepoint on utf32
+        assert(utf32[6] == U'😀');
+    }
+
     return 0;
 }
