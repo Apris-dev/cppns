@@ -131,7 +131,7 @@ public:
 		return CONTAINS_IF(m_Container, inFunction);
 	}
 
-	template <String::Char... TOtherType>
+	template <typename... TOtherType>
 	[[nodiscard]] constexpr_20 bool containsAll(const TOtherType*... inArrays) {
     	bool res = true;
     	((res &= STR_CONTAINS(m_Container, inArrays)), ...);
@@ -154,7 +154,7 @@ public:
 		return res;
 	}
 
-	template <String::Char... TOtherType>
+	template <typename... TOtherType>
 	[[nodiscard]] constexpr_20 bool containsOne(const TOtherType*... inArrays) {
     	bool res = false;
     	((res |= STR_CONTAINS(m_Container, inArrays)), ...);
