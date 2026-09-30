@@ -391,7 +391,7 @@ private:
 	// Decodes UTF8 into a UTF32 string, assumes std::string_view contains UTF8
 	// If non-UTF8 is present, it is replaced with 'ReplacementChar'
 	char32_t decodeUTF8(size_t& i) const {
-		// If codepoint only spans 1 byte, no need to decode
+		// If codepoint is ASCII, no need to decode
 		const auto b0 = static_cast<unsigned char>(get(i++));
 		if (b0 < 0x80)
 			return b0;

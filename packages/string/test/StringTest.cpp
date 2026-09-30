@@ -2,6 +2,55 @@
 
 #include "cppns/string/String.h"
 
+constexpr static bool isValidUTF8(const CString& s) noexcept {
+    const size_t n = s.getSize();
+
+    size_t i = 0;
+    while (i < n) {
+        const auto b0 = static_cast<unsigned char>(s[i]);
+
+        // Is ASCII
+        if (b0 < 0x80) { ++i; continue; }
+
+        size_t len;
+        unsigned char lo = 0x80, hi = 0xBF;
+
+        // Check for codepoint's spanning multiple bytes
+        // Necessary because non-ASCII codepoints can appear invalid
+        if (b0 >= 0xC2 && b0 <= 0xDF) {
+            len = 2;
+        }else if (b0 == 0xE0) {
+            len = 3; lo = 0xA0;
+        } else if (b0 == 0xED) {
+            len = 3; hi = 0x9F;
+        } else if (b0 >= 0xE1 && b0 <= 0xEF) {
+            len = 3;
+        } else if (b0 == 0xF0) {
+            len = 4; lo = 0x90;
+        } else if (b0 == 0xF4) {
+            len = 4; hi = 0x8F;
+        } else if (b0 >= 0xF1 && b0 <= 0xF3) {
+            len = 4;
+        } else {
+            return false;
+        }
+
+        // Goes beyond size of s
+        if (n - i < len)
+            return false;
+
+        if (const auto b1 = static_cast<unsigned char>(s[i + 1]); b1 < lo || b1 > hi)
+            return false;
+
+        for (std::size_t k = 2; k < len; ++k)
+            if ((static_cast<unsigned char>(s[i + k]) & 0xC0) != 0x80)
+                return false;
+
+        i += len;
+    }
+    return true;
+}
+
 cppns_main() {
 
     {
@@ -130,6 +179,21 @@ cppns_main() {
 
         // 😀 is a single codepoint on utf32
         assert(utf32[6] == U'😀');
+    }
+
+    // These are all invalid UTF8, they should not be converted properly
+    // TODO: ensure valid UTF8 for CString
+    {
+        const CString validStr = "héllo 😀";
+        const CString invalidStr0 = "caf\xE9";
+        const CString invalidStr1 = "\xC0\x80";
+        const CString invalidStr2 = "\xED\xA0\x80";
+        const CString invalidStr3 = "\xF4\x90\x80\x80";
+        assert(isValidUTF8(validStr));
+        assert(!isValidUTF8(invalidStr0));
+        assert(!isValidUTF8(invalidStr1));
+        assert(!isValidUTF8(invalidStr2));
+        assert(!isValidUTF8(invalidStr3));
     }
 
     return 0;
