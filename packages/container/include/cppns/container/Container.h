@@ -85,11 +85,11 @@ struct TVirtualIterator {
 	using Traits = TContainerTraits<TContainerType>;
 	constexpr static EContainerType ContainerType = Traits::ContainerType;
 
-	TVirtualIterator(const TItrType& inItr): itr(inItr) {}
+	constexpr_20 TVirtualIterator(const TItrType& inItr): itr(inItr) {}
 
 	//TODO: verify offset or keep unsafe...
 
-	decltype(auto) operator*() noexcept { //returns ref
+	constexpr_20 decltype(auto) operator*() noexcept { //returns ref
 		if constexpr (ContainerType == EContainerType::ASSOCIATIVE) {
 			using KeyType = typename Traits::KeyType;
 			using ValueType = typename Traits::ValueType;
@@ -100,7 +100,7 @@ struct TVirtualIterator {
 		}
 	}
 
-	decltype(auto) operator->() noexcept { //returns pointer
+	constexpr_20 decltype(auto) operator->() noexcept { //returns pointer
 		if constexpr (ContainerType == EContainerType::ASSOCIATIVE) {
 			using KeyType = typename Traits::KeyType;
 			using ValueType = typename Traits::ValueType;
@@ -110,88 +110,88 @@ struct TVirtualIterator {
 		}
 	}
 
-	decltype(auto) operator[](const int offset) noexcept {
+	constexpr_20 decltype(auto) operator[](const int offset) noexcept {
 		return itr[offset];
 	}
 
-	decltype(auto) operator[](const int offset) const noexcept {
+	constexpr_20 decltype(auto) operator[](const int offset) const noexcept {
 		return itr[offset];
 	}
 
-	bool operator==(TVirtualIterator otr) {
+	constexpr_20 bool operator==(TVirtualIterator otr) {
 		return itr == otr.itr;
 	}
 
-	bool operator!=(TVirtualIterator otr) {
+	constexpr_20 bool operator!=(TVirtualIterator otr) {
 		return itr != otr.itr;
 	}
 
-	bool operator<(const TVirtualIterator& otr) const noexcept {
+	constexpr_20 bool operator<(const TVirtualIterator& otr) const noexcept {
 		return itr < otr.itr;
 	}
 
-	bool operator>(const TVirtualIterator& otr) const noexcept {
+	constexpr_20 bool operator>(const TVirtualIterator& otr) const noexcept {
 		return otr < *this;
 	}
 
-	bool operator<=(const TVirtualIterator& otr) const noexcept {
+	constexpr_20 bool operator<=(const TVirtualIterator& otr) const noexcept {
 		return !(otr < *this);
 	}
 
-	bool operator>=(const TVirtualIterator& otr) const noexcept {
+	constexpr_20 bool operator>=(const TVirtualIterator& otr) const noexcept {
 		return !(*this < otr);
 	}
 
-	TVirtualIterator& operator++() noexcept {
+	constexpr TVirtualIterator& operator++() noexcept {
 		std::advance(itr, 1);
 		return *this;
 	}
 
-	TVirtualIterator operator++(int) noexcept {
+	constexpr TVirtualIterator operator++(int) noexcept {
 		TVirtualIterator otr = *this;
     		++*this;
     		return otr;
 	}
 
-	TVirtualIterator& operator+=(const int offset) noexcept {
+	constexpr TVirtualIterator& operator+=(const int offset) noexcept {
 		std::advance(itr, offset);
 		return *this;
 	}
 
-	TVirtualIterator operator+(const int offset) noexcept {
+	constexpr TVirtualIterator operator+(const int offset) noexcept {
 		TVirtualIterator otr = *this;
 		otr += offset;
 		return otr;
 	}
 
-	friend TVirtualIterator operator+(const int offset, TVirtualIterator otr) noexcept {
+	constexpr friend TVirtualIterator operator+(const int offset, TVirtualIterator otr) noexcept {
 		otr += offset;
 		return otr;
 	}
 
-	TVirtualIterator& operator--() noexcept {
+	constexpr TVirtualIterator& operator--() noexcept {
 		std::advance(itr, -1);
 		return *this;
 	}
 
-	TVirtualIterator operator--(int) noexcept {
+	constexpr TVirtualIterator operator--(int) noexcept {
     		TVirtualIterator otr = *this;
     		--*this;
     		return otr;
 	}
 
-	TVirtualIterator& operator-=(const int offset) noexcept {
+	constexpr TVirtualIterator& operator-=(const int offset) noexcept {
 		std::advance(itr, -offset);
 		return *this;
 	}
 
-	TVirtualIterator operator-(const int offset) noexcept {
+	constexpr TVirtualIterator operator-(const int offset) noexcept {
 		TVirtualIterator otr = *this;
 		otr -= offset;
 		return otr;
 	}
 
-	friend TVirtualIterator operator-(const int offset, TVirtualIterator otr) noexcept {
+	constexpr friend TVirtualIterator operator-(const int offset, TVirtualIterator otr) noexcept {
 		otr -= offset;
 		return otr;
 	}
