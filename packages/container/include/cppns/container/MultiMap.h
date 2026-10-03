@@ -205,10 +205,10 @@ struct TContainerTraits<TMultiMap<TKeyType, TValueType>> {
 	using SubcontainerType = std::unordered_multimap<TOtherKeyType, TOtherValueType>;
 	template<typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType>
 	using SubcontainerTypeHasher = std::unordered_multimap<TOtherKeyType, TOtherValueType, TContainerHasher<TOtherKeyType>>;
-	using Iterator = typename SubcontainerType<>::iterator;
-	using ReverseIterator = typename SubcontainerType<>::iterator;
-	using ConstIterator = typename SubcontainerType<>::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType<>::const_iterator;
+	using Iterator = typename SubcontainerTypeHasher<>::iterator;
+	using ReverseIterator = typename SubcontainerTypeHasher<>::iterator;
+	using ConstIterator = typename SubcontainerTypeHasher<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerTypeHasher<>::const_iterator;
 	constexpr static auto ContainerType = EContainerType::ASSOCIATIVE;
 	constexpr static bool bHasHashing = true;
 	constexpr static bool bIsForwardOnly = false;
