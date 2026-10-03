@@ -74,10 +74,8 @@ cppns_main() {
 
         assert(str.find([](const char& c) { return c == 'w'; }) == 6);
 
-        assert(str.findFirst('o') == 4);
-        assert(str.findFirstNot('h') == 1);
+        assert(str.find('o') == 4);
         assert(str.findLast('o') == 7);
-        assert(str.findLastNot('!') == 10);
 
         assert(str[3] == 'l');
     }
@@ -212,7 +210,194 @@ cppns_main() {
         str.push('\xE9');
         // Code path should not run, exception should be thrown and caught
         assert(false);
-    } catch (Error::String::NonUTF8Character& e) {}
+    } catch (Error::String::NonASCIICharacter& e) {}
+
+    {
+        CString str = u8"héllo 😀";
+        assert(str == "héllo 😀");
+
+        assert(str.contains("héllo"));
+        assert(str.contains("😀"));
+        assert(str.contains(u8"héllo"));
+        assert(str.contains(u8"😀"));
+        assert(str.contains(u"héllo"));
+        assert(str.contains(u"😀"));
+        assert(str.contains(U"héllo"));
+        assert(str.contains(U"😀"));
+    }
+
+    {
+        CString str = u"héllo 😀";
+        assert(str == "héllo 😀");
+
+        assert(str.contains("héllo"));
+        assert(str.contains("😀"));
+        assert(str.contains('h'));
+        assert(str.contains(u8"héllo"));
+        assert(str.contains(u8"😀"));
+        assert(str.contains(u8'h'));
+        assert(str.contains(u"héllo"));
+        assert(str.contains(u"😀"));
+        assert(str.contains(u'é'));
+        assert(str.contains(U"héllo"));
+        assert(str.contains(U"😀"));
+        assert(str.contains(U'😀'));
+
+        assert(str.containsAll("héllo", "😀"));
+        assert(str.containsOne("hello", "😀"));
+        assert(str.containsAll(u8"héllo", u"😀"));
+        assert(str.containsOne(u8"hello", u"😀"));
+        assert(str.containsAll(u"héllo", U"😀"));
+        assert(str.containsOne(u"hello", U"😀"));
+        assert(str.containsAll("héllo", U"😀"));
+        assert(str.containsOne("hello", U"😀"));
+
+        assert(str.find("😀") == 7);
+        assert(str.find(u8"😀") == 7);
+        assert(str.find(u"😀") == 7);
+        assert(str.find(U"😀") == 7);
+
+        assert(str.find(u'é') == 1);
+        assert(str.find(U'😀') == 7);
+    }
+
+    {
+        CString str = U"héllo 😀😀";
+
+        assert(str == "héllo 😀😀");
+
+        assert(str.contains("héllo"));
+        assert(str.contains("😀"));
+        assert(str.contains('h'));
+        assert(str.contains(u8"héllo"));
+        assert(str.contains(u8"😀"));
+        assert(str.contains(u8'h'));
+        assert(str.contains(u"héllo"));
+        assert(str.contains(u"😀"));
+        assert(str.contains(u'é'));
+        assert(str.contains(U"héllo"));
+        assert(str.contains(U"😀"));
+        assert(str.contains(U'😀'));
+
+        assert(str.containsAll("héllo", "😀"));
+        assert(str.containsOne("hello", "😀"));
+        assert(str.containsAll(u8"héllo", u"😀"));
+        assert(str.containsOne(u8"hello", u"😀"));
+        assert(str.containsAll(u"héllo", U"😀"));
+        assert(str.containsOne(u"hello", U"😀"));
+        assert(str.containsAll("héllo", U"😀"));
+        assert(str.containsOne("hello", U"😀"));
+
+        assert(str.find("😀") == 7);
+        assert(str.find(u8"😀") == 7);
+        assert(str.find(u"😀") == 7);
+        assert(str.find(U"😀") == 7);
+
+        assert(str.find(u'é') == 1);
+        assert(str.find(u'é') == 1);
+        assert(str.find(U'😀') == 7);
+        assert(str.find(U'😀') == 7);
+
+        assert(str.findLast("😀") == 11);
+        assert(str.findLast(u8"😀") == 11);
+        assert(str.findLast(u"😀") == 11);
+        assert(str.findLast(U"😀") == 11);
+
+        assert(str.findLast(u'é') == 1);
+        assert(str.findLast(U'😀') == 11);
+
+        assert(str.find("é") == str.findLast("é"));
+    }
+
+    {
+        CString str;
+        assert(str.push(u8'h') == 0);
+        assert(str == "h");
+
+        str.clear();
+        assert(str.push(u'é') == 0);
+        assert(str == "é");
+
+        str.clear();
+        assert(str.push(U'😀') == 0);
+        assert(str == "😀");
+    }
+
+    {
+        CString str = "é";
+        str.push(0, u8'h');
+        assert(str == "hé");
+    }
+
+    {
+        CString str = "é";
+        str.push(0, u'é');
+        assert(str == "éé");
+    }
+
+    {
+        CString str = "é";
+        str.push(0, U'😀');
+        assert(str == "😀é");
+    }
+
+    {
+        CString str = "héllo😀";
+        str.erase(u8"h");
+        assert(str == "éllo😀");
+        str.erase(u"é");
+        for (auto& c : str) std::cout << c << std::endl;
+        assert(str == "llo😀");
+        str.erase(U"😀");
+        assert(str == "llo");
+    }
+
+    {
+        CString str = "héllo😀";
+        str.erase(u8'h');
+        assert(str == "éllo😀");
+        str.erase(u'é');
+        for (auto& c : str) std::cout << c << std::endl;
+        assert(str == "llo😀");
+        str.erase(U'😀');
+        assert(str == "llo");
+    }
+
+    {
+        CString str = "héllo";
+        str.append(" 😀");
+        assert(str == "héllo 😀");
+        assert(str == u8"héllo 😀");
+        assert(str == u"héllo 😀");
+        assert(str == U"héllo 😀");
+    }
+
+    {
+        CString str = "héllo";
+        str.append(u8" 😀");
+        assert(str == "héllo 😀");
+        assert(str == u8"héllo 😀");
+        assert(str == u"héllo 😀");
+        assert(str == U"héllo 😀");
+    }
+
+    {
+        CString str = "héllo";
+        str.append(u" 😀");
+        assert(str == "héllo 😀");
+        assert(str == u8"héllo 😀");
+        assert(str == u"héllo 😀");
+        assert(str == U"héllo 😀");
+    }
+
+    {
+        CString str = "héllo";
+        str.append(U" 😀");
+        assert(str == "héllo 😀");
+        assert(str == u8"héllo 😀");
+        assert(str == u"héllo 😀");
+        assert(str == U"héllo 😀");
+    }
 
     return 0;
 }
