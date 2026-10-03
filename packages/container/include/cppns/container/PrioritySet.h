@@ -198,10 +198,10 @@ public:
 	using SubcontainerType = std::set<TOtherType>;
 	template<typename TOtherType = TType>
 	using SubcontainerTypeComparison = std::set<TOtherType, Comparison>;
-	using Iterator = typename SubcontainerType<>::iterator;
-	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
-	using ConstIterator = typename SubcontainerType<>::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
+	using Iterator = typename SubcontainerTypeComparison<>::iterator;
+	using ReverseIterator = typename SubcontainerTypeComparison<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerTypeComparison<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerTypeComparison<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SELF_ASSOCIATIVE;
 	constexpr static bool bHasHashing = false;
 	constexpr static bool bIsForwardOnly = false;

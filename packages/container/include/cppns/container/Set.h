@@ -179,10 +179,10 @@ struct TContainerTraits<TSet<TType>> {
 	using SubcontainerType = std::unordered_set<TOtherType>;
 	template<typename TOtherType = TType>
 	using SubcontainerTypeHasher = std::unordered_set<TOtherType, TContainerHasher<TOtherType>>;
-	using Iterator = typename SubcontainerType<>::iterator;
-	using ReverseIterator = typename SubcontainerType<>::iterator;
-	using ConstIterator = typename SubcontainerType<>::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType<>::const_iterator;
+	using Iterator = typename SubcontainerTypeHasher<>::iterator;
+	using ReverseIterator = typename SubcontainerTypeHasher<>::iterator;
+	using ConstIterator = typename SubcontainerTypeHasher<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerTypeHasher<>::const_iterator;
 	constexpr static auto ContainerType = EContainerType::SELF_ASSOCIATIVE;
 	constexpr static bool bHasHashing = true;
 	constexpr static bool bIsForwardOnly = false;
