@@ -66,11 +66,11 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
-	constexpr_23 CString(const char8_t* inArray): CString(String::UTF8(inArray)) {}
+	CString(const char8_t* inArray): CString(String::UTF8(inArray)) {}
 
-	constexpr_23 CString(const char16_t* inArray): CString(String::UTF16(inArray)) {}
+	CString(const char16_t* inArray): CString(String::UTF16(inArray)) {}
 
-	constexpr_23 CString(const char32_t* inArray): CString(String::UTF32(inArray)) {}
+	CString(const char32_t* inArray): CString(String::UTF32(inArray)) {}
 
 	//TODO: support more char types
 	constexpr_20 CString(const TType& inChar) {
@@ -83,7 +83,7 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
-	constexpr_23 CString(const String::UTF8View otr) {
+	CString(const String::UTF8View otr) {
 		const std::string_view view(reinterpret_cast<const char*>(otr.data()), otr.size());
 		m_Container = view;
 		removeInvalidUTF8(m_Container);
@@ -174,17 +174,17 @@ public:
 		return STR_CONTAINS(m_Container, inArray);
 	}
 
-	[[nodiscard]] constexpr_23 bool contains(const char8_t* inArray) const {
+	[[nodiscard]] bool contains(const char8_t* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return STR_CONTAINS(m_Container, str);
 	}
 
-	[[nodiscard]] constexpr_23 bool contains(const char16_t* inArray) const {
+	[[nodiscard]] bool contains(const char16_t* inArray) const {
 		const CString str{inArray};
 		return STR_CONTAINS(m_Container, str.m_Container);
 	}
 
-	[[nodiscard]] constexpr_23 bool contains(const char32_t* inArray) const {
+	[[nodiscard]] bool contains(const char32_t* inArray) const {
 		const CString str{inArray};
 		return STR_CONTAINS(m_Container, str.m_Container);
 	}
@@ -209,7 +209,7 @@ public:
 		return contains(bytes);
 	}
 
-	[[nodiscard]] constexpr_23 bool contains(const std::function<bool(const TType&)>& inFunction) {
+	[[nodiscard]] bool contains(const std::function<bool(const TType&)>& inFunction) {
 		return CONTAINS_IF(m_Container, inFunction);
 	}
 
@@ -264,17 +264,17 @@ public:
 		return m_Container.find(inArray);
 	}
 
-	[[nodiscard]] constexpr_23 size_t find(const char8_t* inArray) const {
+	[[nodiscard]] size_t find(const char8_t* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return m_Container.find(str);
 	}
 
-	[[nodiscard]] constexpr_23 size_t find(const char16_t* inArray) const {
+	[[nodiscard]] size_t find(const char16_t* inArray) const {
 		const CString str{inArray};
 		return m_Container.find(str.m_Container);
 	}
 
-	[[nodiscard]] constexpr_23 size_t find(const char32_t* inArray) const {
+	[[nodiscard]] size_t find(const char32_t* inArray) const {
 		const CString str{inArray};
 		return m_Container.find(str.m_Container);
 	}
@@ -319,17 +319,17 @@ public:
 		return m_Container.rfind(inArray);
 	}
 
-	[[nodiscard]] constexpr_23 size_t findLast(const char8_t* inArray) const {
+	[[nodiscard]] size_t findLast(const char8_t* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return m_Container.rfind(str);
 	}
 
-	[[nodiscard]] constexpr_23 size_t findLast(const char16_t* inArray) const {
+	[[nodiscard]] size_t findLast(const char16_t* inArray) const {
 		const CString str{inArray};
 		return m_Container.rfind(str.m_Container);
 	}
 
-	[[nodiscard]] constexpr_23 size_t findLast(const char32_t* inArray) const {
+	[[nodiscard]] size_t findLast(const char32_t* inArray) const {
 		const CString str{inArray};
 		return m_Container.rfind(str.m_Container);
 	}
@@ -538,7 +538,7 @@ public:
 		m_Container.erase(m_Container.find(inArray), std::strlen(inArray));
 	}
 
-	constexpr_23 void erase(const char8_t* inArray) {
+	void erase(const char8_t* inArray) {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		erase(str);
 	}
@@ -604,17 +604,17 @@ public:
 		m_Container.append(str);
 	}
 
-	constexpr_23 void append(const char8_t* inArray) {
+	void append(const char8_t* inArray) {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		append(str);
 	}
 
-	constexpr_23 void append(const char16_t* inArray) {
+	void append(const char16_t* inArray) {
 		const CString str{inArray};
 		m_Container.append(str.m_Container);
 	}
 
-	constexpr_23 void append(const char32_t* inArray) {
+	void append(const char32_t* inArray) {
 		const CString str{inArray};
 		m_Container.append(str.m_Container);
 	}
@@ -623,15 +623,15 @@ public:
 		return m_Container;
 	}
 
-	constexpr_23 operator String::UTF8() const noexcept {
+	operator String::UTF8() const noexcept {
 		return toUTF8();
 	}
 
-	constexpr_23 operator String::UTF16() const noexcept {
+	operator String::UTF16() const noexcept {
 		return toUTF16();
 	}
 
-	constexpr_23 operator String::UTF32() const noexcept {
+	operator String::UTF32() const noexcept {
 		return toUTF32();
 	}
 
