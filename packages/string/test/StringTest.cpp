@@ -346,7 +346,6 @@ cppns_main() {
         str.erase(u8"h");
         assert(str == "éllo😀");
         str.erase(u"é");
-        for (auto& c : str) std::cout << c << std::endl;
         assert(str == "llo😀");
         str.erase(U"😀");
         assert(str == "llo");
@@ -357,7 +356,6 @@ cppns_main() {
         str.erase(u8'h');
         assert(str == "éllo😀");
         str.erase(u'é');
-        for (auto& c : str) std::cout << c << std::endl;
         assert(str == "llo😀");
         str.erase(U'😀');
         assert(str == "llo");
