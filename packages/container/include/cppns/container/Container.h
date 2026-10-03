@@ -89,7 +89,7 @@ struct TVirtualIterator {
 
 	//TODO: verify offset or keep unsafe...
 
-	constexpr_20 decltype(auto) operator*() noexcept { //returns ref
+	constexpr_23 decltype(auto) operator*() noexcept { //returns ref
 		if constexpr (ContainerType == EContainerType::ASSOCIATIVE) {
 			using KeyType = typename Traits::KeyType;
 			using ValueType = typename Traits::ValueType;
