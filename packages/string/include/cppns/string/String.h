@@ -619,6 +619,22 @@ public:
 		m_Container.append(str.m_Container);
 	}
 
+	constexpr_20 operator TSubcontainerType<>() const noexcept {
+		return m_Container;
+	}
+
+	constexpr_20 operator String::UTF8() const noexcept {
+		return toUTF8();
+	}
+
+	constexpr_20 operator String::UTF16() const noexcept {
+		return toUTF16();
+	}
+
+	constexpr_20 operator String::UTF32() const noexcept {
+		return toUTF32();
+	}
+
 	constexpr_20 CString& operator+=(const CString& otr) noexcept {
 		append(otr);
 		return *this;
