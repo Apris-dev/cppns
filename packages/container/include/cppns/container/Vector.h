@@ -9,6 +9,9 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 
 	using Super = TSequenceContainer<TVector>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	constexpr_20 TVector() = default;
 
 	template <typename TOtherType = TType>
@@ -22,7 +25,7 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
 	}
 
-	constexpr_20 TVector(const std::vector<TType>& otr): m_Container(otr) {}
+	constexpr_20 TVector(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
@@ -114,6 +117,15 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		return res;
 	}
 
+	template <typename... TOtherType,
+		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
+	>
+	[[nodiscard]] bool containsOne(const TOtherType&... obj) {
+		bool res = false;
+		((res |= CONTAINS(m_Container, obj)), ...);
+		return res;
+	}
+
 	template <typename... TFunc>
 	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
@@ -169,7 +181,7 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 		m_Container.resize(amt);
 	}
 
-	void resize(const size_t amt, std::function<TType(size_t)> func) {
+	void resize(const size_t amt, const std::function<TType(size_t)>& func) {
 		const size_t previousSize = getSize();
 		m_Container.reserve(amt);
 		for (size_t i = previousSize; i < amt; ++i) {
@@ -235,18 +247,18 @@ struct TVector : TSequenceContainer<TVector<TType>> {
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	void pop(const TOtherType& obj) {
+	void erase(const TOtherType& obj) {
 		ERASE(m_Container, obj);
 	}
 
 	void sort()
 	requires sutil::is_less_than_comparable_v<TType> {
-		std::sort(m_Container.begin(), m_Container.end());
+		SORT(m_Container);
 	}
 
 	template <typename Func>
 	void sort(Func&& func) {
-		std::sort(m_Container.begin(), m_Container.end(), std::forward<Func>(func));
+		SORT_F(m_Container, std::forward<Func>(func));
 	}
 
 	template <typename TOtherContainerType>
@@ -277,17 +289,18 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::vector<TType> m_Container;
+	TSubcontainerType<> m_Container;
 };
 
 template <typename TType>
 struct TContainerTraits<TVector<TType>> {
 	using Type = TType;
-	using SubcontainerType = std::vector<TType>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::vector<TOtherType>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;

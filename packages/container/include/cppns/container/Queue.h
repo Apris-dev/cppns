@@ -8,6 +8,9 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 
 	using Super = TSequenceContainer<TQueue>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	TQueue() = default;
 
 	template <typename TOtherType = TType>
@@ -20,7 +23,7 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 		(m_Container.emplace_back(std::forward<TArgs>(args)), ...);
 	}
 	
-	TQueue(const std::deque<TType>& otr): m_Container(otr) {}
+	TQueue(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
@@ -74,6 +77,15 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 		return res;
 	}
 
+	template <typename... TOtherType,
+		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
+	>
+	[[nodiscard]] bool containsOne(const TOtherType&... obj) {
+		bool res = false;
+		((res |= CONTAINS(m_Container, obj)), ...);
+		return res;
+	}
+
 	template <typename... TFunc,
 		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
 	>
@@ -124,7 +136,7 @@ struct TQueue : TSequenceContainer<TQueue<TType>> {
 		m_Container.resize(amt);
 	}
 
-	void resize(const size_t amt, std::function<TType(size_t)> func) {
+	void resize(const size_t amt, const std::function<TType(size_t)>& func) {
 		const size_t previousSize = getSize();
 		for (size_t i = previousSize; i < amt; ++i) {
 			m_Container.emplace_back(std::forward<TType>(func(i)));
@@ -173,17 +185,18 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::deque<TType> m_Container;
+	TSubcontainerType<> m_Container;
 };
 
 template <typename TType>
 struct TContainerTraits<TQueue<TType>> {
 	using Type = TType;
-	using SubcontainerType = std::deque<TType>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::deque<TOtherType>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = false;
 	constexpr static bool bIsLimitedAccess = true;

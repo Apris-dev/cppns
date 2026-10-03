@@ -13,6 +13,9 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 
 	using Super = TSequenceContainer<TMinHeap>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	constexpr_20 TMinHeap() = default;
 
 	template <typename TOtherType = TType>
@@ -29,7 +32,7 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
-	constexpr_20 TMinHeap(const std::vector<TType>& otr): m_Container(otr) {
+	constexpr_20 TMinHeap(const TSubcontainerType<>& otr): m_Container(otr) {
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
@@ -125,6 +128,15 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 		return res;
 	}
 
+	template <typename... TOtherType,
+		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
+	>
+	[[nodiscard]] bool containsOne(const TOtherType&... obj) {
+		bool res = false;
+		((res |= CONTAINS(m_Container, obj)), ...);
+		return res;
+	}
+
 	template <typename... TFunc,
 		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
 	>
@@ -184,7 +196,7 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 		std::make_heap(m_Container.begin(), m_Container.end(), MinCmp{});
 	}
 
-	void resize(size_t amt, std::function<TType(size_t)> func) {
+	void resize(size_t amt, const std::function<TType(size_t)>& func) {
 		const size_t previousSize = getSize();
 		m_Container.reserve(amt);
 		for (size_t i = previousSize; i < amt; ++i) {
@@ -258,7 +270,7 @@ struct TMinHeap : TSequenceContainer<TMinHeap<TType>> {
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	void pop(const TOtherType& obj) {
+	void erase(const TOtherType& obj) {
 		ERASE(m_Container, obj);
 	}
 
@@ -297,17 +309,18 @@ protected:
 		}
 	};
 
-	std::vector<TType> m_Container;
+	TSubcontainerType<> m_Container;
 };
 
 template <typename TType>
 struct TContainerTraits<TMinHeap<TType>> {
 	using Type = TType;
-	using SubcontainerType = std::vector<TType>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::vector<TOtherType>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;
