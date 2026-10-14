@@ -42,6 +42,8 @@
 #define DISTANCE_LAST_IF(c, func, ...) std::ranges::distance(c.begin(), FIND_LAST_IF(c, func, __VA_ARGS__))
 #define SIZE(c) std::ranges::distance(c)
 #define SHUFFLE(c, r) std::ranges::shuffle(c, r);
+#define SORT(c) std::ranges::sort(c)
+#define SORT_F(c, func) std::ranges::sort(c, func)
 #else
 #define FIND(c, x, ...) std::find(c.begin(), c.end(), x)
 #define FIND_IF(c, func, ...) std::find_if(c.begin(), c.end(), func)
@@ -51,6 +53,8 @@
 #define DISTANCE_LAST_IF(c, func, ...) std::distance(c.begin(), FIND_LAST_IF(c, func, __VA_ARGS__))
 #define SIZE(c) std::distance(c.begin(), c.end())
 #define SHUFFLE(c, r) std::shuffle(c.begin(), c.end(), r);
+#define SORT(c) std::sort(c.begin(), c.end())
+#define SORT_F(c, func) std::sort(c.begin(), c.end(), func)
 #endif
 
 #define CONTAINS(c, x, ...) FIND(c, x, __VA_ARGS__) != c.end()
@@ -81,11 +85,11 @@ struct TVirtualIterator {
 	using Traits = TContainerTraits<TContainerType>;
 	constexpr static EContainerType ContainerType = Traits::ContainerType;
 
-	TVirtualIterator(const TItrType& inItr): itr(inItr) {}
+	constexpr_20 TVirtualIterator(const TItrType& inItr): itr(inItr) {}
 
 	//TODO: verify offset or keep unsafe...
 
-	decltype(auto) operator*() noexcept { //returns ref
+	constexpr_23 decltype(auto) operator*() noexcept { //returns ref
 		if constexpr (ContainerType == EContainerType::ASSOCIATIVE) {
 			using KeyType = typename Traits::KeyType;
 			using ValueType = typename Traits::ValueType;
@@ -96,7 +100,7 @@ struct TVirtualIterator {
 		}
 	}
 
-	decltype(auto) operator->() noexcept { //returns pointer
+	constexpr_20 decltype(auto) operator->() noexcept { //returns pointer
 		if constexpr (ContainerType == EContainerType::ASSOCIATIVE) {
 			using KeyType = typename Traits::KeyType;
 			using ValueType = typename Traits::ValueType;
@@ -106,88 +110,88 @@ struct TVirtualIterator {
 		}
 	}
 
-	decltype(auto) operator[](const int offset) noexcept {
+	constexpr_20 decltype(auto) operator[](const int offset) noexcept {
 		return itr[offset];
 	}
 
-	decltype(auto) operator[](const int offset) const noexcept {
+	constexpr_20 decltype(auto) operator[](const int offset) const noexcept {
 		return itr[offset];
 	}
 
-	bool operator==(TVirtualIterator otr) {
+	constexpr_20 bool operator==(TVirtualIterator otr) {
 		return itr == otr.itr;
 	}
 
-	bool operator!=(TVirtualIterator otr) {
+	constexpr_20 bool operator!=(TVirtualIterator otr) {
 		return itr != otr.itr;
 	}
 
-	bool operator<(const TVirtualIterator& otr) const noexcept {
+	constexpr_20 bool operator<(const TVirtualIterator& otr) const noexcept {
 		return itr < otr.itr;
 	}
 
-	bool operator>(const TVirtualIterator& otr) const noexcept {
+	constexpr_20 bool operator>(const TVirtualIterator& otr) const noexcept {
 		return otr < *this;
 	}
 
-	bool operator<=(const TVirtualIterator& otr) const noexcept {
+	constexpr_20 bool operator<=(const TVirtualIterator& otr) const noexcept {
 		return !(otr < *this);
 	}
 
-	bool operator>=(const TVirtualIterator& otr) const noexcept {
+	constexpr_20 bool operator>=(const TVirtualIterator& otr) const noexcept {
 		return !(*this < otr);
 	}
 
-	TVirtualIterator& operator++() noexcept {
+	constexpr TVirtualIterator& operator++() noexcept {
 		std::advance(itr, 1);
 		return *this;
 	}
 
-	TVirtualIterator operator++(int) noexcept {
+	constexpr TVirtualIterator operator++(int) noexcept {
 		TVirtualIterator otr = *this;
     		++*this;
     		return otr;
 	}
 
-	TVirtualIterator& operator+=(const int offset) noexcept {
+	constexpr TVirtualIterator& operator+=(const int offset) noexcept {
 		std::advance(itr, offset);
 		return *this;
 	}
 
-	TVirtualIterator operator+(const int offset) noexcept {
+	constexpr TVirtualIterator operator+(const int offset) noexcept {
 		TVirtualIterator otr = *this;
 		otr += offset;
 		return otr;
 	}
 
-	friend TVirtualIterator operator+(const int offset, TVirtualIterator otr) noexcept {
+	constexpr friend TVirtualIterator operator+(const int offset, TVirtualIterator otr) noexcept {
 		otr += offset;
 		return otr;
 	}
 
-	TVirtualIterator& operator--() noexcept {
+	constexpr TVirtualIterator& operator--() noexcept {
 		std::advance(itr, -1);
 		return *this;
 	}
 
-	TVirtualIterator operator--(int) noexcept {
+	constexpr TVirtualIterator operator--(int) noexcept {
     		TVirtualIterator otr = *this;
     		--*this;
     		return otr;
 	}
 
-	TVirtualIterator& operator-=(const int offset) noexcept {
+	constexpr TVirtualIterator& operator-=(const int offset) noexcept {
 		std::advance(itr, -offset);
 		return *this;
 	}
 
-	TVirtualIterator operator-(const int offset) noexcept {
+	constexpr TVirtualIterator operator-(const int offset) noexcept {
 		TVirtualIterator otr = *this;
 		otr -= offset;
 		return otr;
 	}
 
-	friend TVirtualIterator operator-(const int offset, TVirtualIterator otr) noexcept {
+	constexpr friend TVirtualIterator operator-(const int offset, TVirtualIterator otr) noexcept {
 		otr -= offset;
 		return otr;
 	}
@@ -285,6 +289,10 @@ struct TSequenceContainer : SContainer {
 	using Traits = TContainerTraits<TContainerType>;
 
 	using TType = typename Traits::Type;
+
+	template <typename TOtherType = TType>
+	using TSubcontainerType = typename Traits::template SubcontainerType<TOtherType>;
+
 	using Iterator = TVirtualIterator<TContainerType, typename Traits::Iterator>;
 	using ReverseIterator = TVirtualIterator<TContainerType, typename Traits::ReverseIterator>;
 	using ConstIterator = TVirtualIterator<TContainerType, typename Traits::ConstIterator>;
@@ -380,6 +388,13 @@ struct TSequenceContainer : SContainer {
 		return derived(*this).containsAll(inFunctions...);
 	}
 
+	template <typename... TOtherType,
+		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
+	>
+	[[nodiscard]] bool containsOne(const TOtherType&... obj) {
+		return derived(*this).containsOne(obj...);
+	}
+
 	template <typename... TFunc>
 	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
@@ -426,7 +441,7 @@ struct TSequenceContainer : SContainer {
 	void resize(size_t amt) { derived(*this).resize(amt); }
 
 	// Fills container with TType& elements with size amt
-	void resize(size_t amt, std::function<TType(size_t)> func) { derived(*this).resize(amt, func); }
+	void resize(size_t amt, const std::function<TType(size_t)>& func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
 	void reserve(size_t amt)
@@ -475,8 +490,8 @@ struct TSequenceContainer : SContainer {
 	// Removes a certain object from the container
 	template <typename TOtherType>
 	requires (!bIsLimitedAccess)
-	void pop(const TOtherType& obj) {
-		derived(*this).pop(obj);
+	void erase(const TOtherType& obj) {
+		derived(*this).erase(obj);
 	}
 
 	void sort()
@@ -559,6 +574,10 @@ struct TAssociativeContainer : SContainer {
 
 	using TKeyType = typename Traits::KeyType;
 	using TValueType = typename Traits::ValueType;
+
+	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType>
+	using TSubcontainerType = typename Traits::template SubcontainerType<TOtherKeyType, TOtherValueType>;
+
 	using Iterator = TVirtualIterator<TContainerType, typename Traits::Iterator>;
 	using ReverseIterator = TVirtualIterator<TContainerType, typename Traits::ReverseIterator>;
 	using ConstIterator = TVirtualIterator<TContainerType, typename Traits::ConstIterator>;
@@ -610,7 +629,7 @@ struct TAssociativeContainer : SContainer {
 	[[nodiscard]] const TValueType& get(const TKeyType& key) const { return derived(*this).get(key); }
 
 	// Fills container with TType& elements with size amt
-	void resize(size_t amt, std::function<TPair<TKeyType, TValueType>()> func) { derived(*this).resize(amt, func); }
+	void resize(size_t amt, const std::function<TPair<TKeyType, TValueType>()>& func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
 	void reserve(size_t amt) requires bHasHashing { derived(*this).reserve(amt); }
@@ -686,6 +705,10 @@ struct TSelfAssociativeContainer : SContainer {
 	using Traits = TContainerTraits<TContainerType>;
 
 	using TType = typename Traits::Type;
+
+	template <typename TOtherType = TType>
+	using TSubcontainerType = typename Traits::template SubcontainerType<TOtherType>;
+
 	using Iterator = TVirtualIterator<TContainerType, typename Traits::Iterator>;
 	using ReverseIterator = TVirtualIterator<TContainerType, typename Traits::ReverseIterator>;
 	using ConstIterator = TVirtualIterator<TContainerType, typename Traits::ConstIterator>;
@@ -734,7 +757,7 @@ struct TSelfAssociativeContainer : SContainer {
 	void resize(size_t amt) { derived(*this).resize(amt); }
 
 	// Fills container with TType& elements with size amt
-	void resize(size_t amt, std::function<TType()> func) { derived(*this).resize(amt, func); }
+	void resize(size_t amt, const std::function<TType()>& func) { derived(*this).resize(amt, func); }
 
 	// Reserves memory for n elements
 	void reserve(size_t amt) requires bHasHashing{ derived(*this).reserve(amt); }
@@ -758,7 +781,7 @@ struct TSelfAssociativeContainer : SContainer {
 	void pop() { derived(*this).pop(); }
 	// Removes an element from the container
 	template <typename TOtherType>
-	void pop(const TOtherType& obj) { derived(*this).pop(obj); }
+	void erase(const TOtherType& obj) { derived(*this).erase(obj); }
 
 	// Moves an object from this to container otr
 	template <typename TOtherContainerType, typename TOtherType>

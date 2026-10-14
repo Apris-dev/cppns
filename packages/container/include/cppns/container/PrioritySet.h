@@ -10,6 +10,9 @@ struct TPrioritySet : TSelfAssociativeContainer<TPrioritySet<TType>> {
 
 	using Super = TSelfAssociativeContainer<TPrioritySet>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	TPrioritySet() = default;
 
 	template <typename TOtherType = TType>
@@ -22,7 +25,7 @@ struct TPrioritySet : TSelfAssociativeContainer<TPrioritySet<TType>> {
 		(m_Container.emplace(std::forward<TArgs>(args)), ...);
 	}
 
-	TPrioritySet(const std::set<TType>& otr): m_Container(otr) {}
+	TPrioritySet(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
@@ -91,7 +94,7 @@ struct TPrioritySet : TSelfAssociativeContainer<TPrioritySet<TType>> {
 		}
 	}
 
-	void resize(const size_t amt, std::function<TType()> func) {
+	void resize(const size_t amt, const std::function<TType()>& func) {
 		for (size_t i = getSize(); i < amt; ++i) {
 			m_Container.emplace(std::forward<TType>(func()));
 		}
@@ -136,7 +139,7 @@ struct TPrioritySet : TSelfAssociativeContainer<TPrioritySet<TType>> {
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	void pop(const TOtherType& obj) {
+	void erase(const TOtherType& obj) {
 		if constexpr (std::is_same_v<TType, TOtherType>) {
 			m_Container.erase(obj);
 		} else {
@@ -178,23 +181,27 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
+	Super::Traits::template SubcontainerTypeComparison<> m_Container;
+};
+
+template <typename TType>
+struct TContainerTraits<TPrioritySet<TType>> {
+protected:
 	struct Comparison {
 		bool operator()(const TType& a, const TType& b) const {
 			return *sstl::getUnfurled(a) < *sstl::getUnfurled(b);
 		}
 	};
-
-	std::set<TType, Comparison> m_Container;
-};
-
-template <typename TType>
-struct TContainerTraits<TPrioritySet<TType>> {
+public:
 	using Type = TType;
-	using SubcontainerType = std::set<TType, TContainerHasher<TType>>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::set<TOtherType>;
+	template<typename TOtherType = TType>
+	using SubcontainerTypeComparison = std::set<TOtherType, Comparison>;
+	using Iterator = typename SubcontainerTypeComparison<>::iterator;
+	using ReverseIterator = typename SubcontainerTypeComparison<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerTypeComparison<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerTypeComparison<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SELF_ASSOCIATIVE;
 	constexpr static bool bHasHashing = false;
 	constexpr static bool bIsForwardOnly = false;

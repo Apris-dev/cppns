@@ -9,6 +9,9 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	using Super = TSequenceContainer<TArray>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	constexpr_20 TArray() {
 		m_IsPopulated.fill(false);
 	}
@@ -39,7 +42,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		(arrayArgsInit(std::forward<TArgs>(args), index), ...);
 	}
 
-	constexpr_20 TArray(const std::array<TType, TSize>& otr): m_Container(otr) {
+	constexpr_20 TArray(const TSubcontainerType<>& otr): m_Container(otr) {
 		m_IsPopulated.fill(true);
 	}
 
@@ -133,6 +136,15 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return res;
 	}
 
+	template <typename... TOtherType,
+		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
+	>
+	[[nodiscard]] bool containsOne(const TOtherType&... obj) {
+		bool res = false;
+		((res |= CONTAINS(m_Container, obj)), ...);
+		return res;
+	}
+
 	template <typename... TFunc>
 	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
 	[[nodiscard]] bool containsOne(const TFunc&... inFunctions) {
@@ -193,7 +205,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		}
 	}
 
-	void resize(const size_t amt, std::function<TType(size_t)> func) {
+	void resize(const size_t amt, const std::function<TType(size_t)>& func) {
 		for (size_t i = 0; i < amt; ++i) {
 			if (!m_IsPopulated[i]) {
 				get(i) = std::forward<TType>(func(i));
@@ -206,7 +218,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		resize(TSize);
 	}
 
-	void resize(std::function<TType(size_t)> func) {
+	void resize(const std::function<TType(size_t)>& func) {
 		resize(TSize, func);
 	}
 
@@ -282,7 +294,7 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	void pop(const TOtherType& obj) {
+	void erase(const TOtherType& obj) {
 		for (size_t index = 0; index < getSize(); ++index) {
 			if (m_Container[index] == obj) {
 				m_IsPopulated[index] = false;
@@ -292,12 +304,12 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 
 	void sort()
 	requires sutil::is_less_than_comparable_v<TType> {
-		std::sort(m_Container.begin(), m_Container.end());
+		SORT(m_Container);
 	}
 
 	template <typename Func>
 	void sort(Func&& func) {
-		std::sort(m_Container.begin(), m_Container.end(), std::forward<Func>(func));
+		SORT_F(m_Container, std::forward<Func>(func));
 	}
 
 	template <typename TOtherContainerType>
@@ -331,18 +343,19 @@ protected:
 		index++;
 	}
 
-	std::array<bool, TSize> m_IsPopulated;
-	std::array<TType, TSize> m_Container;
+	TSubcontainerType<bool> m_IsPopulated;
+	TSubcontainerType<> m_Container;
 };
 
 template <typename TType, size_t TSize>
 struct TContainerTraits<TArray<TType, TSize>> {
 	using Type = TType;
-	using SubcontainerType = std::array<TType, TSize>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::reverse_iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_reverse_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::array<TOtherType, TSize>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::reverse_iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_reverse_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = true;
 	constexpr static bool bIsLimitedAccess = false;

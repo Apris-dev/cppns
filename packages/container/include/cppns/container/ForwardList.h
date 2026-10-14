@@ -9,6 +9,9 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 
 	using Super = TSequenceContainer<TForwardList>;
 
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
+
 	TForwardList() = default;
 
 	template <typename TOtherType = TType>
@@ -21,7 +24,7 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		(m_Container.emplace_front(std::forward<TArgs>(args)), ...);
 	}
 
-	TForwardList(const std::forward_list<TType>& otr): m_Container(otr) {}
+	TForwardList(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return SIZE(m_Container);
@@ -103,6 +106,15 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		return res;
 	}
 
+	template <typename... TOtherType,
+		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
+	>
+	[[nodiscard]] bool containsOne(const TOtherType&... obj) {
+		bool res = false;
+		((res |= CONTAINS(m_Container, obj)), ...);
+		return res;
+	}
+
 	template <typename... TFunc,
 		std::enable_if_t<std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>, int> = 0
 	>
@@ -165,7 +177,7 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 		m_Container.resize(amt);
 	}
 
-	void resize(const size_t amt, std::function<TType(size_t)> func) {
+	void resize(const size_t amt, const std::function<TType(size_t)>& func) {
 		const size_t previousSize = getSize();
 		for (size_t i = previousSize; i < amt; ++i) {
 			m_Container.emplace_front(std::forward<TType>(func(i)));
@@ -232,7 +244,7 @@ struct TForwardList : TSequenceContainer<TForwardList<TType>> {
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	void pop(const TOtherType& obj) {
+	void erase(const TOtherType& obj) {
 		ERASE(m_Container, obj);
 	}
 
@@ -271,17 +283,18 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::forward_list<TType> m_Container;
+	TSubcontainerType<> m_Container;
 };
 
 template <typename TType>
 struct TContainerTraits<TForwardList<TType>> {
 	using Type = TType;
-	using SubcontainerType = std::forward_list<TType>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::forward_list<TOtherType>;
+	using Iterator = typename SubcontainerType<>::iterator;
+	using ReverseIterator = typename SubcontainerType<>::iterator;
+	using ConstIterator = typename SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerType<>::const_iterator;
 	constexpr static auto ContainerType = EContainerType::SEQUENCE;
 	constexpr static bool bIsContiguousMemory = false;
 	constexpr static bool bIsLimitedAccess = false;

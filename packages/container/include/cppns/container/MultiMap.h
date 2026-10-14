@@ -13,6 +13,9 @@ struct TMultiMap : TAssociativeContainer<TMultiMap<TKeyType, TValueType>> {
 
 	using Super = TAssociativeContainer<TMultiMap>;
 
+	template <typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherKeyType, TOtherValueType>;
+
 	TMultiMap() = default;
 
 	template <typename TOtherValueType = TValueType>
@@ -30,7 +33,7 @@ struct TMultiMap : TAssociativeContainer<TMultiMap<TKeyType, TValueType>> {
 		(m_Container.emplace(std::forward<typename TPairs::KeyType>(args.first()), std::forward<typename TPairs::ValueType>(args.second())), ...);
 	}
 
-	TMultiMap(const std::unordered_multimap<TKeyType, TValueType>& otr): m_Container(otr) {}
+	TMultiMap(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
@@ -94,7 +97,7 @@ struct TMultiMap : TAssociativeContainer<TMultiMap<TKeyType, TValueType>> {
 		return m_Container.find(key)->second;
 	}
 
-	void resize(const size_t amt, std::function<TPair<TKeyType, TValueType>()> func) {
+	void resize(const size_t amt, const std::function<TPair<TKeyType, TValueType>()>& func) {
 		m_Container.reserve(amt);
 		for (size_t i = getSize(); i < amt; ++i) {
 			TPair<TKeyType, TValueType> pair = func();
@@ -191,18 +194,21 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::unordered_multimap<TKeyType, TValueType, TContainerHasher<TKeyType>> m_Container;
+	Super::Traits::template SubcontainerTypeHasher<> m_Container;
 };
 
 template <typename TKeyType, typename TValueType>
 struct TContainerTraits<TMultiMap<TKeyType, TValueType>> {
 	using KeyType = TKeyType;
 	using ValueType = TValueType;
-	using SubcontainerType = std::unordered_multimap<TKeyType, TValueType, TContainerHasher<TKeyType>>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_iterator;
+	template<typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType>
+	using SubcontainerType = std::unordered_multimap<TOtherKeyType, TOtherValueType>;
+	template<typename TOtherKeyType = TKeyType, typename TOtherValueType = TValueType>
+	using SubcontainerTypeHasher = std::unordered_multimap<TOtherKeyType, TOtherValueType, TContainerHasher<TOtherKeyType>>;
+	using Iterator = typename SubcontainerTypeHasher<>::iterator;
+	using ReverseIterator = typename SubcontainerTypeHasher<>::iterator;
+	using ConstIterator = typename SubcontainerTypeHasher<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerTypeHasher<>::const_iterator;
 	constexpr static auto ContainerType = EContainerType::ASSOCIATIVE;
 	constexpr static bool bHasHashing = true;
 	constexpr static bool bIsForwardOnly = false;
