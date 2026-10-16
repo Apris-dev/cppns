@@ -5,3 +5,4 @@ add_interface_package(cppns-archive
 )
 
 link_package(INTERFACE cppns-container)
+link_package(INTERFACE cppns-string)

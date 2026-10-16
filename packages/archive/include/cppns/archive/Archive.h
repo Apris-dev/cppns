@@ -1,8 +1,11 @@
 #pragma once
 
 #include <charconv>
-#include <string>
 #include <codecvt>
+
+//TODO: circular include
+#include "cppns/string/String.h"
+#include "cppns/util/Pair.h"
 
 class CIArchive {
 
@@ -46,8 +49,7 @@ protected:
 	 * Strings
 	 */
 
-	virtual size_t read(std::string& inValue) = 0;
-	virtual size_t read(std::u16string& inValue) = 0;
+	virtual size_t read(CString& inValue) = 0;
 
 public:
 
@@ -78,13 +80,58 @@ public:
 		return inArchive;
 	}
 
-	friend CIArchive& operator>>(CIArchive& inArchive, std::string& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, CString& inValue) {
 		inArchive.read(inValue);
 		return inArchive;
 	}
 
-	friend CIArchive& operator>>(CIArchive& inArchive, std::u16string& inValue) {
-		inArchive.read(inValue);
+	template <typename TContainerType>
+	friend CIArchive& operator>>(CIArchive& inArchive, TSequenceContainer<TContainerType>& inValue) {
+		using TType = TSequenceContainer<TContainerType>::TType;
+
+		size_t size;
+		inArchive >> size;
+		inValue.resize(size, [&](size_t) {
+			TType obj;
+			inArchive >> obj;
+			return obj;
+		});
+		return inArchive;
+	}
+
+	template <typename TContainerType>
+	friend CIArchive& operator>>(CIArchive& inArchive, TAssociativeContainer<TContainerType>& inValue) {
+		using TKeyType = TAssociativeContainer<TContainerType>::TKeyType;
+		using TValueType = TAssociativeContainer<TContainerType>::TValueType;
+
+		size_t size;
+		inArchive >> size;
+		inValue.resize(size, [&] {
+			TPair<TKeyType, TValueType> pair;
+			inArchive >> pair;
+			return pair;
+		});
+		return inArchive;
+	}
+
+	template <typename TContainerType>
+	friend CIArchive& operator>>(CIArchive& inArchive, TSelfAssociativeContainer<TContainerType>& inValue) {
+		using TType = TSelfAssociativeContainer<TContainerType>::TType;
+
+		size_t size;
+		inArchive >> size;
+		inValue.resize(size, [&] {
+			TType obj;
+			inArchive >> obj;
+			return obj;
+		});
+		return inArchive;
+	}
+
+	template <typename TKeyType, typename TValueType>
+	friend CIArchive& operator>>(CIArchive& inArchive, TPair<TKeyType, TValueType>& pair) {
+		inArchive >> pair.first();
+		inArchive >> pair.second();
 		return inArchive;
 	}
 };
@@ -131,11 +178,9 @@ protected:
 	 * Strings
 	 */
 
-	virtual size_t write(const char* inValue) { return write(std::string(inValue)); }
-	virtual size_t write(const char16_t* inValue) { return write(std::u16string(inValue)); }
+	virtual size_t write(const char* inValue) { return write(CString(inValue)); }
 
-	virtual size_t write(const std::string& inValue) = 0;
-	virtual size_t write(const std::u16string& inValue) = 0;
+	virtual size_t write(const CString& inValue) = 0;
 
 public:
 
@@ -163,22 +208,46 @@ public:
 	}
 
 	friend COArchive& operator<<(COArchive& inArchive, const char* inValue) {
-		inArchive << std::string(inValue);
+		inArchive << CString(inValue);
 		return inArchive;
 	}
 	
-	friend COArchive& operator<<(COArchive& inArchive, const char16_t* inValue) {
-		inArchive << std::u16string(inValue);
-		return inArchive;
-	}
-
-	friend COArchive& operator<<(COArchive& inArchive, const std::string& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const CString& inValue) {
 		inArchive.write(inValue);
 		return inArchive;
 	}
 
-	friend COArchive& operator<<(COArchive& inArchive, const std::u16string& inValue) {
-		inArchive.write(inValue);
+	template <typename TContainerType>
+	friend COArchive& operator<<(COArchive& inArchive, const TSequenceContainer<TContainerType>& inValue) {
+		inArchive << inValue.getSize();
+		for (const auto& obj : inValue) {
+			inArchive << obj;
+		}
+		return inArchive;
+	}
+
+	template <typename TContainerType>
+	friend COArchive& operator<<(COArchive& inArchive, const TAssociativeContainer<TContainerType>& inValue) {
+		inArchive << inValue.getSize();
+		for (const auto& pair : inValue) {
+			inArchive << pair;
+		}
+		return inArchive;
+	}
+
+	template <typename TContainerType>
+	friend COArchive& operator<<(COArchive& inArchive, const TSelfAssociativeContainer<TContainerType>& inValue) {
+		inArchive << inValue.getSize();
+		for (const auto& obj : inValue) {
+			inArchive << obj;
+		}
+		return inArchive;
+	}
+
+	template <typename TKeyType, typename TValueType>
+	friend COArchive& operator<<(COArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
+		inArchive << pair.first();
+		inArchive << pair.second();
 		return inArchive;
 	}
 };
@@ -231,22 +300,13 @@ protected:
 	 * Strings
 	 */
 
-	virtual size_t read(std::string& inValue) final override {
+	virtual size_t read(CString& inValue) final override {
 		inValue.clear();
-		std::string::value_type c;
+		CString::TType c;
 		while (read(&c, sizeof(c)) != 0 && c != '\0') {
 			inValue += c;
 		}
-		return inValue.size() * sizeof(c);
-	}
-
-	virtual size_t read(std::u16string& inValue) final override {
-		inValue.clear();
-		std::u16string::value_type c;
-		while (read(&c, sizeof(c)) != 0 && c != L'\0') {
-			inValue += c;
-		}
-		return inValue.size() * sizeof(c);
+		return inValue.getSize() * sizeof(c);
 	}
 };
 
@@ -298,18 +358,11 @@ protected:
 	 * Strings
 	 */
 
-	virtual size_t write(const std::string& inValue) final override {
-		write(inValue.data(), sizeof(std::string::value_type), inValue.size());
+	virtual size_t write(const CString& inValue) final override {
+		write(inValue.data(), sizeof(CString::TType), inValue.getSize());
 		constexpr static char terminator = '\0';
 		write(&terminator, sizeof(terminator));
-		return inValue.size() * sizeof(std::string::value_type);
-	}
-
-	virtual size_t write(const std::u16string& inValue) final override {
-		write(inValue.data(), sizeof(std::u16string::value_type), inValue.size());
-		constexpr static char16_t terminator = L'\0';
-		write(&terminator, sizeof(terminator));
-		return inValue.size() * sizeof(std::u16string::value_type);
+		return inValue.getSize() * sizeof(CString::TType);
 	}
 };
 
@@ -324,9 +377,9 @@ protected:
 
 #define MAKE_READ(x) \
 	virtual size_t read(x& inValue) final override { \
-		std::string str; \
+		CString str; \
 		const size_t loc = read(str); \
-		std::from_chars(str.data(), str.data() + str.size(), inValue); \
+		std::from_chars(str.data(), str.data() + str.getSize(), inValue); \
 		return loc; \
 	}
 
@@ -335,7 +388,7 @@ protected:
 	 */
 
 	virtual size_t read(bool& inValue) final override {
-		std::string str;
+		CString str;
 		const size_t loc = read(str);
 		if (str == "true") {
 			inValue = true;
@@ -380,9 +433,10 @@ protected:
 	// Inherit string write but don't override
 	using COArchive::write;
 
+	//TODO: string conversions
 #define MAKE_WRITE(x) \
 	virtual size_t write(const x& inValue) final override { \
-		return write(std::to_string(inValue)); \
+		return write(CString(std::to_string(inValue))); \
 	}
 
 	/*
@@ -422,139 +476,3 @@ protected:
 };
 
 class CSArchive : public CSIArchive, public CSOArchive {};
-
-class CWSIArchive : public CIArchive {
-
-protected:
-
-	// Inherit string read but don't override
-	using CIArchive::read;
-
-#define MAKE_READ(x) \
-	virtual size_t read(x& inValue) final override { \
-		std::u16string u16str; \
-		const size_t loc = read(u16str); \
-		std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter; \
-		std::string str = converter.to_bytes(u16str); \
-		std::from_chars(str.data(), str.data() + str.size(), inValue); \
-		return loc; \
-	}
-
-	/*
-	 * Integral Types
-	 */
-
-	virtual size_t read(bool& inValue) final override {
-		std::u16string str;
-		const size_t loc = read(str);
-		if (str == u"true") {
-			inValue = true;
-		} else {
-			inValue = false;
-		}
-		return loc;
-	}
-
-	virtual size_t read(char& inValue) final override {
-		std::u16string str;
-		const size_t loc = read(str);
-		std::basic_istringstream<char16_t> iss(str);
-		char16_t c;
-		iss >> c;
-		inValue = static_cast<char>(c);
-		return loc;
-	}
-
-	virtual size_t read(unsigned char& inValue) final override {
-		std::u16string str;
-		const size_t loc = read(str);
-		std::basic_istringstream<char16_t> iss(str);
-		char16_t c;
-		iss >> c;
-		inValue = static_cast<char>(c);
-		return loc;
-	}
-
-	virtual size_t read(signed char& inValue) final override {
-		std::u16string str;
-		const size_t loc = read(str);
-		std::basic_istringstream<char16_t> iss(str);
-		char16_t c;
-		iss >> c;
-		inValue = static_cast<char>(c);
-		return loc;
-	}
-
-	MAKE_READ(unsigned short)
-	MAKE_READ(signed short)
-
-	MAKE_READ(unsigned int)
-	MAKE_READ(signed int)
-
-	MAKE_READ(unsigned long)
-	MAKE_READ(signed long)
-
-	MAKE_READ(unsigned long long)
-	MAKE_READ(signed long long)
-
-	/*
-	 * Floating Point Types
-	 */
-
-	MAKE_READ(float)
-	MAKE_READ(double)
-	MAKE_READ(long double)
-#undef MAKE_READ
-
-};
-
-class CWSOArchive : public COArchive {
-
-protected:
-
-	// Inherit string write but don't override
-	using COArchive::write;
-
-#define MAKE_WRITE(x) \
-	virtual size_t write(const x& inValue) final override { \
-		std::string str = std::to_string(inValue); \
-		return write(std::u16string(str.begin(), str.end())); \
-	}
-
-	/*
-	 * Integral Types
-	 */
-
-	virtual size_t write(const bool& inValue) final override {
-		return write(inValue ? u"true" : u"false");
-	}
-
-	MAKE_WRITE(char)
-
-	MAKE_WRITE(unsigned char)
-	MAKE_WRITE(signed char)
-
-	MAKE_WRITE(unsigned short)
-	MAKE_WRITE(signed short)
-
-	MAKE_WRITE(unsigned int)
-	MAKE_WRITE(signed int)
-
-	MAKE_WRITE(unsigned long)
-	MAKE_WRITE(signed long)
-
-	MAKE_WRITE(unsigned long long)
-	MAKE_WRITE(signed long long)
-
-	/*
-	 * Floating Point Types
-	 */
-
-	MAKE_WRITE(float)
-	MAKE_WRITE(double)
-	MAKE_WRITE(long double)
-#undef MAKE_WRITE
-
-};
-
-class CWSArchive : public CWSIArchive, public CWSOArchive {};

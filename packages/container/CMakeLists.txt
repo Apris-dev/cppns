@@ -1,6 +1,9 @@
 ﻿add_interface_package(cppns-container
         # Base Classes
         include/cppns/container/Container.h
+        include/cppns/container/SequenceContainer.h
+        include/cppns/container/AssociativeContainer.h
+        include/cppns/container/SelfAssociativeContainer.h
 
         # Sequence Containers
         include/cppns/container/Vector.h

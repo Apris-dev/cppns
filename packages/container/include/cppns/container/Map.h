@@ -1,7 +1,8 @@
 ﻿#pragma once
 
 #include <unordered_map>
-#include "Container.h"
+#include "AssociativeContainer.h"
+#include "Utils.h"
 #include "cppns/util/InitializerList.h"
 
 #ifdef USING_CPPNS_ARCHIVE

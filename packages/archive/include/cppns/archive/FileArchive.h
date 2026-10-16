@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cassert>
-#include <map>
 
 #include "PathArchive.h"
 #include "cppns/util/ErrorHandling.h"
@@ -40,6 +39,10 @@ namespace File {
 		UTF32
 	};
 
+	constexpr bool operator&(const Format& fst, const Format& snd) noexcept {
+		return (static_cast<uint8>(fst) & static_cast<uint8>(snd)) != 0;
+	}
+
 	enum class LineEnding : uint8 {
 		LF,
 		CRLF
@@ -67,7 +70,8 @@ namespace File {
 }
 
 // An archive that can process files, uses standard c since it is faster
-template <File::OpenType TOpenType, File::LineEnding TLineEnding, bool TUse16Char = false>
+//TODO: use template specialization w/ opentype and format
+template <File::Format TFormat, File::OpenType TOpenType, File::LineEnding TLineEnding>
 class CBaseFileArchive {
 
 public:
@@ -125,7 +129,7 @@ public:
 		if constexpr (!isRead()) {
 			throw Error::File::InvalidOperation("getLines() requires file read!");
 		} else {
-			if constexpr (TUse16Char) {
+			if constexpr (TFormat & File::Format::UTF16) {
 				std::u16string str;
 				size_t lines = 0; // Initial Line
 
@@ -135,24 +139,6 @@ public:
 				while (readUntil(str, u'\n') != EOF) {
 					lines++;
 				}
-
-				// fgets stops at buffer end or at newline.  Check for newline or continue reading
-				/*while (fgetws(buffer, sizeof(buffer), mFile)) {
-					const size_t len = std::wcslen(buffer);
-
-					if (len == 0)
-						continue;
-
-					// Assume CRLF, read next char and add to lines if \n
-					if (buffer[len - 1] == L'\r') {
-						if (const wint_t next = fgetwc(mFile); next == L'\n') {
-							lines++;
-						}
-					}
-
-					if (buffer[len - 1] == L'\n')
-						lines++;
-				}*/
 
 				Error::Assert{mFile};
 
@@ -278,7 +264,7 @@ protected:
 
 		int prev = EOF;
 
-		if constexpr (TUse16Char) {
+		if constexpr (TFormat & File::Format::UTF16) {
 			// Read the first line ending and assume other line endings are like that
 			std::u16string str;
 			while (readUntil(str, u'\n') != EOF) {
@@ -330,7 +316,7 @@ protected:
 		if (isBinary())
 			return 0;
 
-		if constexpr (TUse16Char) {
+		if constexpr (TFormat & File::Format::UTF16) {
 			constexpr static unsigned char BOM[] = { 0xFF, 0xFE };
 
 			// Is being overwritten, we don't care about previous file's BOM
@@ -388,11 +374,11 @@ protected:
 
 // An archive that can process files, uses standard c since it is faster
 template <File::OpenType TOpenType, File::LineEnding TLineEnding>
-class CBinaryFileArchive : public CBaseFileArchive<TOpenType, TLineEnding>, public CBinaryArchive {
+class CBinaryFileArchive : public CBaseFileArchive<File::Format::BINARY, TOpenType, TLineEnding>, public CBinaryArchive {
 
 public:
 
-	using CBaseFileArchive<TOpenType, TLineEnding>::CBaseFileArchive;
+	using CBaseFileArchive<File::Format::BINARY, TOpenType, TLineEnding>::CBaseFileArchive;
 
 protected:
 
@@ -411,13 +397,13 @@ protected:
 };
 
 template <File::OpenType TOpenType, File::LineEnding TLineEnding>
-class CStringFileArchive : public CBaseFileArchive<TOpenType, TLineEnding>, public CSArchive {
+class CStringFileArchive : public CBaseFileArchive<File::Format::UTF8, TOpenType, TLineEnding>, public CSArchive {
 
 protected:
 
-	using CBaseFileArchive<TOpenType, TLineEnding>::CBaseFileArchive;
+	using CBaseFileArchive<File::Format::UTF8, TOpenType, TLineEnding>::CBaseFileArchive;
 
-	virtual size_t read(std::string& outValue) override {
+	virtual size_t read(CString& outValue) override {
 		outValue.clear();
 		char buffer[256];
 
@@ -432,12 +418,12 @@ protected:
 			outValue.append(buffer, len);
 
 			// LF line endings
-			if (outValue.back() == '\n') {
-				outValue.pop_back();
+			if (outValue.bottom() == '\n') {
+				outValue.pop();
 
 				// CRLF line endings
-				if (outValue.back() == '\r')
-					outValue.pop_back();
+				if (outValue.bottom() == '\r')
+					outValue.pop();
 
 				break;
 			}
@@ -445,11 +431,7 @@ protected:
 
 		Error::Assert{this->mFile};
 
-		return outValue.size() * sizeof(std::string::value_type);
-	}
-
-	virtual size_t read(std::u16string& outValue) override {
-		return 0;
+		return outValue.getSize() * sizeof(std::string::value_type);
 	}
 
 	virtual size_t write(const std::string& inValue) override {
@@ -464,68 +446,27 @@ protected:
 	}
 };
 
-template <File::OpenType TOpenType, File::LineEnding TLineEnding>
-class Cu16stringFileArchive : public CBaseFileArchive<TOpenType, TLineEnding, true>, public CWSArchive {
+template <File::Format TFormat, File::OpenType TOpenType, File::LineEnding TLineEnding>
+class TFileArchive;
 
-protected:
+template<File::OpenType TOpenType, File::LineEnding TLineEnding>
+class TFileArchive<File::Format::BINARY, TOpenType, TLineEnding> {
 
-	using CBaseFileArchive<TOpenType, TLineEnding, true>::CBaseFileArchive;
+};
 
-	virtual size_t read(std::u16string& outValue) override {
-		/*outValue.clear();
-		wchar_t buffer[256];
+template<File::OpenType TOpenType, File::LineEnding TLineEnding>
+class TFileArchive<File::Format::UTF8, TOpenType, TLineEnding> {
 
-		std::wstring wstr;
+};
 
-		// Read 256 bytes and check for newline
-		// fgets reads until a newline, so we dont have to worry about missing one
-		while (fgetws(buffer, sizeof(buffer), this->mFile)) {
-			const std::size_t len = std::wcslen(buffer);
+template<File::OpenType TOpenType, File::LineEnding TLineEnding>
+class TFileArchive<File::Format::UTF16, TOpenType, TLineEnding> {
 
-			if (len == 0)
-				continue;
+};
 
-			wstr.append(buffer, len);
+template<File::OpenType TOpenType, File::LineEnding TLineEnding>
+class TFileArchive<File::Format::UTF32, TOpenType, TLineEnding> {
 
-			// LF line endings
-			if (wstr.back() == L'\n') {
-				wstr.pop_back();
-
-				// CRLF line endings
-				if (wstr.back() == L'\r')
-					wstr.pop_back();
-
-				break;
-			}
-		}
-
-		Error::Assert{this->mFile};
-
-		outValue = std::u16string(wstr.begin(), wstr.end());*/
-
-		const size_t res = this->readUntil(outValue, u'\n');
-
-		if (outValue.back() == u'\r') {
-			outValue.pop_back();
-		}
-
-		return res;
-	}
-
-	virtual size_t read(std::string& outValue) override {
-		return 0;
-	}
-
-	virtual size_t write(const std::u16string& inValue) override {
-		const std::u16string line = this->isEmpty() ? inValue : File::getLineEndingu16string(this->lineEndings) + inValue;
-		const size_t res = fwrite(line.data(), sizeof(std::u16string::value_type), line.size(), this->mFile);
-		Error::Assert{this->mFile};
-		return res;
-	}
-
-	virtual size_t write(const std::string& inValue) override {
-		return 0;
-	}
 };
 
 #if USING_CRLF

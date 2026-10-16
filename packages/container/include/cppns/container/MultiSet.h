@@ -1,7 +1,8 @@
 ﻿#pragma once
 
 #include <unordered_set>
-#include "Container.h"
+#include "SelfAssociativeContainer.h"
+#include "Utils.h"
 #include "cppns/util/InitializerList.h"
 
 #ifdef USING_CPPNS_ARCHIVE

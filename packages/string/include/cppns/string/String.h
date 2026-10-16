@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cppns/container/Container.h"
+#include "cppns/container/SequenceContainer.h"
 #include "cppns/util/ErrorHandling.h"
 
 #if USING_CXX23
@@ -522,6 +522,10 @@ public:
 		replace(index, static_cast<char&&>(obj));
 	}
 
+	constexpr_20 CString substr(const size_t inOffset, const size_t inCount = npos) const {
+		return CString{m_Container.substr(inOffset, inCount)};
+	}
+
 	constexpr_20 void clear() {
 		m_Container.clear();
 	}
@@ -532,6 +536,22 @@ public:
 
 	constexpr_20 void popAt(const size_t index) {
 		m_Container.erase(m_Container.begin() + index);
+	}
+
+	constexpr_20 void eraseBefore(const size_t inPosition) {
+		m_Container.erase(m_Container.begin(), m_Container.begin() + inPosition);
+	}
+
+	constexpr_20 void eraseBefore(const size_t inPosition, const size_t inCount) {
+		m_Container.erase(m_Container.begin() + (inPosition - inCount), m_Container.begin() + inPosition);
+	}
+
+	constexpr_20 void eraseAfter(const size_t inPosition) {
+		m_Container.erase(inPosition);
+	}
+
+	constexpr_20 void eraseAfter(const size_t inPosition, const size_t inCount) {
+		m_Container.erase(inPosition, inCount);
 	}
 
 	constexpr_20 void erase(const TType* inArray) {

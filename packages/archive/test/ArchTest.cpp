@@ -1,11 +1,12 @@
 #include <iostream>
 
 #include "cppns/archive/FileArchive.h"
+#include "cppns/archive/HashArchive.h"
 #include "cppns/archive/PathArchive.h"
 
 cppns_main() {
 
-    CPathArchive path(gExecutablePath);
+    CPathArchive path(CString{gExecutablePath});
 
     assert(!path.get().empty(), "Path is empty!");
 
@@ -31,16 +32,16 @@ cppns_main() {
 
         size_t v;
         fileArchive >> v;
-        std::string s;
+        CString s;
         fileArchive >> s;
-        std::string s2;
+        CString s2;
         fileArchive >> s2;
         bool b;
         fileArchive >> b;
 
         std::cout << v << std::endl;
-        std::cout << s << std::endl;
-        std::cout << s2 << std::endl;
+        std::cout << (std::string)s << std::endl;
+        std::cout << (std::string)s2 << std::endl;
         std::cout << (b ? "true" : "false") << std::endl;
 
         assert(v == 5 && s == "test" && s2 == "test200" && b == true, "Not all read values are correct!");
@@ -70,60 +71,6 @@ cppns_main() {
 
     std::cout << path.get() << std::endl;
     std::cout << path.getFilename() << std::endl;
-
-    {
-        Cu16stringFileArchive<File::OpenType::READWRITE, File::LineEnding::CRLF> fileArchive(path);
-
-        constexpr size_t v = 5;
-        fileArchive << v;
-        fileArchive << u"test";
-        fileArchive << u"test200";
-        fileArchive << true;
-
-        std::cout << fileArchive.getLines() << std::endl;
-
-        assert(fileArchive.getLines() == 4, "Number of read lines should be 4!");
-    }
-
-    assert(path.exists(), "Path does not exist!");
-
-    {
-        Cu16stringFileArchive<File::OpenType::READ, File::LineEnding::CRLF> fileArchive(path);
-
-        size_t v;
-        fileArchive >> v;
-        std::u16string s;
-        fileArchive >> s;
-        std::u16string s2;
-        fileArchive >> s2;
-        bool b;
-        fileArchive >> b;
-
-        std::cout << v << std::endl;
-        //std::cout << s << std::endl;
-        //std::cout << s2 << std::endl;
-        std::cout << (b ? "true" : "false") << std::endl;
-
-        assert(v == 5 && s == u"test" && s2 == u"test200" && b == true, "Not all read values are correct!");
-
-        CHashArchive hasher;
-        hasher << v;
-        hasher << s;
-        hasher << s2;
-        hasher << b;
-
-        CHashArchive hasher2;
-        hasher2 << v;
-        hasher2 << s;
-        hasher2 << s2;
-        hasher2 << b;
-
-        std::cout << "Hash1: " << hasher.get() << std::endl;
-        std::cout << "Hash2: " << hasher2.get() << std::endl;
-
-        assert(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
-        assert(hasher.get() == hasher2.get(), "Hashes should be equal!");
-    }
 
     return 0;
 }
