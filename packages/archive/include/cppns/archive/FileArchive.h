@@ -431,18 +431,14 @@ protected:
 
 		Error::Assert{this->mFile};
 
-		return outValue.getSize() * sizeof(std::string::value_type);
+		return outValue.getSize() * sizeof(CString::TType);
 	}
 
-	virtual size_t write(const std::string& inValue) override {
-		const std::string line = this->isEmpty() ? inValue : File::getLineEndingString(this->lineEndings) + inValue;
-		const size_t res = fwrite(line.data(), sizeof(std::string::value_type), line.size(), this->mFile);
+	virtual size_t write(const CString& inValue) override {
+		const CString line = this->isEmpty() ? inValue : File::getLineEndingString(this->lineEndings) + inValue;
+		const size_t res = fwrite(line.data(), sizeof(CString::TType), line.getSize(), this->mFile);
 		Error::Assert{this->mFile};
 		return res;
-	}
-
-	virtual size_t write(const std::u16string& inValue) override {
-		return 0;
 	}
 };
 

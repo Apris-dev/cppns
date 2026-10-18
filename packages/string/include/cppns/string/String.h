@@ -66,11 +66,15 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
-	CString(const char8_t* inArray): CString(String::UTF8(inArray)) {}
+	constexpr_20 CString(const TType* inArray, const size_t inCount): m_Container(inArray, inCount) {
+		removeInvalidUTF8(m_Container);
+	}
 
-	CString(const char16_t* inArray): CString(String::UTF16(inArray)) {}
+	CString(const char8_t* inArray, const size_t inCount): CString(String::UTF8(inArray, inCount)) {}
 
-	CString(const char32_t* inArray): CString(String::UTF32(inArray)) {}
+	CString(const char16_t* inArray, const size_t inCount): CString(String::UTF16(inArray, inCount)) {}
+
+	CString(const char32_t* inArray, const size_t inCount): CString(String::UTF32(inArray, inCount)) {}
 
 	//TODO: support more char types
 	constexpr_20 CString(const TType& inChar) {
@@ -624,9 +628,20 @@ public:
 		m_Container.append(str);
 	}
 
+	constexpr_20 void append(const TType* inArray, const size_t inCount) {
+		std::string str = {inArray, inCount};
+		removeInvalidUTF8(str);
+		m_Container.append(str);
+	}
+
 	void append(const char8_t* inArray) {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		append(str);
+	}
+
+	void append(const char8_t* inArray, const size_t inCount) {
+		auto* str = reinterpret_cast<const char*>(inArray);
+		append(str, inCount);
 	}
 
 	void append(const char16_t* inArray) {
@@ -634,8 +649,18 @@ public:
 		m_Container.append(str.m_Container);
 	}
 
+	void append(const char16_t* inArray, const size_t inCount) {
+		const CString str{inArray, inCount};
+		m_Container.append(str.m_Container);
+	}
+
 	void append(const char32_t* inArray) {
 		const CString str{inArray};
+		m_Container.append(str.m_Container);
+	}
+
+	void append(const char32_t* inArray, const size_t inCount) {
+		const CString str{inArray, inCount};
 		m_Container.append(str.m_Container);
 	}
 
