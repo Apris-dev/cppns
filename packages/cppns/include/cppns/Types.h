@@ -26,9 +26,7 @@ using smallest = uint8;
 #endif
 
 #ifdef __cpp_char8_t
-    using utf8 = char8_t;
-#else
-    using utf8 = char;
+    using char8 = char8_t;
 #endif
-using utf16 = char16_t;
-using utf32 = char32_t;
+using char16 = char16_t;
+using char32 = char32_t;

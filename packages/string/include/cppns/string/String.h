@@ -72,17 +72,19 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
-	CString(const char8_t* inArray): CString(String::UTF8(inArray)) {}
+#ifdef __cpp_char8
+	CString(const char8* inArray): CString(String::UTF8(inArray)) {}
 
-	CString(const char8_t* inArray, const size_t inCount): CString(String::UTF8(inArray, inCount)) {}
+	CString(const char8* inArray, const size_t inCount): CString(String::UTF8(inArray, inCount)) {}
+#endif
 
-	CString(const char16_t* inArray): CString(String::UTF16(inArray)) {}
+	CString(const char16* inArray): CString(String::UTF16(inArray)) {}
 
-	CString(const char16_t* inArray, const size_t inCount): CString(String::UTF16(inArray, inCount)) {}
+	CString(const char16* inArray, const size_t inCount): CString(String::UTF16(inArray, inCount)) {}
 
-	CString(const char32_t* inArray): CString(String::UTF32(inArray)) {}
+	CString(const char32* inArray): CString(String::UTF32(inArray)) {}
 
-	CString(const char32_t* inArray, const size_t inCount): CString(String::UTF32(inArray, inCount)) {}
+	CString(const char32* inArray, const size_t inCount): CString(String::UTF32(inArray, inCount)) {}
 
 	//TODO: support more char types
 	constexpr_20 CString(const TType& inChar) {
@@ -113,7 +115,7 @@ public:
 
 	constexpr_20 CString(const String::UTF32View otr) {
 		m_Container.reserve(otr.size());
-		for (const char32_t c : otr)
+		for (const char32 c : otr)
 			appendUTF8(m_Container, c);
 		removeInvalidUTF8(m_Container);
 	}
@@ -186,17 +188,19 @@ public:
 		return STR_CONTAINS(m_Container, inArray);
 	}
 
-	[[nodiscard]] bool contains(const char8_t* inArray) const {
+#ifdef __cpp_char8
+	[[nodiscard]] bool contains(const char8* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return STR_CONTAINS(m_Container, str);
 	}
+#endif
 
-	[[nodiscard]] bool contains(const char16_t* inArray) const {
+	[[nodiscard]] bool contains(const char16* inArray) const {
 		const CString str{inArray};
 		return STR_CONTAINS(m_Container, str.m_Container);
 	}
 
-	[[nodiscard]] bool contains(const char32_t* inArray) const {
+	[[nodiscard]] bool contains(const char32* inArray) const {
 		const CString str{inArray};
 		return STR_CONTAINS(m_Container, str.m_Container);
 	}
@@ -205,18 +209,20 @@ public:
 		return STR_CONTAINS(m_Container, obj);
 	}
 
-	[[nodiscard]] constexpr_20 bool contains(const char8_t& obj) const {
+#ifdef __cpp_char8
+	[[nodiscard]] constexpr_20 bool contains(const char8& obj) const {
 		return STR_CONTAINS(m_Container, obj);
 	}
+#endif
 
-	[[nodiscard]] constexpr_20 bool contains(const char16_t& obj) const {
+	[[nodiscard]] constexpr_20 bool contains(const char16& obj) const {
 		if (!isUCS2(obj))
 			return false;
 		auto [bytes] = encodeUTF8(obj);
 		return contains(bytes);
 	}
 
-	[[nodiscard]] constexpr_20 bool contains(const char32_t& obj) const {
+	[[nodiscard]] constexpr_20 bool contains(const char32& obj) const {
 		auto [bytes] = encodeUTF8(obj);
 		return contains(bytes);
 	}
@@ -276,17 +282,19 @@ public:
 		return m_Container.find(inArray);
 	}
 
-	[[nodiscard]] size_t find(const char8_t* inArray) const {
+#ifdef __cpp_char8
+	[[nodiscard]] size_t find(const char8* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return m_Container.find(str);
 	}
+#endif
 
-	[[nodiscard]] size_t find(const char16_t* inArray) const {
+	[[nodiscard]] size_t find(const char16* inArray) const {
 		const CString str{inArray};
 		return m_Container.find(str.m_Container);
 	}
 
-	[[nodiscard]] size_t find(const char32_t* inArray) const {
+	[[nodiscard]] size_t find(const char32* inArray) const {
 		const CString str{inArray};
 		return m_Container.find(str.m_Container);
 	}
@@ -295,18 +303,20 @@ public:
 		return m_Container.find(obj);
 	}
 
-	[[nodiscard]] constexpr_20 size_t find(const char8_t& obj) const {
+#ifdef __cpp_char8
+	[[nodiscard]] constexpr_20 size_t find(const char8& obj) const {
 		return m_Container.find(obj);
 	}
+#endif
 
-	[[nodiscard]] constexpr_20 size_t find(const char16_t& obj) const {
+	[[nodiscard]] constexpr_20 size_t find(const char16& obj) const {
 		if (!isUCS2(obj))
 			return 0;
 		auto [bytes] = encodeUTF8(obj);
 		return find(bytes);
 	}
 
-	[[nodiscard]] constexpr_20 size_t find(const char32_t& obj) const {
+	[[nodiscard]] constexpr_20 size_t find(const char32& obj) const {
 		auto [bytes] = encodeUTF8(obj);
 		return find(bytes);
 	}
@@ -331,17 +341,19 @@ public:
 		return m_Container.rfind(inArray);
 	}
 
-	[[nodiscard]] size_t findLast(const char8_t* inArray) const {
+#ifdef __cpp_char8
+	[[nodiscard]] size_t findLast(const char8* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return m_Container.rfind(str);
 	}
+#endif
 
-	[[nodiscard]] size_t findLast(const char16_t* inArray) const {
+	[[nodiscard]] size_t findLast(const char16* inArray) const {
 		const CString str{inArray};
 		return m_Container.rfind(str.m_Container);
 	}
 
-	[[nodiscard]] size_t findLast(const char32_t* inArray) const {
+	[[nodiscard]] size_t findLast(const char32* inArray) const {
 		const CString str{inArray};
 		return m_Container.rfind(str.m_Container);
 	}
@@ -350,18 +362,20 @@ public:
 		return m_Container.rfind(obj);
 	}
 
-	[[nodiscard]] constexpr_20 size_t findLast(const char8_t& obj) const {
+#ifdef __cpp_char8
+	[[nodiscard]] constexpr_20 size_t findLast(const char8& obj) const {
 		return m_Container.rfind(obj);
 	}
+#endif
 
-	[[nodiscard]] constexpr_20 size_t findLast(const char16_t& obj) const {
+	[[nodiscard]] constexpr_20 size_t findLast(const char16& obj) const {
 		if (!isUCS2(obj))
 			return 0;
 		auto [bytes] = encodeUTF8(obj);
 		return findLast(bytes);
 	}
 
-	[[nodiscard]] constexpr_20 size_t findLast(const char32_t& obj) const {
+	[[nodiscard]] constexpr_20 size_t findLast(const char32& obj) const {
 		auto [bytes] = encodeUTF8(obj);
 		return findLast(bytes);
 	}
@@ -415,11 +429,13 @@ public:
 		return getSize() - 1;
 	}
 
-	constexpr_20 size_t push(const char8_t& obj) {
+#ifdef __cpp_char8
+	constexpr_20 size_t push(const char8& obj) {
 		return push(static_cast<const char&>(obj));
 	}
+#endif
 
-	constexpr_20 size_t push(const char16_t& obj) {
+	constexpr_20 size_t push(const char16& obj) {
 		if (!isUCS2(obj))
 			throw Error::String::NonUCS2Character();
 		auto [bytes] = encodeUTF8(obj);
@@ -430,7 +446,7 @@ public:
 		return res;
 	}
 
-	constexpr_20 size_t push(const char32_t& obj) {
+	constexpr_20 size_t push(const char32& obj) {
 		if (!isUCS4(obj))
 			throw Error::String::NonUCS4Character();
 		auto [bytes] = encodeUTF8(obj);
@@ -452,9 +468,11 @@ public:
 		return getSize() - 1;
 	}
 
-	constexpr_20 size_t push(char8_t&& obj) {
+#ifdef __cpp_char8
+	constexpr_20 size_t push(char8&& obj) {
 		return push(static_cast<char&&>(obj));
 	}
+#endif
 
 	constexpr_20 void push(const size_t index, const TType& obj) {
 		if (!isASCII(obj))
@@ -462,11 +480,13 @@ public:
 		m_Container.insert(m_Container.begin() + index, obj);
 	}
 
-	constexpr_20 void push(const size_t index, const char8_t& obj) {
+#ifdef __cpp_char8
+	constexpr_20 void push(const size_t index, const char8& obj) {
 		push(index, static_cast<const char&>(obj));
 	}
+#endif
 
-	constexpr_20 void push(const size_t index, const char16_t& obj) {
+	constexpr_20 void push(const size_t index, const char16& obj) {
 		if (!isUCS2(obj))
 			throw Error::String::NonUCS2Character();
 		auto [bytes] = encodeUTF8(obj);
@@ -475,7 +495,7 @@ public:
 		m_Container.insert(m_Container.begin() + index, bytes[0]);
 	}
 
-	constexpr_20 void push(const size_t index, const char32_t& obj) {
+	constexpr_20 void push(const size_t index, const char32& obj) {
 		if (!isUCS4(obj))
 			throw Error::String::NonUCS4Character();
 		auto [bytes] = encodeUTF8(obj);
@@ -494,9 +514,11 @@ public:
 		m_Container.insert(m_Container.begin() + index, std::move(obj));
 	}
 
-	constexpr_20 void push(const size_t index, char8_t&& obj) {
+#ifdef __cpp_char8
+	constexpr_20 void push(const size_t index, char8&& obj) {
 		push(index, static_cast<char&&>(obj));
 	}
+#endif
 
 	constexpr_20 void replace(const size_t index, const TType& obj) {
 		if (!isASCII(obj))
@@ -505,18 +527,20 @@ public:
 		push(index, obj);
 	}
 
-	constexpr_20 void replace(const size_t index, const char8_t& obj) {
+#ifdef __cpp_char8
+	constexpr_20 void replace(const size_t index, const char8& obj) {
 		replace(index, static_cast<const char&>(obj));
 	}
+#endif
 
-	constexpr_20 void replace(const size_t index, const char16_t& obj) {
+	constexpr_20 void replace(const size_t index, const char16& obj) {
 		if (!isUCS2(obj))
 			throw Error::String::NonUCS2Character();
 		popAt(index);
 		push(index, obj);
 	}
 
-	constexpr_20 void replace(const size_t index, const char32_t& obj) {
+	constexpr_20 void replace(const size_t index, const char32& obj) {
 		if (!isUCS4(obj))
 			throw Error::String::NonUCS4Character();
 		popAt(index);
@@ -530,9 +554,11 @@ public:
 		push(index, std::move(obj));
 	}
 
-	constexpr_20 void replace(const size_t index, char8_t&& obj) {
+#ifdef __cpp_char8
+	constexpr_20 void replace(const size_t index, char8&& obj) {
 		replace(index, static_cast<char&&>(obj));
 	}
+#endif
 
 	constexpr_20 CString substr(const size_t inOffset, const size_t inCount = npos) const {
 		return CString{m_Container.substr(inOffset, inCount)};
@@ -570,35 +596,39 @@ public:
 		m_Container.erase(m_Container.find(inArray), std::strlen(inArray));
 	}
 
-	void erase(const char8_t* inArray) {
+#ifdef __cpp_char8
+	void erase(const char8* inArray) {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		erase(str);
 	}
+#endif
 
-	constexpr_20 void erase(const char16_t* inArray) {
-		m_Container.erase(find(inArray), std::char_traits<char16_t>::length(inArray) * sizeof(char16_t));
+	constexpr_20 void erase(const char16* inArray) {
+		m_Container.erase(find(inArray), std::char_traits<char16>::length(inArray) * sizeof(char16));
 	}
 
-	constexpr_20 void erase(const char32_t* inArray) {
-		m_Container.erase(find(inArray), std::char_traits<char32_t>::length(inArray) * sizeof(char32_t));
+	constexpr_20 void erase(const char32* inArray) {
+		m_Container.erase(find(inArray), std::char_traits<char32>::length(inArray) * sizeof(char32));
 	}
 
 	constexpr_20 void erase(const TType& obj) {
 		m_Container.erase(m_Container.find(obj), 1);
 	}
 
-	constexpr_20 void erase(const char8_t& obj) {
+#ifdef __cpp_char8
+	constexpr_20 void erase(const char8& obj) {
 		erase(reinterpret_cast<const char&>(obj));
 	}
+#endif
 
-	constexpr_20 void erase(const char16_t& obj) {
+	constexpr_20 void erase(const char16& obj) {
 		if (!isUCS2(obj))
 			return;
 		auto [bytes] = encodeUTF8(obj);
 		erase(bytes);
 	}
 
-	constexpr_20 void erase(const char32_t& obj) {
+	constexpr_20 void erase(const char32& obj) {
 		auto [bytes] = encodeUTF8(obj);
 		erase(bytes);
 	}
@@ -642,32 +672,34 @@ public:
 		m_Container.append(str);
 	}
 
-	void append(const char8_t* inArray) {
+#ifdef __cpp_char8
+	void append(const char8* inArray) {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		append(str);
 	}
 
-	void append(const char8_t* inArray, const size_t inCount) {
+	void append(const char8* inArray, const size_t inCount) {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		append(str, inCount);
 	}
+#endif
 
-	void append(const char16_t* inArray) {
+	void append(const char16* inArray) {
 		const CString str{inArray};
 		m_Container.append(str.m_Container);
 	}
 
-	void append(const char16_t* inArray, const size_t inCount) {
+	void append(const char16* inArray, const size_t inCount) {
 		const CString str{inArray, inCount};
 		m_Container.append(str.m_Container);
 	}
 
-	void append(const char32_t* inArray) {
+	void append(const char32* inArray) {
 		const CString str{inArray};
 		m_Container.append(str.m_Container);
 	}
 
-	void append(const char32_t* inArray, const size_t inCount) {
+	void append(const char32* inArray, const size_t inCount) {
 		const CString str{inArray, inCount};
 		m_Container.append(str.m_Container);
 	}
@@ -732,7 +764,7 @@ private:
 
 	// Result of decode
 	struct DecodeResult {
-		char32_t cp;
+		char32 cp;
 		size_t length;
 		bool valid;
 	};
@@ -771,11 +803,11 @@ private:
 		return classifyLeadChar(c).length == 1;
 	}
 
-	constexpr static bool isUCS2(const char16_t c) noexcept {
+	constexpr static bool isUCS2(const char16 c) noexcept {
 		return classifyLeadChar16(c).length <= 2;
 	}
 
-	constexpr static bool isUCS4(const char32_t cp) noexcept {
+	constexpr static bool isUCS4(const char32 cp) noexcept {
 		return cp <= 0x10FFFF && (cp < 0xD800 || cp > 0xDFFF);
 	}
 
@@ -805,7 +837,7 @@ private:
 		s.resize(w);
 	}
 
-	static void appendUTF8(std::string& out, char32_t cp) {
+	static void appendUTF8(std::string& out, char32 cp) {
 		if (!isUCS4(cp)) cp = ReplacementChar;
 
 		if (cp < 0x80) {
@@ -825,7 +857,7 @@ private:
 		}
 	}
 
-	constexpr static char32_t ReplacementChar = 0xFFFD;
+	constexpr static char32 ReplacementChar = 0xFFFD;
 
 	// Decodes UTF8 into a UTF32 char, assumes std::string_view contains UTF8
 	// If non-UTF8 is present, it is replaced with 'ReplacementChar' and marked as invalid
@@ -843,7 +875,7 @@ private:
 			return {.cp = b0, .length = 1, .valid = true};
 
 		// Keep the useful bits of the first byte (the rest just says the length).
-		char32_t cp = b0 & (0x7F >> length);
+		char32 cp = b0 & (0x7F >> length);
 
 		for (size_t k = 1; k < length; ++k) {
 			if (i + k >= str.size())
@@ -866,7 +898,7 @@ private:
 		if (i >= s.size())
 			return {.cp = ReplacementChar, .length = 0, .valid = false};
 
-		const char16_t b0 = s[i];
+		const char16 b0 = s[i];
 		const auto info = classifyLeadChar16(b0);
 
 		// Invalid
@@ -882,13 +914,13 @@ private:
 			return {.cp = ReplacementChar, .length = 1, .valid = false};
 
 		// First half and second half cannot fit together
-		const char16_t second = s[i + 1];
+		const char16 second = s[i + 1];
 		if (second < info.lo || second > info.hi)
 			return {.cp = ReplacementChar, .length = 1, .valid = false};
 
 		// Add the two halves together
-		const char32_t cp = 0x10000 + ((static_cast<char32_t>(b0) - 0xD800) << 10)
-									+ (static_cast<char32_t>(second) - 0xDC00);
+		const char32 cp = 0x10000 + ((static_cast<char32>(b0) - 0xD800) << 10)
+									+ (static_cast<char32>(second) - 0xDC00);
 
 		return {.cp = cp, .length = 2, .valid = true};
 	}
@@ -897,7 +929,7 @@ private:
 		char bytes[5];
 	};
 
-	constexpr static EncodedChar encodeUTF8(const char32_t cp) noexcept {
+	constexpr static EncodedChar encodeUTF8(const char32 cp) noexcept {
 		if (cp < 0x80)
 			return {static_cast<char>(cp)};
 		if (cp < 0x800)
@@ -917,8 +949,8 @@ private:
 			'\0'};
 	}
 
-	constexpr static EncodedChar encodeUTF8(const char16_t cp) noexcept {
-		return encodeUTF8(static_cast<char32_t>(cp));
+	constexpr static EncodedChar encodeUTF8(const char16 cp) noexcept {
+		return encodeUTF8(static_cast<char32>(cp));
 	}
 
 public:
@@ -934,11 +966,11 @@ public:
 		for (size_t i = 0; i < getSize();) {
 			const auto res = decodeUTF8(m_Container, i);
 			if (res.cp < 0x10000) {
-				str.push_back(static_cast<char16_t>(res.cp));
+				str.push_back(static_cast<char16>(res.cp));
 			} else {
-				const char32_t v = res.cp - 0x10000;
-				str.push_back(static_cast<char16_t>(0xD800 + (v  >> 10)));
-				str.push_back(static_cast<char16_t>(0xDC00 + (v & 0x3FF)));
+				const char32 v = res.cp - 0x10000;
+				str.push_back(static_cast<char16>(0xD800 + (v  >> 10)));
+				str.push_back(static_cast<char16>(0xDC00 + (v & 0x3FF)));
 			}
 			i += res.length;
 		}
