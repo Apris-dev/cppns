@@ -70,9 +70,15 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
+	CString(const char8_t* inArray): CString(String::UTF8(inArray)) {}
+
 	CString(const char8_t* inArray, const size_t inCount): CString(String::UTF8(inArray, inCount)) {}
 
+	CString(const char16_t* inArray): CString(String::UTF16(inArray)) {}
+
 	CString(const char16_t* inArray, const size_t inCount): CString(String::UTF16(inArray, inCount)) {}
+
+	CString(const char32_t* inArray): CString(String::UTF32(inArray)) {}
 
 	CString(const char32_t* inArray, const size_t inCount): CString(String::UTF32(inArray, inCount)) {}
 

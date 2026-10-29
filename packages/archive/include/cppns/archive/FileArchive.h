@@ -442,29 +442,6 @@ protected:
 	}
 };
 
-template <File::Format TFormat, File::OpenType TOpenType, File::LineEnding TLineEnding>
-class TFileArchive;
-
-template<File::OpenType TOpenType, File::LineEnding TLineEnding>
-class TFileArchive<File::Format::BINARY, TOpenType, TLineEnding> {
-
-};
-
-template<File::OpenType TOpenType, File::LineEnding TLineEnding>
-class TFileArchive<File::Format::UTF8, TOpenType, TLineEnding> {
-
-};
-
-template<File::OpenType TOpenType, File::LineEnding TLineEnding>
-class TFileArchive<File::Format::UTF16, TOpenType, TLineEnding> {
-
-};
-
-template<File::OpenType TOpenType, File::LineEnding TLineEnding>
-class TFileArchive<File::Format::UTF32, TOpenType, TLineEnding> {
-
-};
-
 #if USING_CRLF
 template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::CRLF>
 #else
