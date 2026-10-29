@@ -10,6 +10,8 @@
 #endif
 
 namespace String {
+	using Generic = std::string;
+	using GenericView = std::string_view;
 	using UTF8 = std::u8string;
 	using UTF8View = std::u8string_view;
 	using UTF16 = std::u16string;
@@ -691,18 +693,18 @@ public:
 		return *this;
 	}
 
-	constexpr_20 CString operator+(const CString& otr) const noexcept {
-		CString temp = *this;
-		temp += otr;
+	friend constexpr_20 CString operator+(const CString& fst, const CString& snd) noexcept {
+		CString temp = fst;
+		temp += snd;
 		return temp;
 	}
 
-	constexpr_20 bool operator==(const CString& otr) const noexcept {
-		return m_Container == otr.m_Container;
+	friend constexpr_20 bool operator==(const CString& fst, const CString& snd) noexcept {
+		return fst.m_Container == snd.m_Container;
 	}
 
-	constexpr_20 std::strong_ordering operator<=>(const CString& otr) const {
-		return m_Container <=> otr.m_Container;
+	friend constexpr_20 std::strong_ordering operator<=>(const CString& fst, const CString& snd) noexcept {
+		return fst.m_Container <=> snd.m_Container;
 	}
 
 protected:
