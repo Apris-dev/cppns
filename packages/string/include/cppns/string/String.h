@@ -72,7 +72,7 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	CString(const char8* inArray): CString(String::UTF8(inArray)) {}
 
 	CString(const char8* inArray, const size_t inCount): CString(String::UTF8(inArray, inCount)) {}
@@ -188,7 +188,7 @@ public:
 		return STR_CONTAINS(m_Container, inArray);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	[[nodiscard]] bool contains(const char8* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return STR_CONTAINS(m_Container, str);
@@ -209,7 +209,7 @@ public:
 		return STR_CONTAINS(m_Container, obj);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	[[nodiscard]] constexpr_20 bool contains(const char8& obj) const {
 		return STR_CONTAINS(m_Container, obj);
 	}
@@ -282,7 +282,7 @@ public:
 		return m_Container.find(inArray);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	[[nodiscard]] size_t find(const char8* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return m_Container.find(str);
@@ -303,7 +303,7 @@ public:
 		return m_Container.find(obj);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	[[nodiscard]] constexpr_20 size_t find(const char8& obj) const {
 		return m_Container.find(obj);
 	}
@@ -341,7 +341,7 @@ public:
 		return m_Container.rfind(inArray);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	[[nodiscard]] size_t findLast(const char8* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return m_Container.rfind(str);
@@ -362,7 +362,7 @@ public:
 		return m_Container.rfind(obj);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	[[nodiscard]] constexpr_20 size_t findLast(const char8& obj) const {
 		return m_Container.rfind(obj);
 	}
@@ -429,7 +429,7 @@ public:
 		return getSize() - 1;
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	constexpr_20 size_t push(const char8& obj) {
 		return push(static_cast<const char&>(obj));
 	}
@@ -468,7 +468,7 @@ public:
 		return getSize() - 1;
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	constexpr_20 size_t push(char8&& obj) {
 		return push(static_cast<char&&>(obj));
 	}
@@ -480,7 +480,7 @@ public:
 		m_Container.insert(m_Container.begin() + index, obj);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	constexpr_20 void push(const size_t index, const char8& obj) {
 		push(index, static_cast<const char&>(obj));
 	}
@@ -514,7 +514,7 @@ public:
 		m_Container.insert(m_Container.begin() + index, std::move(obj));
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	constexpr_20 void push(const size_t index, char8&& obj) {
 		push(index, static_cast<char&&>(obj));
 	}
@@ -527,7 +527,7 @@ public:
 		push(index, obj);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	constexpr_20 void replace(const size_t index, const char8& obj) {
 		replace(index, static_cast<const char&>(obj));
 	}
@@ -554,7 +554,7 @@ public:
 		push(index, std::move(obj));
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	constexpr_20 void replace(const size_t index, char8&& obj) {
 		replace(index, static_cast<char&&>(obj));
 	}
@@ -596,7 +596,7 @@ public:
 		m_Container.erase(m_Container.find(inArray), std::strlen(inArray));
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	void erase(const char8* inArray) {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		erase(str);
@@ -615,7 +615,7 @@ public:
 		m_Container.erase(m_Container.find(obj), 1);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	constexpr_20 void erase(const char8& obj) {
 		erase(reinterpret_cast<const char&>(obj));
 	}
@@ -672,7 +672,7 @@ public:
 		m_Container.append(str);
 	}
 
-#ifdef __cpp_char8
+#ifdef __cpp_char8_t
 	void append(const char8* inArray) {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		append(str);
