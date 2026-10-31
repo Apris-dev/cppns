@@ -31,7 +31,6 @@ namespace File {
 	enum class Format : uint8 {
 		BINARY,
 		UTF8,
-		// TODO: support below types
 		UTF16,
 		UTF32
 	};
@@ -40,36 +39,6 @@ namespace File {
 		LF,
 		CRLF
 	};
-
-	static const char* getLineEndingString(const LineEnding& inLineEnding) noexcept {
-		switch (inLineEnding) {
-		case LineEnding::CRLF:
-			return "\r\n";
-		case LineEnding::LF:
-		default:
-			return "\n";
-		}
-	}
-
-	static const char16_t* getLineEndingu16string(const LineEnding& inLineEnding) noexcept {
-		switch (inLineEnding) {
-		case LineEnding::CRLF:
-			return u"\r\n";
-		case LineEnding::LF:
-		default:
-			return u"\n";
-		}
-	}
-
-	static const char32_t* getLineEndingu32string(const LineEnding& inLineEnding) noexcept {
-		switch (inLineEnding) {
-		case LineEnding::CRLF:
-			return U"\r\n";
-		case LineEnding::LF:
-		default:
-			return U"\n";
-		}
-	}
 }
 
 // An archive that can process files, uses standard c since it is faster
@@ -292,6 +261,16 @@ public:
 
 protected:
 
+	static const char* getLineEndingString(const File::LineEnding& inLineEnding) noexcept {
+		switch (inLineEnding) {
+		case File::LineEnding::CRLF:
+			return "\r\n";
+		case File::LineEnding::LF:
+		default:
+			return "\n";
+		}
+	}
+
 	File::LineEnding getLineEndingFromFile() const {
 		// Is being overwritten, we don't care about previous file's line endings
 		if (this->isWrite())
@@ -366,6 +345,16 @@ public:
 
 protected:
 
+	static const char* getLineEndingString(const File::LineEnding& inLineEnding) noexcept {
+		switch (inLineEnding) {
+		case File::LineEnding::CRLF:
+			return "\r\n";
+		case File::LineEnding::LF:
+		default:
+			return "\n";
+		}
+	}
+
 	File::LineEnding getLineEndingFromFile() const {
 		// Is being overwritten, we don't care about previous file's line endings
 		if (this->isWrite())
@@ -425,7 +414,7 @@ protected:
 	}
 
 	virtual size_t write(const CString& inValue) override {
-		const CString line = this->isEmpty() ? inValue : File::getLineEndingString(this->lineEndings) + inValue;
+		const CString line = this->isEmpty() ? inValue : getLineEndingString(this->lineEndings) + inValue;
 		const size_t res = fwrite(line.data(), sizeof(CString::TType), line.getSize(), this->mFile);
 		Error::Assert{this->mFile};
 		return res;
@@ -466,6 +455,16 @@ public:
 
 protected:
 
+	static const char16_t* getLineEndingString(const File::LineEnding& inLineEnding) noexcept {
+		switch (inLineEnding) {
+		case File::LineEnding::CRLF:
+			return u"\r\n";
+		case File::LineEnding::LF:
+		default:
+			return u"\n";
+		}
+	}
+
 	File::LineEnding getLineEndingFromFile() const {
 		// Is being overwritten, we don't care about previous file's line endings
 		if (this->isWrite())
@@ -504,7 +503,7 @@ protected:
 	}
 
 	virtual size_t write(const CString& inValue) override {
-		const String::UTF16 line = this->isEmpty() ? inValue.toUTF16() : File::getLineEndingu16string(this->lineEndings) + inValue.toUTF16();
+		const String::UTF16 line = this->isEmpty() ? inValue.toUTF16() : getLineEndingString(this->lineEndings) + inValue.toUTF16();
 		const size_t res = fwrite(line.data(), sizeof(String::UTF16::value_type), line.size(), this->mFile);
 		Error::Assert{this->mFile};
 		return res;
@@ -549,6 +548,16 @@ public:
 
 protected:
 
+	static const char32_t* getLineEndingString(const File::LineEnding& inLineEnding) noexcept {
+		switch (inLineEnding) {
+		case File::LineEnding::CRLF:
+			return U"\r\n";
+		case File::LineEnding::LF:
+		default:
+			return U"\n";
+		}
+	}
+
 	File::LineEnding getLineEndingFromFile() const {
 		// Is being overwritten, we don't care about previous file's line endings
 		if (this->isWrite())
@@ -588,7 +597,7 @@ protected:
 	}
 
 	virtual size_t write(const CString& inValue) override {
-		const String::UTF32 line = this->isEmpty() ? inValue.toUTF32() : File::getLineEndingu32string(this->lineEndings) + inValue.toUTF32();
+		const String::UTF32 line = this->isEmpty() ? inValue.toUTF32() : getLineEndingString(this->lineEndings) + inValue.toUTF32();
 		const size_t res = fwrite(line.data(), sizeof(String::UTF32::value_type), line.size(), this->mFile);
 		Error::Assert{this->mFile};
 		return res;
