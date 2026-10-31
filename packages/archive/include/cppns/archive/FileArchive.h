@@ -246,7 +246,7 @@ public:
 			const size_t loc = this->tell();
 			this->seekFromStart(0);
 
-			while (this->readUntilLE<String::Endian::NATIVE>(str) != EOF) {
+			while (this->template readUntilLE<String::Endian::NATIVE>(str) != EOF) {
 				lines++;
 			}
 
@@ -281,7 +281,7 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::Generic str;
-		while (this->readUntil<String::Endian::NATIVE>(str, '\n') != EOF) {
+		while (this->template readUntil<String::Endian::NATIVE>(str, '\n') != EOF) {
 			this->seekFromStart(loc);
 			if (str.back() == '\r') {
 				return  File::LineEnding::CRLF;
@@ -330,7 +330,7 @@ public:
 			const size_t loc = this->tell();
 			this->seekFromStart(0);
 
-			while (this->readUntilLE<String::Endian::NATIVE>(str) != EOF) {
+			while (this->template readUntilLE<String::Endian::NATIVE>(str) != EOF) {
 				lines++;
 			}
 
@@ -365,7 +365,7 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::Generic str;
-		while (this->readUntil<String::Endian::NATIVE>(str, '\n') != EOF) {
+		while (this->template readUntil<String::Endian::NATIVE>(str, '\n') != EOF) {
 			Error::Assert{this->mFile};
 			this->seekFromStart(loc);
 			if (str.back() == '\r') {
@@ -440,7 +440,7 @@ public:
 			const size_t loc = this->tell();
 			this->seekFromStart(0);
 
-			while (this->readUntilLE<String::Endian::LITTLE>(str) != EOF) {
+			while (this->template readUntilLE<String::Endian::LITTLE>(str) != EOF) {
 				lines++;
 			}
 
@@ -475,7 +475,7 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::UTF16 str;
-		while (this->readUntil<String::Endian::LITTLE>(str, u'\n') != EOF) {
+		while (this->template readUntil<String::Endian::LITTLE>(str, u'\n') != EOF) {
 			Error::Assert{this->mFile};
 			if (str.back() == u'\r') {
 				return File::LineEnding::CRLF;
@@ -492,7 +492,7 @@ protected:
 
 	virtual size_t read(CString& outValue) override {
 		String::UTF16 str;
-		this->readUntilLE<String::Endian::LITTLE>(str);
+		this->template readUntilLE<String::Endian::LITTLE>(str);
 
 		Error::Assert{this->mFile};
 
@@ -530,7 +530,7 @@ public:
 			const size_t loc = this->tell();
 			this->seekFromStart(0);
 
-			while (this->readUntilLE<String::Endian::BIG>(str) != EOF) {
+			while (this->template readUntilLE<String::Endian::BIG>(str) != EOF) {
 				lines++;
 			}
 
@@ -565,7 +565,7 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::UTF16 str;
-		while (this->readUntil<String::Endian::BIG>(str, CString(u'\n').toUTF16<String::Endian::BIG>().back()) != EOF) {
+		while (this->template readUntil<String::Endian::BIG>(str, CString(u'\n').toUTF16<String::Endian::BIG>().back()) != EOF) {
 			Error::Assert{this->mFile};
 			if (str.back() == CString(u'\r').toUTF16<String::Endian::BIG>().back()) {
 				return File::LineEnding::CRLF;
@@ -582,7 +582,7 @@ protected:
 
 	virtual size_t read(CString& outValue) override {
 		String::UTF16 str;
-		this->readUntilLE<String::Endian::BIG>(str);
+		this->template readUntilLE<String::Endian::BIG>(str);
 
 		Error::Assert{this->mFile};
 
@@ -624,7 +624,7 @@ public:
 			const size_t loc = this->tell();
 			this->seekFromStart(0);
 
-			while (this->readUntilLE<String::Endian::LITTLE>(str) != EOF) {
+			while (this->template readUntilLE<String::Endian::LITTLE>(str) != EOF) {
 				lines++;
 			}
 
@@ -659,7 +659,7 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::UTF32 str;
-		while (this->readUntil<String::Endian::LITTLE>(str, U'\n') != EOF) {
+		while (this->template readUntil<String::Endian::LITTLE>(str, U'\n') != EOF) {
 			Error::Assert{this->mFile};
 			this->seekFromStart(loc);
 			if (str.back() == U'\r') {
@@ -677,7 +677,7 @@ protected:
 
 	virtual size_t read(CString& outValue) override {
 		String::UTF32 str;
-		this->readUntilLE<String::Endian::LITTLE>(str);
+		this->template readUntilLE<String::Endian::LITTLE>(str);
 
 		Error::Assert{this->mFile};
 
@@ -719,7 +719,7 @@ public:
 			const size_t loc = this->tell();
 			this->seekFromStart(0);
 
-			while (this->readUntilLE<String::Endian::BIG>(str) != EOF) {
+			while (this->template readUntilLE<String::Endian::BIG>(str) != EOF) {
 				lines++;
 			}
 
@@ -754,7 +754,7 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::UTF32 str;
-		while (this->readUntil<String::Endian::BIG>(str, U'\n') != EOF) {
+		while (this->template readUntil<String::Endian::BIG>(str, U'\n') != EOF) {
 			Error::Assert{this->mFile};
 			this->seekFromStart(loc);
 			if (str.back() == U'\r') {
@@ -772,7 +772,7 @@ protected:
 
 	virtual size_t read(CString& outValue) override {
 		String::UTF32 str;
-		this->readUntilLE<String::Endian::BIG>(str);
+		this->template readUntilLE<String::Endian::BIG>(str);
 
 		Error::Assert{this->mFile};
 
