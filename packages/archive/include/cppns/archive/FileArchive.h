@@ -30,8 +30,10 @@ namespace File {
 	enum class Format : uint8 {
 		BINARY,
 		UTF8,
-		UTF16,
-		UTF32
+		UTF16LE,
+		UTF16BE,
+		UTF32LE,
+		UTF32BE
 	};
 
 	enum class LineEnding : uint8 {
@@ -141,7 +143,7 @@ protected:
 		throw Error::File::InvalidOpenMode(filePath.get().array());
 	}
 
-	template <typename CharT>
+	template <String::Endian Endian, typename CharT>
 	size_t readUntil(std::basic_string<CharT>& out, CharT delim) const {
 		if (feof(mFile))
 			return EOF;
@@ -157,6 +159,8 @@ protected:
 
 			bytesRead += sizeof(c);
 
+			c = String::toEndian<Endian>(c);
+
 			if (c == delim)
 				break;
 
@@ -166,9 +170,9 @@ protected:
 		return bytesRead;
 	}
 
-	template <typename CharT>
+	template <String::Endian Endian, typename CharT>
 	size_t readUntilLE(std::basic_string<CharT>& out) const {
-		const size_t res = readUntil(out, static_cast<CharT>('\n'));
+		const size_t res = readUntil<Endian>(out, static_cast<CharT>('\n'));
 
 		if (out.back() == static_cast<CharT>('\r')) {
 			out.pop_back();
@@ -242,7 +246,7 @@ public:
 			const size_t loc = this->tell();
 			this->seekFromStart(0);
 
-			while (this->readUntilLE(str) != EOF) {
+			while (this->readUntilLE<String::Endian::NATIVE>(str) != EOF) {
 				lines++;
 			}
 
@@ -277,7 +281,7 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::Generic str;
-		while (this->readUntil(str, '\n') != EOF) {
+		while (this->readUntil<String::Endian::NATIVE>(str, '\n') != EOF) {
 			this->seekFromStart(loc);
 			if (str.back() == '\r') {
 				return  File::LineEnding::CRLF;
@@ -326,7 +330,7 @@ public:
 			const size_t loc = this->tell();
 			this->seekFromStart(0);
 
-			while (this->readUntilLE(str) != EOF) {
+			while (this->readUntilLE<String::Endian::NATIVE>(str) != EOF) {
 				lines++;
 			}
 
@@ -361,7 +365,7 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::Generic str;
-		while (this->readUntil(str, '\n') != EOF) {
+		while (this->readUntil<String::Endian::NATIVE>(str, '\n') != EOF) {
 			Error::Assert{this->mFile};
 			this->seekFromStart(loc);
 			if (str.back() == '\r') {
@@ -417,7 +421,7 @@ protected:
 };
 
 template <File::OpenType TOpenType, File::LineEnding TLineEnding>
-class CFileArchive<TOpenType, File::Format::UTF16, TLineEnding> : public CBaseFileArchive<TOpenType>, public CSArchive {
+class CFileArchive<TOpenType, File::Format::UTF16LE, TLineEnding> : public CBaseFileArchive<TOpenType>, public CSArchive {
 
 public:
 
@@ -436,7 +440,7 @@ public:
 			const size_t loc = this->tell();
 			this->seekFromStart(0);
 
-			while (this->readUntilLE(str) != EOF) {
+			while (this->readUntilLE<String::Endian::LITTLE>(str) != EOF) {
 				lines++;
 			}
 
@@ -471,7 +475,7 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::UTF16 str;
-		while (this->readUntil(str, u'\n') != EOF) {
+		while (this->readUntil<String::Endian::LITTLE>(str, u'\n') != EOF) {
 			Error::Assert{this->mFile};
 			if (str.back() == u'\r') {
 				return File::LineEnding::CRLF;
@@ -488,7 +492,7 @@ protected:
 
 	virtual size_t read(CString& outValue) override {
 		String::UTF16 str;
-		this->readUntilLE(str);
+		this->readUntilLE<String::Endian::LITTLE>(str);
 
 		Error::Assert{this->mFile};
 
@@ -498,7 +502,98 @@ protected:
 	}
 
 	virtual size_t write(const CString& inValue) override {
-		const String::UTF16 line = this->isEmpty() ? inValue.toUTF16() : getLineEndingString(this->lineEndings) + inValue.toUTF16();
+		const CString str = this->isEmpty() ? inValue : getLineEndingString(this->lineEndings) + inValue;
+		const String::UTF16& line = str.toUTF16<String::Endian::LITTLE>();
+		const size_t res = fwrite(line.data(), sizeof(String::UTF16::value_type), line.size(), this->mFile);
+		Error::Assert{this->mFile};
+		return res;
+	}
+};
+
+template <File::OpenType TOpenType, File::LineEnding TLineEnding>
+class CFileArchive<TOpenType, File::Format::UTF16BE, TLineEnding> : public CBaseFileArchive<TOpenType>, public CSArchive {
+
+public:
+
+	explicit CFileArchive(const CPathArchive& inFilePath):
+	CBaseFileArchive<TOpenType>(inFilePath) {
+		this->init(TVector<unsigned char>{ 0xFE, 0xFF }, getLineEndingFromFile());
+	}
+
+	[[nodiscard]] virtual size_t getLines() const override {
+		if constexpr (!this->isRead()) {
+			throw Error::File::InvalidOperation("getLines() requires file read!");
+		} else {
+			String::UTF16 str;
+			size_t lines = 0; // Initial Line
+
+			const size_t loc = this->tell();
+			this->seekFromStart(0);
+
+			while (this->readUntilLE<String::Endian::BIG>(str) != EOF) {
+				lines++;
+			}
+
+			Error::Assert{this->mFile};
+
+			this->seekFromStart(loc);
+
+			return lines;
+		}
+	}
+
+protected:
+
+	static const char16_t* getLineEndingString(const File::LineEnding& inLineEnding) noexcept {
+		switch (inLineEnding) {
+		case File::LineEnding::CRLF:
+			return u"\r\n";
+		case File::LineEnding::LF:
+		default:
+			return u"\n";
+		}
+	}
+
+	File::LineEnding getLineEndingFromFile() const {
+		// Is being overwritten, we don't care about previous file's line endings
+		if (this->isWrite())
+			return TLineEnding;
+
+		// Assume platform specific line endings in case there are none in the file
+		const long loc = this->tell();
+		this->seekFromStart(0);
+
+		// Read the first line ending and assume other line endings are like that
+		String::UTF16 str;
+		while (this->readUntil<String::Endian::BIG>(str, CString(u'\n').toUTF16<String::Endian::BIG>().back()) != EOF) {
+			Error::Assert{this->mFile};
+			if (str.back() == CString(u'\r').toUTF16<String::Endian::BIG>().back()) {
+				return File::LineEnding::CRLF;
+			}
+			return File::LineEnding::LF;
+		}
+
+		Error::Assert{this->mFile};
+		this->seekFromStart(loc);
+
+		// Couldn't find a line ending
+		return TLineEnding;
+	}
+
+	virtual size_t read(CString& outValue) override {
+		String::UTF16 str;
+		this->readUntilLE<String::Endian::BIG>(str);
+
+		Error::Assert{this->mFile};
+
+		outValue = CString{str};
+
+		return outValue.getSize() * sizeof(CString::TType);
+	}
+
+	virtual size_t write(const CString& inValue) override {
+		const CString str = this->isEmpty() ? inValue : getLineEndingString(this->lineEndings) + inValue;
+		const String::UTF16& line = str.toUTF16<String::Endian::BIG>();
 		const size_t res = fwrite(line.data(), sizeof(String::UTF16::value_type), line.size(), this->mFile);
 		Error::Assert{this->mFile};
 		return res;
@@ -510,7 +605,7 @@ template <File::OpenType TOpenType, File::LineEnding TLineEnding>
 #else
 template <File::OpenType TOpenType, File::LineEnding TLineEnding>
 #endif
-class CFileArchive<TOpenType, File::Format::UTF32, TLineEnding> : public CBaseFileArchive<TOpenType>, public CSArchive {
+class CFileArchive<TOpenType, File::Format::UTF32LE, TLineEnding> : public CBaseFileArchive<TOpenType>, public CSArchive {
 
 public:
 
@@ -529,7 +624,7 @@ public:
 			const size_t loc = this->tell();
 			this->seekFromStart(0);
 
-			while (this->readUntilLE(str) != EOF) {
+			while (this->readUntilLE<String::Endian::LITTLE>(str) != EOF) {
 				lines++;
 			}
 
@@ -564,7 +659,7 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::UTF32 str;
-		while (this->readUntil(str, U'\n') != EOF) {
+		while (this->readUntil<String::Endian::LITTLE>(str, U'\n') != EOF) {
 			Error::Assert{this->mFile};
 			this->seekFromStart(loc);
 			if (str.back() == U'\r') {
@@ -582,7 +677,7 @@ protected:
 
 	virtual size_t read(CString& outValue) override {
 		String::UTF32 str;
-		this->readUntilLE(str);
+		this->readUntilLE<String::Endian::LITTLE>(str);
 
 		Error::Assert{this->mFile};
 
@@ -592,7 +687,103 @@ protected:
 	}
 
 	virtual size_t write(const CString& inValue) override {
-		const String::UTF32 line = this->isEmpty() ? inValue.toUTF32() : getLineEndingString(this->lineEndings) + inValue.toUTF32();
+		const CString str = this->isEmpty() ? inValue : getLineEndingString(this->lineEndings) + inValue;
+		const String::UTF32& line = str.toUTF32<String::Endian::LITTLE>();
+		const size_t res = fwrite(line.data(), sizeof(String::UTF32::value_type), line.size(), this->mFile);
+		Error::Assert{this->mFile};
+		return res;
+	}
+};
+
+#if USING_CRLF
+template <File::OpenType TOpenType, File::LineEnding TLineEnding>
+#else
+template <File::OpenType TOpenType, File::LineEnding TLineEnding>
+#endif
+class CFileArchive<TOpenType, File::Format::UTF32BE, TLineEnding> : public CBaseFileArchive<TOpenType>, public CSArchive {
+
+public:
+
+	explicit CFileArchive(const CPathArchive& inFilePath):
+	CBaseFileArchive<TOpenType>(inFilePath) {
+		this->init(TVector<unsigned char>{ 0x00, 0x00, 0xFE, 0xFF }, getLineEndingFromFile());
+	}
+
+	[[nodiscard]] virtual size_t getLines() const override {
+		if constexpr (!this->isRead()) {
+			throw Error::File::InvalidOperation("getLines() requires file read!");
+		} else {
+			String::UTF32 str;
+			size_t lines = 0; // Initial Line
+
+			const size_t loc = this->tell();
+			this->seekFromStart(0);
+
+			while (this->readUntilLE<String::Endian::BIG>(str) != EOF) {
+				lines++;
+			}
+
+			Error::Assert{this->mFile};
+
+			this->seekFromStart(loc);
+
+			return lines;
+		}
+	}
+
+protected:
+
+	static const char32_t* getLineEndingString(const File::LineEnding& inLineEnding) noexcept {
+		switch (inLineEnding) {
+		case File::LineEnding::CRLF:
+			return U"\r\n";
+		case File::LineEnding::LF:
+		default:
+			return U"\n";
+		}
+	}
+
+	File::LineEnding getLineEndingFromFile() const {
+		// Is being overwritten, we don't care about previous file's line endings
+		if (this->isWrite())
+			return TLineEnding;
+
+		// Assume platform specific line endings in case there are none in the file
+		const long loc = this->tell();
+		this->seekFromStart(0);
+
+		// Read the first line ending and assume other line endings are like that
+		String::UTF32 str;
+		while (this->readUntil<String::Endian::BIG>(str, U'\n') != EOF) {
+			Error::Assert{this->mFile};
+			this->seekFromStart(loc);
+			if (str.back() == U'\r') {
+				return File::LineEnding::CRLF;
+			}
+			return File::LineEnding::LF;
+		}
+
+		Error::Assert{this->mFile};
+		this->seekFromStart(loc);
+
+		// Couldn't find a line ending
+		return TLineEnding;
+	}
+
+	virtual size_t read(CString& outValue) override {
+		String::UTF32 str;
+		this->readUntilLE<String::Endian::BIG>(str);
+
+		Error::Assert{this->mFile};
+
+		outValue = CString{str};
+
+		return outValue.getSize() * sizeof(CString::TType);
+	}
+
+	virtual size_t write(const CString& inValue) override {
+		const CString str = this->isEmpty() ? inValue : getLineEndingString(this->lineEndings) + inValue;
+		const String::UTF32& line = str.toUTF32<String::Endian::BIG>();
 		const size_t res = fwrite(line.data(), sizeof(String::UTF32::value_type), line.size(), this->mFile);
 		Error::Assert{this->mFile};
 		return res;

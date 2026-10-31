@@ -18,6 +18,35 @@ namespace String {
 	using UTF16View = std::u16string_view;
 	using UTF32 = std::u32string;
 	using UTF32View = std::u32string_view;
+
+	// Convert lowercase to cppns standard
+	enum class Endian : uint8 {
+		LITTLE = static_cast<uint8>(std::endian::little),
+		BIG = static_cast<uint8>(std::endian::big),
+		NATIVE = static_cast<uint8>(std::endian::native)
+	};
+
+	constexpr static char8 swapBytes(const char8 c) noexcept {
+		return c;
+	}
+
+	constexpr static char16 swapBytes(const char16 c) noexcept {
+		return static_cast<char16>((c << 8) | (c >> 8));
+	}
+
+	constexpr static char32 swapBytes(const char32 c) noexcept {
+		return ((c & 0x000000FFu) << 24) | ((c & 0x0000FF00u) << 8) |
+			   ((c & 0x00FF0000u) >> 8)  | ((c & 0xFF000000u) >> 24);
+	}
+
+	// Gives back the unit in the byte order we want, swapping only if the machine's own order is different.
+	template <Endian Endian, typename TType>
+	constexpr static TType toEndian(TType c) noexcept {
+		if constexpr (Endian == String::Endian::NATIVE)
+			return c;
+		else
+			return swapBytes(c);
+	}
 }
 
 namespace Error::String {
@@ -962,29 +991,31 @@ public:
 		return String::UTF8(m_Container.begin(), m_Container.end());
 	}
 
+	template <String::Endian Endian = String::Endian::NATIVE>
 	String::UTF16 toUTF16() const {
 		String::UTF16 str;
 		str.reserve(getSize());  // upper bound in code units
 		for (size_t i = 0; i < getSize();) {
 			const auto res = decodeUTF8(m_Container, i);
 			if (res.cp < 0x10000) {
-				str.push_back(static_cast<char16>(res.cp));
+				str.push_back(String::toEndian<Endian>(static_cast<char16>(res.cp)));
 			} else {
 				const char32 v = res.cp - 0x10000;
-				str.push_back(static_cast<char16>(0xD800 + (v  >> 10)));
-				str.push_back(static_cast<char16>(0xDC00 + (v & 0x3FF)));
+				str.push_back(String::toEndian<Endian>(static_cast<char16>(0xD800 + (v  >> 10))));
+				str.push_back(String::toEndian<Endian>(static_cast<char16>(0xDC00 + (v & 0x3FF))));
 			}
 			i += res.length;
 		}
 		return str;
 	}
 
+	template <String::Endian Endian = String::Endian::NATIVE>
 	String::UTF32 toUTF32() const {
 		String::UTF32 str;
 		str.reserve(getSize());
 		for (size_t i = 0; i < getSize();) {
 			const auto res = decodeUTF8(m_Container, i);
-			str.push_back(res.cp);
+			str.push_back(String::toEndian<Endian>(res.cp));
 			i += res.length;
 		}
 		return str;
