@@ -22,9 +22,6 @@ namespace File {
 		WRITE = 2,
 		BINARY = 4,
 		READWRITE = READ | WRITE,
-		BINARY_READ = READ | BINARY,
-		BINARY_WRITE = WRITE | BINARY,
-		BINARY_READWRITE = READ | WRITE | BINARY
 	};
 
 	constexpr bool operator&(const OpenType& fst, const OpenType& snd) noexcept {
@@ -222,13 +219,10 @@ protected:
 		case File::OpenType::BINARY:
 			return "b";
 		case File::OpenType::READ:
-		case File::OpenType::BINARY_READ:
 			return "rb";
 		case File::OpenType::WRITE:
-		case File::OpenType::BINARY_WRITE:
 			return "wb";
 		case File::OpenType::READWRITE:
-		case File::OpenType::BINARY_READWRITE:
 			return "wb+";
 		}
 		throw Error::File::InvalidOpenMode(filePath);
@@ -372,9 +366,18 @@ protected:
 
 };
 
+#if USING_CRLF
+template <File::OpenType TOpenType, File::Format TFileFormat = File::Format::UTF8, File::LineEnding TLineEnding = File::LineEnding::CRLF>
+#else
+template <File::OpenType TOpenType, File::Format TFileFormat = File::Format::UTF8, File::LineEnding TLineEnding = File::LineEnding::LF>
+#endif
+class CFileArchive : public CBaseFileArchive<TFileFormat, TOpenType, TLineEnding>, public CSArchive {
+	using CBaseFileArchive<TFileFormat, TOpenType, TLineEnding>::CBaseFileArchive;
+};
+
 // An archive that can process files, uses standard c since it is faster
 template <File::OpenType TOpenType, File::LineEnding TLineEnding>
-class CBinaryFileArchive : public CBaseFileArchive<File::Format::BINARY, TOpenType, TLineEnding>, public CBinaryArchive {
+class CFileArchive<TOpenType, File::Format::BINARY, TLineEnding> : public CBaseFileArchive<File::Format::BINARY, TOpenType, TLineEnding>, public CBinaryArchive {
 
 public:
 
@@ -397,7 +400,7 @@ protected:
 };
 
 template <File::OpenType TOpenType, File::LineEnding TLineEnding>
-class CStringFileArchive : public CBaseFileArchive<File::Format::UTF8, TOpenType, TLineEnding>, public CSArchive {
+class CFileArchive<TOpenType, File::Format::UTF8, TLineEnding> : public CBaseFileArchive<File::Format::UTF8, TOpenType, TLineEnding>, public CSArchive {
 
 protected:
 
@@ -443,7 +446,7 @@ protected:
 };
 
 template <File::OpenType TOpenType, File::LineEnding TLineEnding>
-class CU16StringFileArchive : public CBaseFileArchive<File::Format::UTF16, TOpenType, TLineEnding>, public CSArchive {
+class CFileArchive<TOpenType, File::Format::UTF16, TLineEnding> : public CBaseFileArchive<File::Format::UTF16, TOpenType, TLineEnding>, public CSArchive {
 
 protected:
 
@@ -468,8 +471,12 @@ protected:
 	}
 };
 
+#if USING_CRLF
 template <File::OpenType TOpenType, File::LineEnding TLineEnding>
-class CU32StringFileArchive : public CBaseFileArchive<File::Format::UTF32, TOpenType, TLineEnding>, public CSArchive {
+#else
+template <File::OpenType TOpenType, File::LineEnding TLineEnding>
+#endif
+class CFileArchive<TOpenType, File::Format::UTF32, TLineEnding> : public CBaseFileArchive<File::Format::UTF32, TOpenType, TLineEnding>, public CSArchive {
 
 protected:
 
@@ -493,10 +500,3 @@ protected:
 		return res;
 	}
 };
-
-#if USING_CRLF
-template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::CRLF>
-#else
-template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::LF>
-#endif
-using CFileArchive = std::conditional_t<TOpenType & File::OpenType::BINARY, CBinaryFileArchive<TOpenType, TLineEnding>, CStringFileArchive<TOpenType, TLineEnding>>;

@@ -16,7 +16,7 @@ cppns_main() {
     std::cout << path.getFilename() << std::endl;
 
     {
-        CFileArchive<File::OpenType::BINARY_WRITE> fileArchive(path);
+        CFileArchive<File::OpenType::WRITE, File::Format::BINARY> fileArchive(path);
 
         const size_t v = 5;
         fileArchive << v;
@@ -28,7 +28,7 @@ cppns_main() {
     assert(path.exists(), "Path does not exist!");
 
     {
-        CFileArchive<File::OpenType::BINARY_READ> fileArchive(path);
+        CFileArchive<File::OpenType::READ, File::Format::BINARY> fileArchive(path);
 
         size_t v;
         fileArchive >> v;
@@ -76,7 +76,7 @@ cppns_main() {
     std::cout << path.getFilename() << std::endl;
 
     {
-        CStringFileArchive<File::OpenType::WRITE, File::LineEnding::CRLF> fileArchive(path);
+        CFileArchive<File::OpenType::WRITE> fileArchive(path);
 
         const size_t v = 5;
         fileArchive << v;
@@ -88,7 +88,7 @@ cppns_main() {
     assert(path.exists(), "Path does not exist!");
 
     {
-        CStringFileArchive<File::OpenType::READ, File::LineEnding::CRLF> fileArchive(path);
+        CFileArchive<File::OpenType::READ> fileArchive(path);
 
         size_t v;
         fileArchive >> v;
@@ -136,7 +136,7 @@ cppns_main() {
     std::cout << path.getFilename() << std::endl;
 
     {
-        CU16StringFileArchive<File::OpenType::WRITE, File::LineEnding::CRLF> fileArchive(path);
+        CFileArchive<File::OpenType::WRITE, File::Format::UTF16> fileArchive(path);
 
         const size_t v = 5;
         fileArchive << v;
@@ -148,7 +148,7 @@ cppns_main() {
     assert(path.exists(), "Path does not exist!");
 
     {
-        CU16StringFileArchive<File::OpenType::READ, File::LineEnding::CRLF> fileArchive(path);
+        CFileArchive<File::OpenType::READ, File::Format::UTF16> fileArchive(path);
 
         size_t v;
         fileArchive >> v;
@@ -196,7 +196,7 @@ cppns_main() {
     std::cout << path.getFilename() << std::endl;
 
     {
-        CU32StringFileArchive<File::OpenType::WRITE, File::LineEnding::CRLF> fileArchive(path);
+        CFileArchive<File::OpenType::WRITE, File::Format::UTF32> fileArchive(path);
 
         const size_t v = 5;
         fileArchive << v;
@@ -208,7 +208,7 @@ cppns_main() {
     assert(path.exists(), "Path does not exist!");
 
     {
-        CU32StringFileArchive<File::OpenType::READ, File::LineEnding::CRLF> fileArchive(path);
+        CFileArchive<File::OpenType::READ, File::Format::UTF32> fileArchive(path);
 
         size_t v;
         fileArchive >> v;
