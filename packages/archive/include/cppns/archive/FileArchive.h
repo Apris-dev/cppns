@@ -20,7 +20,6 @@ namespace File {
 	enum class OpenType : uint8 {
 		READ = 1,
 		WRITE = 2,
-		BINARY = 4,
 		READWRITE = READ | WRITE,
 	};
 
@@ -68,8 +67,6 @@ public:
 		fclose(mFile);
 		Error::Assert{mFile};
 	}
-
-	[[nodiscard]] constexpr static bool isBinary() { return TOpenType & File::OpenType::BINARY; }
 
 	[[nodiscard]] constexpr static bool isRead() { return TOpenType & File::OpenType::READ; }
 
@@ -134,8 +131,6 @@ protected:
 	// Always use binary mode since they act the same on each platform
 	const char* getOpenTypeMode(const File::OpenType& inOpenType) const {
 		switch (inOpenType) {
-		case File::OpenType::BINARY:
-			return "b";
 		case File::OpenType::READ:
 			return "rb";
 		case File::OpenType::WRITE:
