@@ -33,21 +33,14 @@ cppns_main() {
     }
 
     // Test case sensitivity. By default, we should be case-insensitive
-    path.previous();
-    std::cout << (std::string)path.get() << std::endl;
-
-    std::string str = path.top();
-    std::cout << str << std::endl;
-    path.previous();
+    std::string str = path.get();
     std::ranges::transform(str, str.begin(), ::toupper);
-    path << (CString)str;
-    path << "INPUT.dat";
 
     assert(path.exists(), "Path does not exist!");
-    std::cout << (std::string)path.get() << std::endl;
+    std::cout << str << std::endl;
 
     {
-        CFileArchive<File::OpenType::BINARY_READ> fileArchive(path);
+        CFileArchive<File::OpenType::BINARY_READ> fileArchive(CPathArchive{str});
 
         size_t v;
         fileArchive >> v;

@@ -122,15 +122,21 @@ public:
 		push(inChar);
 	}
 
+	constexpr_20 CString(const TSubcontainerType<>& otr): CString(TSubcontainerTypeView(otr)) {}
+
 	constexpr_20 CString(const TSubcontainerTypeView otr): m_Container(otr) {
 		removeInvalidUTF8(m_Container);
 	}
+
+	CString(const String::UTF8& otr): CString(String::UTF8View(otr)) {}
 
 	CString(const String::UTF8View otr) {
 		const std::string_view view(reinterpret_cast<const char*>(otr.data()), otr.size());
 		m_Container = view;
 		removeInvalidUTF8(m_Container);
 	}
+
+	CString(const String::UTF16& otr): CString(String::UTF16View(otr)) {}
 
 	constexpr_20 CString(const String::UTF16View otr) {
 		m_Container.reserve(otr.size());
@@ -141,6 +147,8 @@ public:
 		}
 		removeInvalidUTF8(m_Container);
 	}
+
+	CString(const String::UTF32& otr): CString(String::UTF32View(otr)) {}
 
 	constexpr_20 CString(const String::UTF32View otr) {
 		m_Container.reserve(otr.size());
