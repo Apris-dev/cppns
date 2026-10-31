@@ -50,6 +50,7 @@ namespace File {
 
 		while (i < n) {
 			const unsigned char c = buf[i];
+			if (c == 0) return false;
 			if (c < 0x80) { ++i; continue; }
 
 			size_t len;
@@ -108,6 +109,7 @@ namespace File {
 			outSize = 2;
 		} else {
 			// No BOM, since BOM in UTF8 is optional we need a more in-depth check
+			fseek(inFile, 0, SEEK_SET);
 			if (isUTF8(inFile)) {
 				format = Format::UTF8;
 			}
@@ -250,7 +252,7 @@ protected:
 	size_t readUntilLE(std::basic_string<CharT>& out) const {
 		const size_t res = readUntil<Endian>(out, static_cast<CharT>('\n'));
 
-		if (out.back() == static_cast<CharT>('\r')) {
+		if (!out.empty() && out.back() == static_cast<CharT>('\r')) {
 			out.pop_back();
 			return res - 1;
 		}
@@ -640,9 +642,9 @@ protected:
 
 		// Read the first line ending and assume other line endings are like that
 		String::UTF16 str;
-		while (this->template readUntil<String::Endian::BIG>(str, CString(u'\n').toUTF16<String::Endian::BIG>().back()) != EOF) {
+		while (this->template readUntil<String::Endian::BIG>(str, u'\n') != EOF) {
 			Error::Assert{this->mFile};
-			if (str.back() == CString(u'\r').toUTF16<String::Endian::BIG>().back()) {
+			if (str.back() == u'\r') {
 				return File::LineEnding::CRLF;
 			}
 			return File::LineEnding::LF;
