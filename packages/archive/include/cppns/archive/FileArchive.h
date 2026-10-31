@@ -40,10 +40,86 @@ namespace File {
 		LF,
 		CRLF
 	};
+
+	inline bool isUTF8(FILE* inFile) {
+
+		unsigned char buf[4096];
+		const size_t n = fread(buf, 1, sizeof(buf), inFile);
+
+		size_t i = 0;
+
+		while (i < n) {
+			const unsigned char c = buf[i];
+			if (c < 0x80) { ++i; continue; }
+
+			size_t len;
+			unsigned char lo = 0x80, hi = 0xBF;
+
+			if (c >= 0xC2 && c <= 0xDF) len = 2;
+			else if (c == 0xE0) { len = 3; lo = 0xA0; }
+			else if (c == 0xED) { len = 3; hi = 0x9F; }
+			else if (c >= 0xE1 && c <= 0xEF) len = 3;
+			else if (c == 0xF0) { len = 4; lo = 0x90; }
+			else if (c == 0xF4) { len = 4; hi = 0x8F; }
+			else if (c >= 0xF1 && c <= 0xF3) len = 4;
+			else return false;
+
+			for (size_t k = 1; k < len; ++k) {
+				if (i + k >= n) {
+					// Ran out of bytes mid-character.
+					return n == sizeof(buf);
+				}
+				const unsigned char b = buf[i + k];
+				const unsigned char l = (k == 1) ? lo : 0x80;
+				if (const unsigned char h = (k == 1) ? hi : 0xBF; b < l || b > h) return false;
+			}
+			i += len;
+		}
+		return true;
+	}
+
+	inline Format getFormatFromFile(size_t& outSize, FILE* inFile) {
+		// Set file to start
+		const long loc = ftell(inFile);
+		fseek(inFile, 0, SEEK_SET);
+
+		unsigned char b[4] = {0, 0, 0, 0};
+		const size_t n = fread(b, 1, sizeof(b), inFile);
+
+		// Assume BINARY with no BOM
+		auto format = Format::BINARY;
+		outSize = 0;
+
+		// Check UTF32 first, since they are similar to UTF16's BOM
+		if (n >= 4 && b[0] == 0xFF && b[1] == 0xFE && b[2] == 0x00 && b[3] == 0x00) {
+			format = Format::UTF32LE;
+			outSize = 4;
+		} else if (n >= 4 && b[0] == 0x00 && b[1] == 0x00 && b[2] == 0xFE && b[3] == 0xFF) {
+			format = Format::UTF32BE;
+			outSize = 4;
+		} else if (n >= 3 && b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF) {
+			format = Format::UTF8;
+			outSize = 3;
+		} else if (n >= 2 && b[0] == 0xFF && b[1] == 0xFE) {
+			format = Format::UTF16LE;
+			outSize = 2;
+		} else if (n >= 2 && b[0] == 0xFE && b[1] == 0xFF) {
+			format = Format::UTF16BE;
+			outSize = 2;
+		} else {
+			// No BOM, since BOM in UTF8 is optional we need a more in-depth check
+			if (isUTF8(inFile)) {
+				format = Format::UTF8;
+			}
+		}
+
+		// Reset the file back to the original location
+		fseek(inFile, loc, SEEK_SET);
+		return format;
+	}
 }
 
 // An archive that can process files, uses standard c since it is faster
-//TODO: use template specialization w/ opentype and format
 template <File::OpenType TOpenType>
 class CBaseFileArchive {
 
@@ -182,7 +258,6 @@ protected:
 		return res;
 	}
 
-	// TODO: support Big Endian
 	long getBomOffset(TVector<unsigned char> BOM) const {
 		if (BOM.isEmpty())
 			return 0;
