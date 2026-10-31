@@ -10,11 +10,11 @@ public:
 
     CPathArchive() = default;
 
-    explicit CPathArchive(const CString& initialPath) {
+    CPathArchive(const CString& initialPath) {
         CPathArchive::write(initialPath);
     }
 
-    [[nodiscard]] std::string get() const {
+    [[nodiscard]] CString get() const {
         return str;
     }
 
@@ -22,9 +22,9 @@ public:
         return std::filesystem::exists((std::string)str);
     }
 
-    [[nodiscard]] std::string getFilename() const {
+    [[nodiscard]] CString getFilename() const {
         const auto loc = str.findLast(PATH_SEPARATOR);
-        if (loc == std::string::npos) {
+        if (loc == CString::npos) {
             return "";
         }
         return str.substr(loc + 1, str.getSize() - loc - 1);
@@ -32,11 +32,20 @@ public:
 
     void previous() {
         const auto loc = str.findLast(PATH_SEPARATOR);
-        if (loc == std::string::npos) {
+        if (loc == CString::npos) {
             return;
         }
         str.eraseAfter(loc + 1);
     }
+
+    operator CString() const {
+        return str;
+    }
+
+    operator std::string() const {
+        return str;
+    }
+
 protected:
 
     virtual size_t read(CString& outValue) override {

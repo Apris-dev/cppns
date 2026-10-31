@@ -132,6 +132,8 @@ public:
 
 	[[nodiscard]] constexpr_20 const TType* data() const { return m_Container.data(); }
 
+	[[nodiscard]] constexpr_20 const TType* array() const { return m_Container.c_str(); }
+
 	[[nodiscard]] constexpr_20 TType& top() {
 		return m_Container.front();
 	}

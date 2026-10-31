@@ -8,12 +8,12 @@ cppns_main() {
 
     CPathArchive path(CString{gExecutablePath});
 
-    assert(!path.get().empty(), "Path is empty!");
+    assert(!path.get().isEmpty(), "Path is empty!");
 
     path << "input.dat";
 
-    std::cout << path.get() << std::endl;
-    std::cout << path.getFilename() << std::endl;
+    std::cout << (std::string)path.get() << std::endl;
+    std::cout << (std::string)path.getFilename() << std::endl;
 
     {
         CFileArchive<File::OpenType::WRITE, File::Format::BINARY> fileArchive(path);
@@ -72,8 +72,8 @@ cppns_main() {
 
     path << "input2.dat";
 
-    std::cout << path.get() << std::endl;
-    std::cout << path.getFilename() << std::endl;
+    std::cout << (std::string)path.get() << std::endl;
+    std::cout << (std::string)path.getFilename() << std::endl;
 
     {
         CFileArchive<File::OpenType::WRITE> fileArchive(path);
@@ -132,8 +132,8 @@ cppns_main() {
 
     path << "input3.dat";
 
-    std::cout << path.get() << std::endl;
-    std::cout << path.getFilename() << std::endl;
+    std::cout << (std::string)path.get() << std::endl;
+    std::cout << (std::string)path.getFilename() << std::endl;
 
     {
         CFileArchive<File::OpenType::WRITE, File::Format::UTF16> fileArchive(path);
@@ -192,8 +192,8 @@ cppns_main() {
 
     path << "input4.dat";
 
-    std::cout << path.get() << std::endl;
-    std::cout << path.getFilename() << std::endl;
+    std::cout << (std::string)path.get() << std::endl;
+    std::cout << (std::string)path.getFilename() << std::endl;
 
     {
         CFileArchive<File::OpenType::WRITE, File::Format::UTF32> fileArchive(path);
