@@ -78,13 +78,13 @@ public:
 
 		Error::Assert{mFile};
 
-		if (mFile == nullptr)
+		if (!mFile)
 			throw Error::File::Open(filePath.get().array());
 	}
 
 	virtual ~CBaseFileArchive() {
+		if (!mFile) return;
 		fclose(mFile);
-		Error::Assert{mFile};
 	}
 
 	[[nodiscard]] constexpr static bool isRead() { return TOpenType & File::OpenType::READ; }
@@ -118,16 +118,16 @@ protected:
 		TStringType str;
 		size_t lines = 0; // Initial Line
 
-		const size_t loc = this->tell();
-		this->seekFromStart(0);
+		const size_t loc = tell();
+		seekFromStart(0);
 
-		while (this->template readUntilLE<Endian>(str) != EOF) {
+		while (readUntilLE<Endian>(str) != EOF) {
 			lines++;
 		}
 
-		Error::Assert{this->mFile};
+		Error::Assert{mFile};
 
-		this->seekFromStart(loc);
+		seekFromStart(loc);
 
 		return lines;
 	}
@@ -137,7 +137,7 @@ protected:
 		// Read the first line ending and assume other line endings are like that
 		TStringType str;
 		using CharT = TStringType::value_type;
-		while (this->template readUntil<Endian>(str, static_cast<CharT>('\n')) != EOF) {
+		while (readUntil<Endian>(str, static_cast<CharT>('\n')) != EOF) {
 			if (str.back() == static_cast<CharT>('\r')) {
 				return  File::LineEnding::CRLF;
 			}
@@ -160,13 +160,13 @@ protected:
 	}
 
 	void seek(const long inOffset) const {
-		fseek(this->mFile, inOffset, SEEK_CUR);
+		fseek(mFile, inOffset, SEEK_CUR);
 		Error::Assert{mFile};
 	}
 
 	void seekFromStart(long inOffset) const {
 		inOffset += mBomOffset;
-		fseek(this->mFile, inOffset, SEEK_SET);
+		fseek(mFile, inOffset, SEEK_SET);
 		Error::Assert{mFile};
 	}
 
@@ -178,7 +178,7 @@ protected:
 	}
 
 	void seekFromEnd(const long inOffset) const {
-		fseek(this->mFile, inOffset, SEEK_END);
+		fseek(mFile, inOffset, SEEK_END);
 		Error::Assert{mFile};
 	}
 
@@ -278,18 +278,22 @@ template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnd
 template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::LF>
 #endif
 class CBinaryFileArchive : public CBaseFileArchive<TOpenType>, public CBinaryArchive {
+
 public:
+
+	using Super = CBaseFileArchive<TOpenType>;
+	using Super::Super;
 
 	explicit CBinaryFileArchive(const CPathArchive& inFilePath):
 	CBaseFileArchive<TOpenType>(inFilePath) {
-		this->init(TVector<unsigned char>{}, getLineEndingFromFile());
+		Super::init(TVector<unsigned char>{}, getLineEndingFromFile());
 	}
 
 	[[nodiscard]] virtual size_t getLines() const override {
-		if constexpr (!this->isRead()) {
+		if constexpr (!Super::isRead()) {
 			throw Error::File::InvalidOperation("getLines() requires file read!");
 		} else {
-			return this->template getLines_Impl<String::Generic>();
+			return Super::template getLines_Impl<String::Generic>();
 		}
 	}
 
@@ -297,30 +301,30 @@ protected:
 
 	File::LineEnding getLineEndingFromFile() const {
 		// Is being overwritten, we don't care about previous file's line endings
-		if (this->isWrite())
+		if (Super::isWrite())
 			return TLineEnding;
 
 		// Assume platform specific line endings in case there are none in the file
-		const long loc = this->tell();
-		this->seekFromStart(0);
+		const long loc = Super::tell();
+		Super::seekFromStart(0);
 
-		const File::LineEnding res = this->template getLineEndingFromFile_Impl<String::Generic>();
+		const File::LineEnding res = Super::template getLineEndingFromFile_Impl<String::Generic>();
 
-		Error::Assert{this->mFile};
-		this->seekFromStart(loc);
+		Error::Assert{Super::mFile};
+		Super::seekFromStart(loc);
 
 		return res;
 	}
 
 	virtual size_t write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
-		const size_t res = fwrite(inValue, inElementSize, inCount, this->mFile);
-		Error::Assert{this->mFile};
+		const size_t res = fwrite(inValue, inElementSize, inCount, Super::mFile);
+		Error::Assert{Super::mFile};
 		return res;
 	}
 
 	virtual size_t read(void* inValue, const size_t inElementSize, const size_t inCount) override {
-		const size_t res = fread(inValue, inElementSize, inCount, this->mFile);
-		Error::Assert{this->mFile};
+		const size_t res = fread(inValue, inElementSize, inCount, Super::mFile);
+		Error::Assert{Super::mFile};
 		return res;
 	}
 
@@ -335,27 +339,30 @@ class CStringFileArchive : public CBaseFileArchive<TOpenType>, public CSArchive 
 
 public:
 
+	using Super = CBaseFileArchive<TOpenType>;
+	using Super::Super;
+
 	explicit CStringFileArchive(const CPathArchive& inFilePath):
 	CBaseFileArchive<TOpenType>(inFilePath) {
-		this->init(getBOMFromFile(), getLineEndingFromFile());
+		Super::init(getBOMFromFile(), getLineEndingFromFile());
 	}
 
 	[[nodiscard]] virtual size_t getLines() const override {
-		if constexpr (!this->isRead()) {
+		if constexpr (!Super::isRead()) {
 			throw Error::File::InvalidOperation("getLines() requires file read!");
 		} else {
 
 			switch (mFileFormat) {
 			case File::Format::UTF16LE:
-				return this->template getLines_Impl<String::UTF16, String::Endian::LITTLE>();
+				return Super::template getLines_Impl<String::UTF16, String::Endian::LITTLE>();
 			case File::Format::UTF16BE:
-				return this->template getLines_Impl<String::UTF16, String::Endian::BIG>();
+				return Super::template getLines_Impl<String::UTF16, String::Endian::BIG>();
 			case File::Format::UTF32LE:
-				return this->template getLines_Impl<String::UTF32, String::Endian::LITTLE>();
+				return Super::template getLines_Impl<String::UTF32, String::Endian::LITTLE>();
 			case File::Format::UTF32BE:
-				return this->template getLines_Impl<String::UTF32, String::Endian::BIG>();
+				return Super::template getLines_Impl<String::UTF32, String::Endian::BIG>();
 			default:
-				return this->template getLines_Impl<String::Generic>();
+				return Super::template getLines_Impl<String::Generic>();
 			}
 		}
 	}
@@ -364,46 +371,46 @@ protected:
 
 	File::LineEnding getLineEndingFromFile() const {
 		// Is being overwritten, we don't care about previous file's line endings
-		if (this->isWrite())
+		if (Super::isWrite())
 			return TLineEnding;
 
 		// Assume platform specific line endings in case there are none in the file
-		const long loc = this->tell();
-		this->seekFromStart(0);
+		const long loc = Super::tell();
+		Super::seekFromStart(0);
 
 		// Read the first line ending and assume other line endings are like that
 		File::LineEnding res = TLineEnding;
 
 		switch (mFileFormat) {
 		case File::Format::UTF16LE:
-			res = this->template getLineEndingFromFile_Impl<String::UTF16, String::Endian::LITTLE>();
+			res = Super::template getLineEndingFromFile_Impl<String::UTF16, String::Endian::LITTLE>();
 		case File::Format::UTF16BE:
-			res = this->template getLineEndingFromFile_Impl<String::UTF16, String::Endian::BIG>();
+			res = Super::template getLineEndingFromFile_Impl<String::UTF16, String::Endian::BIG>();
 			break;
 		case File::Format::UTF32LE:
-			res = this->template getLineEndingFromFile_Impl<String::UTF32, String::Endian::LITTLE>();
+			res = Super::template getLineEndingFromFile_Impl<String::UTF32, String::Endian::LITTLE>();
 		case File::Format::UTF32BE:
-			res = this->template getLineEndingFromFile_Impl<String::UTF32, String::Endian::BIG>();
+			res = Super::template getLineEndingFromFile_Impl<String::UTF32, String::Endian::BIG>();
 			break;
 		default:
-			res = this->template getLineEndingFromFile_Impl<String::Generic>();
+			res = Super::template getLineEndingFromFile_Impl<String::Generic>();
 			break;
 		}
 
-		Error::Assert{this->mFile};
-		this->seekFromStart(loc);
+		Error::Assert{Super::mFile};
+		Super::seekFromStart(loc);
 
 		return res;
 	}
 
 	TVector<unsigned char> getBOMFromFile() {
 		// Only care about previous BOM if it won't be overridden
-		if (!this->isWrite()) {
+		if (!Super::isWrite()) {
 			// Set file to start
-			fseek(this->mFile, 0, SEEK_SET);
+			fseek(Super::mFile, 0, SEEK_SET);
 
 			unsigned char b[4] = {0, 0, 0, 0};
-			const size_t n = fread(b, 1, sizeof(b), this->mFile);
+			const size_t n = fread(b, 1, sizeof(b), Super::mFile);
 
 			// Assume BINARY
 			mFileFormat = File::Format::UTF8;
@@ -454,7 +461,7 @@ protected:
 	}
 
 	virtual size_t write(const CString& inValue) override {
-		const CString str = this->isEmpty() ? inValue : File::getLineEndingString(this->lineEndings) + inValue;
+		const CString str = Super::isEmpty() ? inValue : File::getLineEndingString(Super::lineEndings) + inValue;
 
 		switch (mFileFormat) {
 		case File::Format::UTF16LE:
@@ -473,9 +480,9 @@ protected:
 	template <typename TStringType, String::Endian Endian = String::Endian::NATIVE>
 	size_t read_Impl(CString& outValue) {
 		TStringType str;
-		this->template readUntilLE<Endian>(str);
+		Super::template readUntilLE<Endian>(str);
 
-		Error::Assert{this->mFile};
+		Error::Assert{Super::mFile};
 
 		outValue = CString{str};
 
@@ -484,8 +491,8 @@ protected:
 
 	template <typename TStringType>
 	size_t write_Impl(const TStringType& line) {
-		const size_t res = fwrite(line.data(), sizeof(TStringType::value_type), line.size(), this->mFile);
-		Error::Assert{this->mFile};
+		const size_t res = fwrite(line.data(), sizeof(typename TStringType::value_type), line.size(), Super::mFile);
+		Error::Assert{Super::mFile};
 		return res;
 	}
 

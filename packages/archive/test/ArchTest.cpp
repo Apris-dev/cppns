@@ -8,6 +8,8 @@
  *TODO: handle linux and windows case sensitive mismatch
  * Macos and Windows are default case-insensitive
  * Linux is case-sensitive
+ *
+ * Default Case Insensitive, but should an option to change that (in path archive)
 */
 cppns_main() {
 
@@ -30,7 +32,19 @@ cppns_main() {
         fileArchive << true;
     }
 
+    // Test case sensitivity. By default, we should be case-insensitive
+    path.previous();
+    std::cout << (std::string)path.get() << std::endl;
+
+    std::string str = path.top();
+    std::cout << str << std::endl;
+    path.previous();
+    std::ranges::transform(str, str.begin(), ::toupper);
+    path << (CString)str;
+    path << "INPUT.dat";
+
     assert(path.exists(), "Path does not exist!");
+    std::cout << (std::string)path.get() << std::endl;
 
     {
         CFileArchive<File::OpenType::BINARY_READ> fileArchive(path);

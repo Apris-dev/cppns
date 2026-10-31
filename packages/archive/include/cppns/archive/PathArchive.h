@@ -18,11 +18,29 @@ public:
         return str;
     }
 
+    [[nodiscard]] CString top() const {
+        CString temp = str;
+        // Make sure we dont include the path separator at the end of the string
+        if (temp.bottom() == PATH_SEPARATOR) {
+            temp.pop();
+        }
+        const auto loc = temp.findLast(PATH_SEPARATOR);
+        if (loc == CString::npos) {
+            return "";
+        }
+        return temp.substr(loc + 1, temp.getSize() - loc - 1);
+    }
+
     [[nodiscard]] bool exists() const {
         return std::filesystem::exists((std::string)str);
     }
 
+    //TODO: only return if a file
     [[nodiscard]] CString getFilename() const {
+        // If this is a path, return an empty string
+        if (str.bottom() == PATH_SEPARATOR) {
+            return "";
+        }
         const auto loc = str.findLast(PATH_SEPARATOR);
         if (loc == CString::npos) {
             return "";
@@ -31,7 +49,12 @@ public:
     }
 
     void previous() {
-        const auto loc = str.findLast(PATH_SEPARATOR);
+        CString temp = str;
+        // Make sure we dont include the path separator at the end of the string
+        if (temp.bottom() == PATH_SEPARATOR) {
+            temp.pop();
+        }
+        const auto loc = temp.findLast(PATH_SEPARATOR);
         if (loc == CString::npos) {
             return;
         }
