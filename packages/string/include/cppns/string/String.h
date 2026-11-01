@@ -743,6 +743,38 @@ public:
 		m_Container.append(str.m_Container);
 	}
 
+	//TODO: default locale only does a-z to A-Z, but we cant rely on that for now
+
+	// Gets a lowercase version of this string
+	CString getLower() const {
+		CString otr = *this;
+		otr.toLower();
+		return otr;
+	}
+
+	// Transforms this string to lowercase
+	void toLower() {
+		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
+		[](char c) {
+			return (c >= 'A' && c <= 'Z') ? static_cast<char>(c + ('a' - 'A')) : c;
+		});
+	}
+
+	// Gets an uppercase version of this string
+	CString getUpper() const {
+		CString otr = *this;
+		otr.toUpper();
+		return otr;
+	}
+
+	// Transforms this string to uppercase
+	void toUpper() {
+		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
+		[](char c) {
+			return (c >= 'a' && c <= 'z') ? static_cast<char>(c - ('a' - 'A')) : c;
+		});
+	}
+
 	constexpr_20 operator TSubcontainerType<>() const noexcept {
 		return m_Container;
 	}

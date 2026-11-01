@@ -17,6 +17,12 @@ cppns_main() {
 
     assert(!path.get().isEmpty(), "Path is empty!");
 
+    std::cout << "File Listing:" << std::endl;
+    for (auto files = path.list(); auto& file : files) {
+        std::cout << (std::string)file << std::endl;
+    }
+    std::cout << std::endl;
+
     path << "input.dat";
 
     std::cout << (std::string)path.get() << std::endl;
@@ -33,14 +39,19 @@ cppns_main() {
     }
 
     // Test case sensitivity. By default, we should be case-insensitive
-    std::string str = path.get();
-    std::ranges::transform(str, str.begin(), ::toupper);
+    CString str = path.get();
+    str.toUpper();
 
     assert(path.exists(), "Path does not exist!");
-    std::cout << str << std::endl;
+    std::cout << (std::string)str << std::endl;
+
+    // Path should be corrected to the real case values
+    CPathArchive path2 = str;
+    std::cout << (std::string)path2 << std::endl;
+    assert(path.get() == path2.get());
 
     {
-        CFileArchive<File::OpenType::BINARY_READ> fileArchive(CPathArchive{str});
+        CFileArchive<File::OpenType::BINARY_READ> fileArchive(path);
 
         size_t v;
         fileArchive >> v;
