@@ -88,11 +88,14 @@ jobs:
       - name: Install QEMU and arm GCC/G++
         if: matrix.platform.triplet == 'arm-linux'
         run: |
+          sudo dpkg --add-architecture armhf
           sudo apt-get update
           sudo apt-get install -y \
             gcc-arm-linux-gnueabihf \
             g++-arm-linux-gnueabihf \
-            qemu-user-static
+            qemu-user-static \
+            libc6:armhf \
+            libstdc++6:armhf
           
           arm-linux-gnueabihf-gcc --version
           arm-linux-gnueabihf-g++ --version
