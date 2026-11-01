@@ -1,7 +1,7 @@
 #pragma once
 
-#include <charconv>
 #include <codecvt>
+#include "cppns/util/fast_float.h"
 
 #include "cppns/string/String.h"
 #include "cppns/util/Pair.h"
@@ -41,7 +41,6 @@ protected:
 
 	MAKE_READ(float)
 	MAKE_READ(double)
-	MAKE_READ(long double)
 #undef MAKE_READ
 
 	/*
@@ -292,7 +291,6 @@ protected:
 
 	MAKE_READ(float)
 	MAKE_READ(double)
-	MAKE_READ(long double)
 #undef MAKE_READ
 
 	/*
@@ -378,7 +376,7 @@ protected:
 	virtual size_t read(x& inValue) final override { \
 		CString str; \
 		const size_t loc = read(str); \
-		std::from_chars(str.data(), str.data() + str.getSize(), inValue); \
+		fast_float::from_chars(str.data(), str.data() + str.getSize(), inValue); \
 		return loc; \
 	}
 
@@ -420,7 +418,6 @@ protected:
 
 	MAKE_READ(float)
 	MAKE_READ(double)
-	MAKE_READ(long double)
 #undef MAKE_READ
 
 };

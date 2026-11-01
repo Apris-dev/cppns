@@ -1,5 +1,7 @@
 #pragma once
 
+#include <bit>
+
 #include "cppns/container/SequenceContainer.h"
 #include "cppns/util/ErrorHandling.h"
 
