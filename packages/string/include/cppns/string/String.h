@@ -21,9 +21,24 @@ namespace String {
 
 	// Convert lowercase to cppns standard
 	enum class Endian : uint8 {
+#ifdef __cpp_lib_endian
 		LITTLE = static_cast<uint8>(std::endian::little),
 		BIG = static_cast<uint8>(std::endian::big),
 		NATIVE = static_cast<uint8>(std::endian::native)
+#else
+		LITTLE = 0,
+		BIG = 1,
+	#if USING_MSVC // Windows: assume little endian
+		NATIVE = LITTLE
+	#else
+		// GCC/Clang check for byte order macros, if they don't exist, assume little endian
+		#if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+			NATIVE = BIG
+		#else
+			NATIVE = LITTLE
+		#endif
+	#endif
+#endif
 	};
 
 	constexpr static char8 swapBytes(const char8 c) noexcept {
@@ -641,11 +656,11 @@ public:
 	}
 #endif
 
-	constexpr_20 void erase(const char16* inArray) {
+	void erase(const char16* inArray) {
 		m_Container.erase(find(inArray), std::char_traits<char16>::length(inArray) * sizeof(char16));
 	}
 
-	constexpr_20 void erase(const char32* inArray) {
+	void erase(const char32* inArray) {
 		m_Container.erase(find(inArray), std::char_traits<char32>::length(inArray) * sizeof(char32));
 	}
 
