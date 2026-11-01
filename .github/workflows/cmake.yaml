@@ -112,7 +112,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-logs
+          name: 'c++${{ matrix.cxx_standard }}-${{ matrix.platform.name }}-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}-test-logs'
           path: '${{ github.workspace }}/bin/ninja-multi-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}/Testing/Temporary/LastTest.log'
   all-checks-passed:
     name: All checks passed
