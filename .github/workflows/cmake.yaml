@@ -109,7 +109,8 @@ jobs:
             gcc-arm-linux-gnueabihf \
             g++-arm-linux-gnueabihf \
             qemu-user-static \
-            libc6-dev:armhf
+            libc6-dev:armhf \
+            libstdc++-12-dev:armhf
           
           arm-linux-gnueabihf-gcc --version
           arm-linux-gnueabihf-g++ --version
