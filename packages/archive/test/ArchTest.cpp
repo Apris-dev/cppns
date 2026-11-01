@@ -36,7 +36,7 @@ cppns_main() {
     // (emulation, a chroot, a sandbox, or a listing permission you lack)
 #if IS_EMULATED
     // Test case sensitivity. By default, we should be case-insensitive
-    /*CString str = path.get();
+    CString str = path.get();
     str.toUpper();
 
     assert(path.exists(), "Path does not exist!");
@@ -45,7 +45,7 @@ cppns_main() {
     // Path should be corrected to the real case values
     CPathArchive path2 = str;
     std::cout << (std::string)path2 << std::endl;
-    assert(path.get() == path2.get());*/
+    assert(path.get() == path2.get());
 #endif
 
     {
