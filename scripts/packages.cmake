@@ -158,14 +158,18 @@ macro (_set_target_defaults TARGET_NAME)
 
     if (CMAKE_CROSSCOMPILING)
         target_compile_definitions(${TARGET_NAME} INTERFACE IS_CROSS_COMPILING=1)
+        message("Told Target ${TARGET_NAME} that we are cross-compiling")
     else ()
         target_compile_definitions(${TARGET_NAME} INTERFACE IS_CROSS_COMPILING=0)
+        message("Told Target ${TARGET_NAME} that we are NOT cross-compiling")
     endif ()
 
     if (DEFINED CMAKE_CROSSCOMPILING_EMULATOR)
         target_compile_definitions(${TARGET_NAME} INTERFACE IS_EMULATED=1)
+        message("Told Target ${TARGET_NAME} that we are emulated")
     else ()
         target_compile_definitions(${TARGET_NAME} INTERFACE IS_EMULATED=0)
+        message("Told Target ${TARGET_NAME} that we are NOT emulated")
     endif ()
 endmacro()
 
