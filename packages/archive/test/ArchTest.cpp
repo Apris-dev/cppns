@@ -4,13 +4,6 @@
 #include "cppns/archive/HashArchive.h"
 #include "cppns/archive/PathArchive.h"
 
-/*
- *TODO: handle linux and windows case sensitive mismatch
- * Macos and Windows are default case-insensitive
- * Linux is case-sensitive
- *
- * Default Case Insensitive, but should an option to change that (in path archive)
-*/
 cppns_main() {
 
     CPathArchive path(CString{gExecutablePath});

@@ -10,9 +10,7 @@ struct TVirtualIterator<TContainerType, TItrType> {
 	using Traits = TContainerTraits<TContainerType>;
 
 	constexpr_20 TVirtualIterator(const TItrType& inItr): itr(inItr) {}
-
-	//TODO: verify offset or keep unsafe...
-
+	
 	constexpr_23 decltype(auto) operator*() noexcept { //returns ref
 		using KeyType = typename Traits::KeyType;
 		using ValueType = typename Traits::ValueType;

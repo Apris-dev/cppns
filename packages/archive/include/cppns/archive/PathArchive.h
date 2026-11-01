@@ -137,9 +137,7 @@ protected:
         previous();
         return 0;
     }
-
-    //TODO: after this point is foreign to me
-
+    
     // Appends 'inValue' to the path, creating directories as needed.
     // Throws Error::Path::PathNotCreatable if a file is in the way or a directory can't be created.
     // On failure the stored path is unchanged (directories created before the failure stay, like mkdir -p).

@@ -10,8 +10,6 @@ struct TVirtualIterator<TContainerType, TItrType> {
 
 	constexpr_20 TVirtualIterator(const TItrType& inItr): itr(inItr) {}
 
-	//TODO: verify offset or keep unsafe...
-
 	constexpr_23 decltype(auto) operator*() noexcept { //returns ref
 		return *itr;
 	}

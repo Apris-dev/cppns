@@ -3,7 +3,6 @@
 #include <charconv>
 #include <codecvt>
 
-//TODO: circular include
 #include "cppns/string/String.h"
 #include "cppns/util/Pair.h"
 
@@ -433,7 +432,6 @@ protected:
 	// Inherit string write but don't override
 	using COArchive::write;
 
-	//TODO: string conversions
 #define MAKE_WRITE(x) \
 	virtual size_t write(const x& inValue) final override { \
 		return write(CString(std::to_string(inValue))); \

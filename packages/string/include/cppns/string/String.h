@@ -115,7 +115,6 @@ public:
 
 	CString(const char32* inArray, const size_t inCount): CString(String::UTF32(inArray, inCount)) {}
 
-	//TODO: support more char types
 	constexpr_20 CString(const TType& inChar) {
 		if (!isASCII(inChar))
 			throw Error::String::NonASCIICharacter();
