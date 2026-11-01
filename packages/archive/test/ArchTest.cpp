@@ -31,6 +31,8 @@ cppns_main() {
         fileArchive << true;
     }
 
+    // If emulated, paths won't resolve the same, so skip this test
+#if IS_EMULATED
     // Test case sensitivity. By default, we should be case-insensitive
     CString str = path.get();
     str.toUpper();
@@ -42,6 +44,7 @@ cppns_main() {
     CPathArchive path2 = str;
     std::cout << (std::string)path2 << std::endl;
     assert(path.get() == path2.get());
+#endif
 
     {
         CFileArchive<File::OpenType::BINARY_READ> fileArchive(path);

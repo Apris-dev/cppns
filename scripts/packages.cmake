@@ -155,6 +155,18 @@ macro (_set_target_defaults TARGET_NAME)
 
     # Get the top level binary directory, can be used to determine the where the binary is and where the source is.
     target_compile_definitions(${TARGET_NAME} INTERFACE DEBUG_BINARY_ROOT_DIR="${DEBUG_BINARY_ROOT_DIR}")
+
+    if (CMAKE_CROSSCOMPILING)
+        target_compile_definitions(${TARGET_NAME} INTERFACE IS_CROSS_COMPILING=1)
+    else ()
+        target_compile_definitions(${TARGET_NAME} INTERFACE IS_CROSS_COMPILING=0)
+    endif ()
+
+    if (CMAKE_CROSSCOMPILING_EMULATOR)
+        target_compile_definitions(${TARGET_NAME} INTERFACE IS_EMULATED=1)
+    else ()
+        target_compile_definitions(${TARGET_NAME} INTERFACE IS_EMULATED=0)
+    endif ()
 endmacro()
 
 # Function for creating packages
