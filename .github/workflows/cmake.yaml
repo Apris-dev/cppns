@@ -106,6 +106,14 @@ jobs:
           configurePresetAdditionalArgs: "['-DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }}']"
           buildPreset: 'ninja-release-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}'
           testPreset: 'test-release-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}'
+
+        # Upload test logs to github as a workflow artifact
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: '${{ github.workspace }}/bin/ninja-multi-${{ matrix.platform.compiler }}-${{ matrix.platform.arch }}/Testing/Temporary/LastTest.log'
   all-checks-passed:
     name: All checks passed
     if: ${{ always() }}
