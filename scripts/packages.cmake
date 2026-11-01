@@ -162,7 +162,7 @@ macro (_set_target_defaults TARGET_NAME)
         target_compile_definitions(${TARGET_NAME} INTERFACE IS_CROSS_COMPILING=0)
     endif ()
 
-    if (CMAKE_CROSSCOMPILING_EMULATOR)
+    if (DEFINED CMAKE_CROSSCOMPILING_EMULATOR)
         target_compile_definitions(${TARGET_NAME} INTERFACE IS_EMULATED=1)
     else ()
         target_compile_definitions(${TARGET_NAME} INTERFACE IS_EMULATED=0)
