@@ -263,6 +263,18 @@ struct TSequenceContainer : SContainer {
 		return get(index);
 	}
 
+	// Fills with default constructed objects
+	void fill()
+	requires (bIsLimitedSize)  { derived(*this).fill(); }
+
+	// Fills with specified objects
+	void fill(const TType& obj)
+	requires (bIsLimitedSize) { derived(*this).fill(obj); }
+
+	// Fills with objects returned by func
+	void fill(const std::function<TType(size_t)>& func)
+	requires (bIsLimitedSize) { derived(*this).fill(func); }
+
 	// Fills container with n defaulted elements
 	void resize(size_t amt)
 	requires (!bIsLimitedSize) { derived(*this).resize(amt); }
