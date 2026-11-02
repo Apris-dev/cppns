@@ -770,9 +770,10 @@ public:
 
 	// Transforms this string to lowercase
 	void toLower() {
+		if (isEmpty()) return;
 		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
 		[](char c) {
-			return (c >= 'A' && c <= 'Z') ? static_cast<char>(c + ('a' - 'A')) : c;
+			return c >= 'A' && c <= 'Z' ? static_cast<char>(c + ('a' - 'A')) : c;
 		});
 	}
 
@@ -785,10 +786,27 @@ public:
 
 	// Transforms this string to uppercase
 	void toUpper() {
+		if (isEmpty()) return;
 		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
 		[](char c) {
-			return (c >= 'a' && c <= 'z') ? static_cast<char>(c - ('a' - 'A')) : c;
+			return c >= 'a' && c <= 'z' ? static_cast<char>(c - ('a' - 'A')) : c;
 		});
+	}
+
+	// Gets an uppercase version of this string that is capitalized
+	CString getCapitalized() const {
+		CString otr = *this;
+		otr.toCapitalized();
+		return otr;
+	}
+
+	// Capitalizes the string and lowercases the rest
+	// If the first character cannot be capitalized, it will return a lowercase string
+	void toCapitalized() {
+		if (isEmpty()) return;
+		toLower();
+		char& c = get(0);
+		c = c >= 'a' && c <= 'z' ? static_cast<char>(c - ('a' - 'A')) : c;
 	}
 
 	constexpr_20 operator TSubcontainerType<>() const noexcept {
