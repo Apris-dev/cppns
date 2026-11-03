@@ -19,7 +19,7 @@ namespace Path {
 }
 
 namespace Error::Path {
-    CREATE_ERROR_TYPE(PathNotCreatable, "Path Creation Exception", "Could not create or use a directory for this path!", Error::Runtime);
+    CREATE_ERROR_TYPE(PathNotCreatable, "Path Creation Exception", "Could not create or use a directory for this path! Reason: {}", Error::Runtime);
 }
 
 /* Path Convention:
@@ -151,8 +151,7 @@ protected:
             const fsPath real = match(built, part);
             // If the real case doesnt exist keep the caller's spelling
             built /= real.empty() ? part : real;
-            if (!ensureDirectory(built))
-                throw Error::Path::PathNotCreatable();
+            ensureDirectory(built);
         }
 
         // Add the filename
@@ -196,17 +195,32 @@ private:
 
     // True if path is now an existing directory (created if it was missing).
     // False if something that isn't a directory is in the way, or creation failed.
-    static bool ensureDirectory(const fsPath& p) {
+    static void ensureDirectory(const fsPath& p) {
         std::error_code ec;
+
+        // Isn't a directory or doesn't exist
         if (std::filesystem::is_directory(p, ec))
-            return true;
+            return;
+
+        // Exists and isn't a file
         ec.clear();
         if (std::filesystem::exists(p, ec))
-            return false;
+            throw new Error::Path::PathNotCreatable("Tried to create a directory with the same name as a file!");
+
+        // Attempt to create the directory
         ec.clear();
         std::filesystem::create_directory(p, ec);
-        // Tolerate someone else creating it between our check and the create
-        return !ec || std::filesystem::is_directory(p, ec);
+
+        // Directory creation failed
+        if (!ec)
+            return;
+
+        // Last resort check if the directory exists
+        if (std::error_code otrEc; std::filesystem::is_directory(p, otrEc))
+            return;
+
+        // Directory could not be created and does not exist
+        throw new Error::Path::PathNotCreatable(ec.message());
     }
 
     // Gets the true case for part in the directory.
