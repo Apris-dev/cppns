@@ -407,6 +407,8 @@ cppns_main() {
         assert(str == "HELLO");
         str.toCapitalized();
         assert(str == "Hello");
+        str.toFlippedCase();
+        assert(str == "hELLO");
     }
 
     return 0;

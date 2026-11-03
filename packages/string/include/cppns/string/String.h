@@ -809,6 +809,26 @@ public:
 		c = c >= 'a' && c <= 'z' ? static_cast<char>(c - ('a' - 'A')) : c;
 	}
 
+	// Gets a version of this string with it's case flipped
+	CString getFlippedCase() const {
+		CString otr = *this;
+		otr.toFlippedCase();
+		return otr;
+	}
+
+	// Transforms this string to flipped case
+	void toFlippedCase() {
+		if (isEmpty()) return;
+		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
+		[](char c) {
+			if (c >= 'a' && c <= 'z')
+				return static_cast<char>(c - ('a' - 'A'));
+			if (c >= 'A' && c <= 'Z')
+				return static_cast<char>(c + ('a' - 'A'));
+			return c;
+		});
+	}
+
 	constexpr_20 operator TSubcontainerType<>() const noexcept {
 		return m_Container;
 	}
