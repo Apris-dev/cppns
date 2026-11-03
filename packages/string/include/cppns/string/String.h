@@ -173,6 +173,8 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
+	CString(const std::filesystem::path& path): CString(path.u8string()) {}
+
 	[[nodiscard]] constexpr_20 size_t getSize() const {
 		return m_Container.size();
 	}
@@ -1113,6 +1115,10 @@ public:
 			i += res.length;
 		}
 		return str;
+	}
+
+	std::filesystem::path toPath() const {
+		return toUTF8();
 	}
 
 };

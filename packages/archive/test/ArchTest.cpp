@@ -6,7 +6,35 @@
 
 cppns_main() {
 
-    CPathArchive path(CString{gExecutablePath});
+    // Print our working directory
+    {
+        CPathArchive path(".");
+        std::cout << (std::string)path << std::endl;
+    }
+
+    // Print root
+    {
+        CPathArchive path("/");
+        std::cout << (std::string)path << std::endl;
+    }
+
+    CPathArchive path("~");
+
+    // Test to go up and down a directory
+    {
+        CString fullPath = path.get();
+        CString current0 = path.top();
+        path << "..";
+        CString current1 = path.top();
+        path << "..";
+        path << current1;
+        path << current0;
+
+        std::cout << (std::string)fullPath << std::endl;
+        std::cout << (std::string)path.get() << std::endl;
+
+        assert(fullPath == path.get(), "Failed going up a directory and going back!");
+    }
 
     assert(!path.get().isEmpty(), "Path is empty!");
 
@@ -32,9 +60,14 @@ cppns_main() {
     }
 
     // If emulated, paths won't resolve the same, so skip this test
-    //TODO: fix patharchive to work in scenarios such as these or display a better error
-    // (emulation, a chroot, a sandbox, or a listing permission you lack)
-#if !IS_EMULATED
+
+    //TODO: List of issues that occur with searching directories:
+    // chroot - Changes root directory, directories inside chroot are direct children of root '/'.  This means searching will likely fail unless exec is inside chroot
+    // emulation - Normally ran with root mappings, similar to chroot
+    // sandbox (container) - Directories that are not in the sandbox cannot be searched, sandboxes can deny permissions to list directories
+    // no read perms - cannot list directories, should message
+    // no write perms - can list and search, but cannot write, should message
+
     // Test case sensitivity. By default, we should be case-insensitive
     CString str = path.get();
     str.toUpper();
@@ -46,7 +79,6 @@ cppns_main() {
     CPathArchive path2 = str;
     std::cout << (std::string)path2 << std::endl;
     assert(path.get() == path2.get());
-#endif
 
     {
         CFileArchive<File::OpenType::BINARY_READ> fileArchive(path);
