@@ -10,15 +10,35 @@ cppns_main() {
     {
         CPathArchive path(".");
         std::cout << (std::string)path << std::endl;
+
+        // Checks perms
+        std::cout << "Working directory permissions: ";
+        Path::Permissions perms = path.getPermissions();
+        std::cout << (perms & Path::Permissions::READ ? "r" : "_");
+        std::cout << (perms & Path::Permissions::WRITE ? "w" : "_");
+        std::cout << (perms & Path::Permissions::EXECUTE ? "x" : "_") << std::endl;
     }
 
     // Print root
     {
         CPathArchive path("/");
         std::cout << (std::string)path << std::endl;
+
+        // Checks perms
+        std::cout << "Root directory permissions: ";
+        Path::Permissions perms = path.getPermissions();
+        std::cout << (perms & Path::Permissions::READ ? "r" : "_");
+        std::cout << (perms & Path::Permissions::WRITE ? "w" : "_");
+        std::cout << (perms & Path::Permissions::EXECUTE ? "x" : "_") << std::endl;
     }
 
     CPathArchive path("~");
+
+    // Executable directory should have reliable permissions to test for
+    Path::Permissions perms = path.getPermissions();
+    assert(perms & Path::Permissions::READ, "Working directory does not have read permissions");
+    assert(perms & Path::Permissions::WRITE, "Working directory does not have write permissions");
+    assert(perms & Path::Permissions::EXECUTE, "Working directory does not have execute permissions");
 
     // Test to go up and down a directory
     {
