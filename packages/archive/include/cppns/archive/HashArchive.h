@@ -6,11 +6,9 @@
 #include <bit>
 #endif
 
-#include <cstring>
-
 #include "Archive.h"
 
-class CHashArchive : public COutputArchive {
+class CHashArchive : public CBinaryOArchive {
 
 public:
 
@@ -24,10 +22,8 @@ public:
 #endif
     }
 
-    size_t write(const void* inValue, const size_t inElementSize) override {
-        return write(inValue, inElementSize, 1);
-    }
-
+protected:
+    
     virtual size_t write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
         auto bytes = static_cast<const uint8_t*>(inValue);
 

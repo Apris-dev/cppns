@@ -4,6 +4,7 @@
 #include "cppns/container/Vector.h"
 #include "cppns/memory/Memory.h"
 #include "cppns/util/Threading.h"
+#include "cppns/util/Pair.h"
 
 #include "TestShared.h"
 

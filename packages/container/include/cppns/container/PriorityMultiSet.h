@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <set>
-#include "Container.h"
+#include "SelfAssociativeContainer.h"
 #include "cppns/util/InitializerList.h"
 
 template <typename TType>

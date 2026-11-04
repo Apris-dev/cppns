@@ -5,6 +5,8 @@ set(CMAKE_SYSTEM_PROCESSOR aarch64)
 set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
 set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
 
+set(QEMU_LD_PREFIX "/usr/aarch64-linux-gnu/lib")
+
 # Requires qemu-user-static on debian
 set(CMAKE_CROSSCOMPILING_EMULATOR
         "qemu-aarch64-static;-L;/usr/aarch64-linux-gnu"

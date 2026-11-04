@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <vector>
-#include "Container.h"
+#include "SequenceContainer.h"
 #include "cppns/util/InitializerList.h"
 
 template <typename TType>

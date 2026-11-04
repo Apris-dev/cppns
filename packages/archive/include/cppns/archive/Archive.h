@@ -1,60 +1,68 @@
 #pragma once
 
-#include <charconv>
-#include <string>
+#include <codecvt>
+#include "cppns/util/fast_float.h"
 
-#include "cppns/util/InitializerList.h"
+#include "cppns/string/String.h"
 #include "cppns/util/Pair.h"
 
-//TODO: delimiter template?
-class CBaseStringArchive {
+class CIArchive {
 
 protected:
 
-	[[nodiscard]] virtual std::string get() const = 0;
+#define MAKE_READ(x) \
+	virtual size_t read(x& inValue) = 0;
 
-	virtual largest write(const std::string& inValue) = 0;
+	/*
+	 * Integral Types
+	 */
 
-	virtual largest read(std::string& outValue) = 0;
+	MAKE_READ(bool)
+	MAKE_READ(char)
 
-	virtual largest read(size_t amount) = 0;
+	MAKE_READ(unsigned char)
+	MAKE_READ(signed char)
+
+	MAKE_READ(unsigned short)
+	MAKE_READ(signed short)
+
+	MAKE_READ(unsigned int)
+	MAKE_READ(signed int)
+
+	MAKE_READ(unsigned long)
+	MAKE_READ(signed long)
+
+	MAKE_READ(unsigned long long)
+	MAKE_READ(signed long long)
+
+	/*
+	 * Floating Point Types
+	 */
+
+	MAKE_READ(float)
+	MAKE_READ(double)
+#undef MAKE_READ
+
+	/*
+	 * Strings
+	 */
+
+	virtual size_t read(CString& inValue) = 0;
 
 public:
 
-	virtual ~CBaseStringArchive() = default;
+	virtual ~CIArchive() = default;
 
-	friend CBaseStringArchive& operator>>(CBaseStringArchive& inArchive, std::string& inValue) {
+	template <typename TType>
+	requires std::is_arithmetic_v<TType>
+	friend CIArchive& operator>>(CIArchive& inArchive, TType& inValue) {
 		inArchive.read(inValue);
-		return inArchive;
-	}
-
-	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const std::string& inValue) {
-		inArchive.write(inValue);
-		return inArchive;
-	}
-
-	template <typename TType>
-	requires std::is_arithmetic_v<TType>
-	friend CBaseStringArchive& operator>>(CBaseStringArchive& inArchive, TType& inValue) {
-		std::string str = inArchive.get();
-		const std::from_chars_result result = std::from_chars(str.data(), str.data() + str.size(), inValue);
-		if (result.ec == std::errc()) {
-			const size_t loc = result.ptr - str.data();
-			inArchive.read(loc);
-		}
-		return inArchive;
-	}
-
-	template <typename TType>
-	requires std::is_arithmetic_v<TType>
-	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TType& inValue) {
-		inArchive << std::to_string(inValue);
 		return inArchive;
 	}
 
 	template <typename TType>
 	requires std::is_enum_v<TType>
-	friend CBaseStringArchive& operator>>(CBaseStringArchive& inArchive, TType& inEnum) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TType& inEnum) {
 		using EnumType = std::underlying_type_t<TType>;
 		EnumType value;
 		inArchive >> value;
@@ -63,75 +71,186 @@ public:
 	}
 
 	template <typename TType>
-	requires std::is_enum_v<TType>
-	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TType& inEnum) {
-		using EnumType = std::underlying_type_t<TType>;
-		inArchive << static_cast<EnumType>(inEnum);
-		return inArchive;
-	}
-
-	template <typename TType>
-	friend CBaseStringArchive& operator>>(CBaseStringArchive& inArchive, TType*& ptr) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TType*& ptr) {
 		size_t value;
 		inArchive >> value;
 		ptr = reinterpret_cast<TType*>(value);
 		return inArchive;
 	}
 
-	template <typename TType>
-	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TType*& ptr) {
-		inArchive << reinterpret_cast<size_t>(ptr);
+	friend CIArchive& operator>>(CIArchive& inArchive, CString& inValue) {
+		inArchive.read(inValue);
+		return inArchive;
+	}
+
+	template <typename TContainerType>
+	friend CIArchive& operator>>(CIArchive& inArchive, TSequenceContainer<TContainerType>& inValue) {
+		using TType = TSequenceContainer<TContainerType>::TType;
+
+		size_t size;
+		inArchive >> size;
+		inValue.resize(size, [&](size_t) {
+			TType obj;
+			inArchive >> obj;
+			return obj;
+		});
+		return inArchive;
+	}
+
+	template <typename TContainerType>
+	friend CIArchive& operator>>(CIArchive& inArchive, TAssociativeContainer<TContainerType>& inValue) {
+		using TKeyType = TAssociativeContainer<TContainerType>::TKeyType;
+		using TValueType = TAssociativeContainer<TContainerType>::TValueType;
+
+		size_t size;
+		inArchive >> size;
+		inValue.resize(size, [&] {
+			TPair<TKeyType, TValueType> pair;
+			inArchive >> pair;
+			return pair;
+		});
+		return inArchive;
+	}
+
+	template <typename TContainerType>
+	friend CIArchive& operator>>(CIArchive& inArchive, TSelfAssociativeContainer<TContainerType>& inValue) {
+		using TType = TSelfAssociativeContainer<TContainerType>::TType;
+
+		size_t size;
+		inArchive >> size;
+		inValue.resize(size, [&] {
+			TType obj;
+			inArchive >> obj;
+			return obj;
+		});
 		return inArchive;
 	}
 
 	template <typename TKeyType, typename TValueType>
-	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TPair<TKeyType, TValueType>& pair) {
+		inArchive >> pair.first();
+		inArchive >> pair.second();
+		return inArchive;
+	}
+};
+
+class COArchive {
+
+protected:
+
+#define MAKE_WRITE(x) \
+	virtual size_t write(const x& inValue) = 0;
+
+	/*
+	 * Integral Types
+	 */
+
+	MAKE_WRITE(bool)
+	MAKE_WRITE(char)
+
+	MAKE_WRITE(unsigned char)
+	MAKE_WRITE(signed char)
+
+	MAKE_WRITE(unsigned short)
+	MAKE_WRITE(signed short)
+
+	MAKE_WRITE(unsigned int)
+	MAKE_WRITE(signed int)
+
+	MAKE_WRITE(unsigned long)
+	MAKE_WRITE(signed long)
+
+	MAKE_WRITE(unsigned long long)
+	MAKE_WRITE(signed long long)
+
+	/*
+	 * Floating Point Types
+	 */
+
+	MAKE_WRITE(float)
+	MAKE_WRITE(double)
+	MAKE_WRITE(long double)
+#undef MAKE_WRITE
+
+	/*
+	 * Strings
+	 */
+
+	virtual size_t write(const char* inValue) { return write(CString(inValue)); }
+
+	virtual size_t write(const CString& inValue) = 0;
+
+public:
+
+	virtual ~COArchive() = default;
+
+	template <typename TType>
+	requires std::is_arithmetic_v<TType>
+	friend COArchive& operator<<(COArchive& inArchive, const TType& inValue) {
+		inArchive.write(inValue);
+		return inArchive;
+	}
+
+	template <typename TType>
+	requires std::is_enum_v<TType>
+	friend COArchive& operator<<(COArchive& inArchive, const TType& inEnum) {
+		using EnumType = std::underlying_type_t<TType>;
+		inArchive << static_cast<EnumType>(inEnum);
+		return inArchive;
+	}
+
+	template <typename TType>
+	friend COArchive& operator<<(COArchive& inArchive, const TType* ptr) {
+		inArchive << reinterpret_cast<size_t>(ptr);
+		return inArchive;
+	}
+
+	friend COArchive& operator<<(COArchive& inArchive, const char* inValue) {
+		inArchive << CString(inValue);
+		return inArchive;
+	}
+	
+	friend COArchive& operator<<(COArchive& inArchive, const CString& inValue) {
+		inArchive.write(inValue);
+		return inArchive;
+	}
+
+	template <typename TContainerType>
+	friend COArchive& operator<<(COArchive& inArchive, const TSequenceContainer<TContainerType>& inValue) {
+		inArchive << inValue.getSize();
+		for (const auto& obj : inValue) {
+			inArchive << obj;
+		}
+		return inArchive;
+	}
+
+	template <typename TContainerType>
+	friend COArchive& operator<<(COArchive& inArchive, const TAssociativeContainer<TContainerType>& inValue) {
+		inArchive << inValue.getSize();
+		for (const auto& pair : inValue) {
+			inArchive << pair;
+		}
+		return inArchive;
+	}
+
+	template <typename TContainerType>
+	friend COArchive& operator<<(COArchive& inArchive, const TSelfAssociativeContainer<TContainerType>& inValue) {
+		inArchive << inValue.getSize();
+		for (const auto& obj : inValue) {
+			inArchive << obj;
+		}
+		return inArchive;
+	}
+
+	template <typename TKeyType, typename TValueType>
+	friend COArchive& operator<<(COArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
 		inArchive << pair.first();
 		inArchive << pair.second();
 		return inArchive;
 	}
-
-	// Initializer lists cannot be written to, but can be read from
-	template <typename TType>
-	friend CBaseStringArchive& operator<<(CBaseStringArchive& inArchive, const TInitializerList<TType>& list) {
-		for (const auto& obj : list)
-			inArchive << obj;
-		return inArchive;
-	}
-
-protected:
-
 };
 
-class CStringArchive : public CBaseStringArchive {
-
-public:
-
-	[[nodiscard]] virtual std::string get() const override { return str; }
-
-protected:
-
-	virtual size_t write(const std::string& inValue) override {
-		str += inValue;
-		return 0;
-	}
-
-	virtual size_t read(std::string& outValue)  override {
-		const auto loc = str.find(LINE_ENDING);
-		outValue = str.substr(0, loc);
-		return read(loc);
-	}
-
-	size_t read(const size_t amount) override {
-		str.erase(0, amount);
-		return 0;
-	}
-
-	std::string str;
-
-};
-
-class CInputArchive {
+class CBinaryIArchive : public CIArchive {
 
 protected:
 
@@ -141,61 +260,54 @@ protected:
 
 	virtual size_t read(void* inValue, size_t inElementSize, size_t inCount) = 0;
 
-	std::string readUntil(const char terminator) {
-		std::string res;
-		char c;
-		while (true) {
-			const size_t n = read(&c, sizeof(char));
-			if (n == 0 || c == terminator)
-				break;
-			res += c;
+#define MAKE_READ(x) \
+	virtual size_t read(x& inValue) final override { return read(&inValue, sizeof(inValue)); }
+
+	/*
+	 * Integral Types
+	 */
+
+	MAKE_READ(bool)
+	MAKE_READ(char)
+
+	MAKE_READ(unsigned char)
+	MAKE_READ(signed char)
+
+	MAKE_READ(unsigned short)
+	MAKE_READ(signed short)
+
+	MAKE_READ(unsigned int)
+	MAKE_READ(signed int)
+
+	MAKE_READ(unsigned long)
+	MAKE_READ(signed long)
+
+	MAKE_READ(unsigned long long)
+	MAKE_READ(signed long long)
+
+	/*
+	 * Floating Point Types
+	 */
+
+	MAKE_READ(float)
+	MAKE_READ(double)
+#undef MAKE_READ
+
+	/*
+	 * Strings
+	 */
+
+	virtual size_t read(CString& inValue) final override {
+		inValue.clear();
+		CString::TType c;
+		while (read(&c, sizeof(c)) != 0 && c != '\0') {
+			inValue += c;
 		}
-		return res;
-	}
-
-public:
-
-	virtual ~CInputArchive() = default;
-
-	template <typename TType>
-	requires std::is_arithmetic_v<TType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TType& inValue) {
-		inArchive.read(&inValue, sizeof(TType));
-		return inArchive;
-	}
-
-	template <typename TType>
-	requires std::is_enum_v<TType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TType& inEnum) {
-		using EnumType = std::underlying_type_t<TType>;
-		EnumType value;
-		inArchive >> value;
-		inEnum = static_cast<TType>(value);
-		return inArchive;
-	}
-
-	template <typename TType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TType*& ptr) {
-		size_t value;
-		inArchive >> value;
-		ptr = reinterpret_cast<TType*>(value);
-		return inArchive;
-	}
-
-	friend CInputArchive& operator>>(CInputArchive& inArchive, std::string& inValue) {
-		inValue = inArchive.readUntil('\0');
-		return inArchive;
-	}
-
-	template <typename TKeyType, typename TValueType>
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TPair<TKeyType, TValueType>& pair) {
-		inArchive >> pair.first();
-		inArchive >> pair.second();
-		return inArchive;
+		return inValue.getSize() * sizeof(c);
 	}
 };
 
-class COutputArchive {
+class CBinaryOArchive : public COArchive {
 
 protected:
 
@@ -205,53 +317,157 @@ protected:
 
 	virtual size_t write(const void* inValue, size_t inElementSize, size_t inCount) = 0;
 
-public:
+#define MAKE_WRITE(x) \
+	virtual size_t write(const x& inValue) final override { return write(&inValue, sizeof(inValue)); }
 
-	virtual ~COutputArchive() = default;
+	/*
+	 * Integral Types
+	 */
 
-	template <typename TType>
-	requires std::is_arithmetic_v<TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType& inValue) {
-		inArchive.write(&inValue, sizeof(TType));
-		return inArchive;
-	}
+	MAKE_WRITE(bool)
+	MAKE_WRITE(char)
 
-	template <typename TType>
-	requires std::is_enum_v<TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType& inEnum) {
-		using EnumType = std::underlying_type_t<TType>;
-		inArchive << static_cast<EnumType>(inEnum);
-		return inArchive;
-	}
+	MAKE_WRITE(unsigned char)
+	MAKE_WRITE(signed char)
 
-	template <typename TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TType*& ptr) {
-		inArchive << reinterpret_cast<size_t>(ptr);
-		return inArchive;
-	}
+	MAKE_WRITE(unsigned short)
+	MAKE_WRITE(signed short)
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const std::string& inValue) {
-		inArchive.write(inValue.data(), sizeof(std::string::value_type), inValue.size());
+	MAKE_WRITE(unsigned int)
+	MAKE_WRITE(signed int)
+
+	MAKE_WRITE(unsigned long)
+	MAKE_WRITE(signed long)
+
+	MAKE_WRITE(unsigned long long)
+	MAKE_WRITE(signed long long)
+
+	/*
+	 * Floating Point Types
+	 */
+
+	MAKE_WRITE(float)
+	MAKE_WRITE(double)
+	MAKE_WRITE(long double)
+#undef MAKE_WRITE
+
+	/*
+	 * Strings
+	 */
+
+	virtual size_t write(const CString& inValue) final override {
+		write(inValue.data(), sizeof(CString::TType), inValue.getSize());
 		constexpr static char terminator = '\0';
-		inArchive.write(&terminator, sizeof(terminator));
-		return inArchive;
-	}
-
-	template <typename TKeyType, typename TValueType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TPair<TKeyType, TValueType>& pair) {
-		inArchive << pair.first();
-		inArchive << pair.second();
-		return inArchive;
-	}
-
-	// Initializer lists cannot be written to, but can be read from
-	template <typename TType>
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TInitializerList<TType>& list) {
-		inArchive << list.size();
-		for (const auto& obj : list)
-			inArchive << obj;
-		return inArchive;
+		write(&terminator, sizeof(terminator));
+		return inValue.getSize() * sizeof(CString::TType);
 	}
 };
 
-class CArchive : public CInputArchive, public COutputArchive {};
+class CBinaryArchive : public CBinaryIArchive, public CBinaryOArchive {};
+
+class CSIArchive : public CIArchive {
+
+protected:
+
+	// Inherit string read but don't override
+	using CIArchive::read;
+
+#define MAKE_READ(x) \
+	virtual size_t read(x& inValue) final override { \
+		CString str; \
+		const size_t loc = read(str); \
+		fast_float::from_chars(str.data(), str.data() + str.getSize(), inValue); \
+		return loc; \
+	}
+
+	/*
+	 * Integral Types
+	 */
+
+	virtual size_t read(bool& inValue) final override {
+		CString str;
+		const size_t loc = read(str);
+		if (str == "true") {
+			inValue = true;
+		} else {
+			inValue = false;
+		}
+		return loc;
+	}
+
+	MAKE_READ(char)
+
+	MAKE_READ(unsigned char)
+	MAKE_READ(signed char)
+
+	MAKE_READ(unsigned short)
+	MAKE_READ(signed short)
+
+	MAKE_READ(unsigned int)
+	MAKE_READ(signed int)
+
+	MAKE_READ(unsigned long)
+	MAKE_READ(signed long)
+
+	MAKE_READ(unsigned long long)
+	MAKE_READ(signed long long)
+
+	/*
+	 * Floating Point Types
+	 */
+
+	MAKE_READ(float)
+	MAKE_READ(double)
+#undef MAKE_READ
+
+};
+
+class CSOArchive : public COArchive {
+
+protected:
+
+	// Inherit string write but don't override
+	using COArchive::write;
+
+#define MAKE_WRITE(x) \
+	virtual size_t write(const x& inValue) final override { \
+		return write(CString(std::to_string(inValue))); \
+	}
+
+	/*
+	 * Integral Types
+	 */
+
+	virtual size_t write(const bool& inValue) final override { \
+		return write(inValue ? "true" : "false"); \
+	}
+
+	MAKE_WRITE(char)
+
+	MAKE_WRITE(unsigned char)
+	MAKE_WRITE(signed char)
+
+	MAKE_WRITE(unsigned short)
+	MAKE_WRITE(signed short)
+
+	MAKE_WRITE(unsigned int)
+	MAKE_WRITE(signed int)
+
+	MAKE_WRITE(unsigned long)
+	MAKE_WRITE(signed long)
+
+	MAKE_WRITE(unsigned long long)
+	MAKE_WRITE(signed long long)
+
+	/*
+	 * Floating Point Types
+	 */
+
+	MAKE_WRITE(float)
+	MAKE_WRITE(double)
+	MAKE_WRITE(long double)
+#undef MAKE_WRITE
+
+};
+
+class CSArchive : public CSIArchive, public CSOArchive {};

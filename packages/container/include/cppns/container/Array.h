@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <array>
-#include "Container.h"
+#include "SequenceContainer.h"
 #include "cppns/util/InitializerList.h"
 
 template <typename TType, size_t TSize>
@@ -12,39 +12,20 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 	template <typename TOtherType = TType>
 	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
 
-	constexpr_20 TArray() {
-		m_IsPopulated.fill(false);
-	}
-
-	template <typename TOtherType = TType>
-	requires std::is_copy_constructible_v<TOtherType>
-	constexpr_20 TArray(TInitializerList<TType> init) {
-		if (init.size() > TSize) {
-			throw std::runtime_error("Initializer contains too many elements for TArray!");
-		}
-
-		m_IsPopulated.fill(false);
-
-		size_t index = 0;
-		for (const auto& obj : init) {
-			m_Container[index] = obj;
-			m_IsPopulated[index] = true;
-			++index;
-		}
-
-	}
+	constexpr_20 TArray() = default;
 
 	template <typename... TArgs>
 	requires std::conjunction_v<std::is_constructible<TType, TArgs>...>
-	constexpr_20 explicit TArray(TArgs&&... args) {
-		m_IsPopulated.fill(false);
+	constexpr_20 TArray(TArgs&&... args) {
+		if (sizeof...(TArgs) > TSize) {
+			throw std::runtime_error("Varargs contains too many elements for TArray!");
+		}
+
 		size_t index = 0;
 		(arrayArgsInit(std::forward<TArgs>(args), index), ...);
 	}
 
-	constexpr_20 TArray(const TSubcontainerType<>& otr): m_Container(otr) {
-		m_IsPopulated.fill(true);
-	}
+	constexpr_20 TArray(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
@@ -106,8 +87,8 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return m_Container.rend();
 	}
 
-	[[nodiscard]] bool isValid(size_t index) const {
-		return m_IsPopulated[index];
+	[[nodiscard]] bool isValid(const size_t index) const {
+		return index < TSize;
 	}
 
 	template <typename TOtherType>
@@ -195,67 +176,28 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		return m_Container[index];
 	}
 
-	void resize(size_t amt)
+	void fill()
 	requires std::is_default_constructible_v<TType> {
-		for (size_t i = 0; i < amt; ++i) {
-			if (!m_IsPopulated[i]) {
-				m_Container[i] = {};
-				m_IsPopulated[i] = true;
-			}
+		m_Container.fill(TType{});
+	}
+
+	void fill(const TType& obj) {
+		m_Container.fill(obj);
+	}
+
+	void fill(const std::function<TType(size_t)>& func) {
+		for (size_t i = 0; i < TSize; ++i) {
+			replace(i, std::forward<TType>(func(i)));
 		}
 	}
 
-	void resize(const size_t amt, const std::function<TType(size_t)>& func) {
-		for (size_t i = 0; i < amt; ++i) {
-			if (!m_IsPopulated[i]) {
-				get(i) = std::forward<TType>(func(i));
-				m_IsPopulated[i] = true;
-			}
-		}
-	}
-
-	void fill() {
-		resize(TSize);
-	}
-
-	void resize(const std::function<TType(size_t)>& func) {
-		resize(TSize, func);
-	}
-
-	TType& push()
-	requires std::is_default_constructible_v<TType> {
-		return get(push(TType{}));
-	}
-
-	size_t push(const TType& obj)
+	void push(const size_t index, const TType& obj)
 	requires std::is_copy_constructible_v<TType> {
-		for (size_t i = 0; i < getSize(); ++i) {
-			if (!m_IsPopulated[i]) { //is not populated
-				m_IsPopulated[i] = true;
-				m_Container[i] = obj;
-				return i;
-			}
-		}
-		throw std::runtime_error("Array is full, cannot add any more elements.");
-	}
-
-	size_t push(TType&& obj)
-	requires std::is_move_constructible_v<TType> {
-		for (size_t i = 0; i < getSize(); ++i) {
-			if (!m_IsPopulated[i]) { //is not populated
-				m_IsPopulated[i] = true;
-				m_Container[i] = std::move(obj);
-				return i;
-			}
-		}
-		throw std::runtime_error("Array is full, cannot add any more elements.");
-	}
-
-	void push(const size_t index, const TType& obj) {
 		replace(index, obj);
 	}
 
-	void push(const size_t index, TType&& obj) {
+	void push(const size_t index, TType&& obj)
+	requires std::is_move_constructible_v<TType> {
 		replace(index, std::move(obj));
 	}
 
@@ -270,36 +212,10 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 	}
 
 	// Array is on stack, it is destroyed when out of scope
-	void clear() {
-		m_IsPopulated.fill(false);
-	}
-
-	void pop() {
-		for (size_t i = getSize(); i > 0; --i) {
-			if (m_IsPopulated[i - 1]) { //is populated
-				m_IsPopulated[i - 1] = false;
-				return;
-			}
-		}
-		throw std::runtime_error("No element to be popped!");
-	}
-
-	void popAt(const size_t index) {
-		if (m_IsPopulated[index]) { //is populated
-			m_IsPopulated[index] = false;
-			return;
-		}
-		throw std::runtime_error("No element at index to be popped!");
-	}
-
-	template <typename TOtherType>
-	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	void erase(const TOtherType& obj) {
-		for (size_t index = 0; index < getSize(); ++index) {
-			if (m_Container[index] == obj) {
-				m_IsPopulated[index] = false;
-			}
-		}
+	// Instead, fill with dummy variables
+	void clear()
+	requires std::is_default_constructible_v<TType> {
+		fill();
 	}
 
 	void sort()
@@ -312,18 +228,6 @@ struct TArray : TSequenceContainer<TArray<TType, TSize>> {
 		SORT_F(m_Container, std::forward<Func>(func));
 	}
 
-	template <typename TOtherContainerType>
-	void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {
-		// Prefer move, but copy if not available
-		auto& obj = get(index);
-		if constexpr (std::is_move_constructible_v<TType>) {
-			otr.push(std::move(obj));
-		} else {
-			otr.push(obj);
-		}
-		popAt(index);
-	}
-
 protected:
 
 	friend struct SContainer;
@@ -333,17 +237,14 @@ protected:
 
 	void arrayArgsInit(const TType& obj, size_t& index) noexcept {
 		m_Container[index] = obj;
-		m_IsPopulated[index] = true;
 		index++;
 	}
 
 	void arrayArgsInit(TType&& obj, size_t& index) noexcept {
 		m_Container[index] = std::move(obj);
-		m_IsPopulated[index] = true;
 		index++;
 	}
 
-	TSubcontainerType<bool> m_IsPopulated;
 	TSubcontainerType<> m_Container;
 };
 

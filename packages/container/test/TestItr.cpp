@@ -26,7 +26,7 @@ void func(const TSequenceContainer<TContainerType>& val) {
 
 #define DO_ARRAY_TEST(x) \
     std::cout << "-----" #x "-----" << std::endl << std::endl; \
-    { x<int, 4> val; val.push(1); val.push(5); val.push(2); val.push(3); func(val); } \
+    { x<int, 4> val; val.push(0, 1); val.push(1, 5); val.push(2, 2); val.push(3, 3); func(val); } \
     std::cout << std::endl;
 
 cppns_main() {

@@ -21,6 +21,17 @@
       }
     },
     {
+      "name": "Debug-MSVC-ARM64",
+      "generator": "Ninja",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-arm64.cmake",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "MSVC-ARM64"
+        }
+      }
+    },
+    {
       "name": "Debug-MSVC-x86",
       "generator": "Ninja",
       "inherits": "base",
@@ -32,13 +43,13 @@
       }
     },
     {
-      "name": "Debug-MSVC-ARM64",
+      "name": "Debug-MSVC-ARM",
       "generator": "Ninja",
       "inherits": "base",
-      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-arm64.cmake",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/msvc-arm.cmake",
       "vendor": {
         "jetbrains.com/clion": {
-          "toolchain": "MSVC-ARM64"
+          "toolchain": "MSVC-ARM"
         }
       }
     },
@@ -64,6 +75,16 @@
       }
     },
     {
+      "name": "Debug-Clang-ARM64",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-arm64.cmake",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "Clang"
+        }
+      }
+    },
+    {
       "name": "Debug-Clang-x86",
       "inherits": "base",
       "toolchainFile": "${sourceDir}/scripts/toolchains/clang-x86.cmake",
@@ -74,9 +95,9 @@
       }
     },
     {
-      "name": "Debug-Clang-ARM64",
+      "name": "Debug-Clang-ARM",
       "inherits": "base",
-      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-arm64.cmake",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/clang-arm.cmake",
       "vendor": {
         "jetbrains.com/clion": {
           "toolchain": "Clang"
@@ -94,6 +115,16 @@
       }
     },
     {
+      "name": "Debug-GCC-ARM64",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-arm64.cmake",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "GCC-ARM64"
+        }
+      }
+    },
+    {
       "name": "Debug-GCC-x86",
       "inherits": "base",
       "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-x86.cmake",
@@ -104,12 +135,12 @@
       }
     },
     {
-      "name": "Debug-GCC-ARM64",
+      "name": "Debug-GCC-ARM",
       "inherits": "base",
-      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-arm64.cmake",
+      "toolchainFile": "${sourceDir}/scripts/toolchains/gcc-arm.cmake",
       "vendor": {
         "jetbrains.com/clion": {
-          "toolchain": "GCC-ARM64"
+          "toolchain": "GCC-ARM"
         }
       }
     },

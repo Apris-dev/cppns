@@ -257,12 +257,12 @@ struct TShared {
 	}
 
 #ifdef USING_CPPNS_ARCHIVE
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TShared& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TShared& inValue) {
 		inArchive >> *inValue.get();
 		return inArchive;
 	}
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TShared& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const TShared& inValue) {
 		inArchive << *inValue.get();
 		return inArchive;
 	}

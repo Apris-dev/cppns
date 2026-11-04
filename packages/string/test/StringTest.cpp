@@ -397,5 +397,19 @@ cppns_main() {
         assert(str == U"héllo 😀");
     }
 
+    {
+        CString str = "HELLO";
+        str.toLower();
+        assert(str == "hello");
+        str.toCapitalized();
+        assert(str == "Hello");
+        str.toUpper();
+        assert(str == "HELLO");
+        str.toCapitalized();
+        assert(str == "Hello");
+        str.toFlippedCase();
+        assert(str == "hELLO");
+    }
+
     return 0;
 }

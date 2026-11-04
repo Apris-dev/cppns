@@ -1,6 +1,8 @@
 #pragma once
 
-#include "cppns/container/Container.h"
+#include <bit>
+
+#include "cppns/container/SequenceContainer.h"
 #include "cppns/util/ErrorHandling.h"
 
 #if USING_CXX23
@@ -10,12 +12,58 @@
 #endif
 
 namespace String {
+	using Generic = std::string;
+	using GenericView = std::string_view;
 	using UTF8 = std::u8string;
 	using UTF8View = std::u8string_view;
 	using UTF16 = std::u16string;
 	using UTF16View = std::u16string_view;
 	using UTF32 = std::u32string;
 	using UTF32View = std::u32string_view;
+
+	// Convert lowercase to cppns standard
+	enum class Endian : uint8 {
+#ifdef __cpp_lib_endian
+		LITTLE = static_cast<uint8>(std::endian::little),
+		BIG = static_cast<uint8>(std::endian::big),
+		NATIVE = static_cast<uint8>(std::endian::native)
+#else
+		LITTLE = 0,
+		BIG = 1,
+	#if USING_MSVC // Windows: assume little endian
+		NATIVE = LITTLE
+	#else
+		// GCC/Clang check for byte order macros, if they don't exist, assume little endian
+		#if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+			NATIVE = BIG
+		#else
+			NATIVE = LITTLE
+		#endif
+	#endif
+#endif
+	};
+
+	constexpr static char8 swapBytes(const char8 c) noexcept {
+		return c;
+	}
+
+	constexpr static char16 swapBytes(const char16 c) noexcept {
+		return static_cast<char16>((c << 8) | (c >> 8));
+	}
+
+	constexpr static char32 swapBytes(const char32 c) noexcept {
+		return ((c & 0x000000FFu) << 24) | ((c & 0x0000FF00u) << 8) |
+			   ((c & 0x00FF0000u) >> 8)  | ((c & 0xFF000000u) >> 24);
+	}
+
+	// Gives back the unit in the byte order we want, swapping only if the machine's own order is different.
+	template <Endian Endian, typename TType>
+	constexpr static TType toEndian(TType c) noexcept {
+		if constexpr (Endian == String::Endian::NATIVE)
+			return c;
+		else
+			return swapBytes(c);
+	}
 }
 
 namespace Error::String {
@@ -66,28 +114,45 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
-	CString(const char8_t* inArray): CString(String::UTF8(inArray)) {}
+	constexpr_20 CString(const TType* inArray, const size_t inCount): m_Container(inArray, inCount) {
+		removeInvalidUTF8(m_Container);
+	}
 
-	CString(const char16_t* inArray): CString(String::UTF16(inArray)) {}
+#ifdef __cpp_char8_t
+	CString(const char8* inArray): CString(String::UTF8(inArray)) {}
 
-	CString(const char32_t* inArray): CString(String::UTF32(inArray)) {}
+	CString(const char8* inArray, const size_t inCount): CString(String::UTF8(inArray, inCount)) {}
+#endif
 
-	//TODO: support more char types
+	CString(const char16* inArray): CString(String::UTF16(inArray)) {}
+
+	CString(const char16* inArray, const size_t inCount): CString(String::UTF16(inArray, inCount)) {}
+
+	CString(const char32* inArray): CString(String::UTF32(inArray)) {}
+
+	CString(const char32* inArray, const size_t inCount): CString(String::UTF32(inArray, inCount)) {}
+
 	constexpr_20 CString(const TType& inChar) {
 		if (!isASCII(inChar))
 			throw Error::String::NonASCIICharacter();
 		push(inChar);
 	}
 
+	constexpr_20 CString(const TSubcontainerType<>& otr): CString(TSubcontainerTypeView(otr)) {}
+
 	constexpr_20 CString(const TSubcontainerTypeView otr): m_Container(otr) {
 		removeInvalidUTF8(m_Container);
 	}
+
+	CString(const String::UTF8& otr): CString(String::UTF8View(otr)) {}
 
 	CString(const String::UTF8View otr) {
 		const std::string_view view(reinterpret_cast<const char*>(otr.data()), otr.size());
 		m_Container = view;
 		removeInvalidUTF8(m_Container);
 	}
+
+	CString(const String::UTF16& otr): CString(String::UTF16View(otr)) {}
 
 	constexpr_20 CString(const String::UTF16View otr) {
 		m_Container.reserve(otr.size());
@@ -99,12 +164,16 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
+	CString(const String::UTF32& otr): CString(String::UTF32View(otr)) {}
+
 	constexpr_20 CString(const String::UTF32View otr) {
 		m_Container.reserve(otr.size());
-		for (const char32_t c : otr)
+		for (const char32 c : otr)
 			appendUTF8(m_Container, c);
 		removeInvalidUTF8(m_Container);
 	}
+
+	CString(const std::filesystem::path& path): CString(path.u8string()) {}
 
 	[[nodiscard]] constexpr_20 size_t getSize() const {
 		return m_Container.size();
@@ -117,6 +186,8 @@ public:
 	[[nodiscard]] constexpr_20 TType* data() { return m_Container.data(); }
 
 	[[nodiscard]] constexpr_20 const TType* data() const { return m_Container.data(); }
+
+	[[nodiscard]] constexpr_20 const TType* array() const { return m_Container.c_str(); }
 
 	[[nodiscard]] constexpr_20 TType& top() {
 		return m_Container.front();
@@ -174,17 +245,19 @@ public:
 		return STR_CONTAINS(m_Container, inArray);
 	}
 
-	[[nodiscard]] bool contains(const char8_t* inArray) const {
+#ifdef __cpp_char8_t
+	[[nodiscard]] bool contains(const char8* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return STR_CONTAINS(m_Container, str);
 	}
+#endif
 
-	[[nodiscard]] bool contains(const char16_t* inArray) const {
+	[[nodiscard]] bool contains(const char16* inArray) const {
 		const CString str{inArray};
 		return STR_CONTAINS(m_Container, str.m_Container);
 	}
 
-	[[nodiscard]] bool contains(const char32_t* inArray) const {
+	[[nodiscard]] bool contains(const char32* inArray) const {
 		const CString str{inArray};
 		return STR_CONTAINS(m_Container, str.m_Container);
 	}
@@ -193,18 +266,20 @@ public:
 		return STR_CONTAINS(m_Container, obj);
 	}
 
-	[[nodiscard]] constexpr_20 bool contains(const char8_t& obj) const {
+#ifdef __cpp_char8_t
+	[[nodiscard]] constexpr_20 bool contains(const char8& obj) const {
 		return STR_CONTAINS(m_Container, obj);
 	}
+#endif
 
-	[[nodiscard]] constexpr_20 bool contains(const char16_t& obj) const {
+	[[nodiscard]] constexpr_20 bool contains(const char16& obj) const {
 		if (!isUCS2(obj))
 			return false;
 		auto [bytes] = encodeUTF8(obj);
 		return contains(bytes);
 	}
 
-	[[nodiscard]] constexpr_20 bool contains(const char32_t& obj) const {
+	[[nodiscard]] constexpr_20 bool contains(const char32& obj) const {
 		auto [bytes] = encodeUTF8(obj);
 		return contains(bytes);
 	}
@@ -264,17 +339,19 @@ public:
 		return m_Container.find(inArray);
 	}
 
-	[[nodiscard]] size_t find(const char8_t* inArray) const {
+#ifdef __cpp_char8_t
+	[[nodiscard]] size_t find(const char8* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return m_Container.find(str);
 	}
+#endif
 
-	[[nodiscard]] size_t find(const char16_t* inArray) const {
+	[[nodiscard]] size_t find(const char16* inArray) const {
 		const CString str{inArray};
 		return m_Container.find(str.m_Container);
 	}
 
-	[[nodiscard]] size_t find(const char32_t* inArray) const {
+	[[nodiscard]] size_t find(const char32* inArray) const {
 		const CString str{inArray};
 		return m_Container.find(str.m_Container);
 	}
@@ -283,18 +360,20 @@ public:
 		return m_Container.find(obj);
 	}
 
-	[[nodiscard]] constexpr_20 size_t find(const char8_t& obj) const {
+#ifdef __cpp_char8_t
+	[[nodiscard]] constexpr_20 size_t find(const char8& obj) const {
 		return m_Container.find(obj);
 	}
+#endif
 
-	[[nodiscard]] constexpr_20 size_t find(const char16_t& obj) const {
+	[[nodiscard]] constexpr_20 size_t find(const char16& obj) const {
 		if (!isUCS2(obj))
 			return 0;
 		auto [bytes] = encodeUTF8(obj);
 		return find(bytes);
 	}
 
-	[[nodiscard]] constexpr_20 size_t find(const char32_t& obj) const {
+	[[nodiscard]] constexpr_20 size_t find(const char32& obj) const {
 		auto [bytes] = encodeUTF8(obj);
 		return find(bytes);
 	}
@@ -319,17 +398,19 @@ public:
 		return m_Container.rfind(inArray);
 	}
 
-	[[nodiscard]] size_t findLast(const char8_t* inArray) const {
+#ifdef __cpp_char8_t
+	[[nodiscard]] size_t findLast(const char8* inArray) const {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		return m_Container.rfind(str);
 	}
+#endif
 
-	[[nodiscard]] size_t findLast(const char16_t* inArray) const {
+	[[nodiscard]] size_t findLast(const char16* inArray) const {
 		const CString str{inArray};
 		return m_Container.rfind(str.m_Container);
 	}
 
-	[[nodiscard]] size_t findLast(const char32_t* inArray) const {
+	[[nodiscard]] size_t findLast(const char32* inArray) const {
 		const CString str{inArray};
 		return m_Container.rfind(str.m_Container);
 	}
@@ -338,18 +419,20 @@ public:
 		return m_Container.rfind(obj);
 	}
 
-	[[nodiscard]] constexpr_20 size_t findLast(const char8_t& obj) const {
+#ifdef __cpp_char8_t
+	[[nodiscard]] constexpr_20 size_t findLast(const char8& obj) const {
 		return m_Container.rfind(obj);
 	}
+#endif
 
-	[[nodiscard]] constexpr_20 size_t findLast(const char16_t& obj) const {
+	[[nodiscard]] constexpr_20 size_t findLast(const char16& obj) const {
 		if (!isUCS2(obj))
 			return 0;
 		auto [bytes] = encodeUTF8(obj);
 		return findLast(bytes);
 	}
 
-	[[nodiscard]] constexpr_20 size_t findLast(const char32_t& obj) const {
+	[[nodiscard]] constexpr_20 size_t findLast(const char32& obj) const {
 		auto [bytes] = encodeUTF8(obj);
 		return findLast(bytes);
 	}
@@ -403,11 +486,13 @@ public:
 		return getSize() - 1;
 	}
 
-	constexpr_20 size_t push(const char8_t& obj) {
+#ifdef __cpp_char8_t
+	constexpr_20 size_t push(const char8& obj) {
 		return push(static_cast<const char&>(obj));
 	}
+#endif
 
-	constexpr_20 size_t push(const char16_t& obj) {
+	constexpr_20 size_t push(const char16& obj) {
 		if (!isUCS2(obj))
 			throw Error::String::NonUCS2Character();
 		auto [bytes] = encodeUTF8(obj);
@@ -418,7 +503,7 @@ public:
 		return res;
 	}
 
-	constexpr_20 size_t push(const char32_t& obj) {
+	constexpr_20 size_t push(const char32& obj) {
 		if (!isUCS4(obj))
 			throw Error::String::NonUCS4Character();
 		auto [bytes] = encodeUTF8(obj);
@@ -440,9 +525,11 @@ public:
 		return getSize() - 1;
 	}
 
-	constexpr_20 size_t push(char8_t&& obj) {
+#ifdef __cpp_char8_t
+	constexpr_20 size_t push(char8&& obj) {
 		return push(static_cast<char&&>(obj));
 	}
+#endif
 
 	constexpr_20 void push(const size_t index, const TType& obj) {
 		if (!isASCII(obj))
@@ -450,11 +537,13 @@ public:
 		m_Container.insert(m_Container.begin() + index, obj);
 	}
 
-	constexpr_20 void push(const size_t index, const char8_t& obj) {
+#ifdef __cpp_char8_t
+	constexpr_20 void push(const size_t index, const char8& obj) {
 		push(index, static_cast<const char&>(obj));
 	}
+#endif
 
-	constexpr_20 void push(const size_t index, const char16_t& obj) {
+	constexpr_20 void push(const size_t index, const char16& obj) {
 		if (!isUCS2(obj))
 			throw Error::String::NonUCS2Character();
 		auto [bytes] = encodeUTF8(obj);
@@ -463,7 +552,7 @@ public:
 		m_Container.insert(m_Container.begin() + index, bytes[0]);
 	}
 
-	constexpr_20 void push(const size_t index, const char32_t& obj) {
+	constexpr_20 void push(const size_t index, const char32& obj) {
 		if (!isUCS4(obj))
 			throw Error::String::NonUCS4Character();
 		auto [bytes] = encodeUTF8(obj);
@@ -482,9 +571,11 @@ public:
 		m_Container.insert(m_Container.begin() + index, std::move(obj));
 	}
 
-	constexpr_20 void push(const size_t index, char8_t&& obj) {
+#ifdef __cpp_char8_t
+	constexpr_20 void push(const size_t index, char8&& obj) {
 		push(index, static_cast<char&&>(obj));
 	}
+#endif
 
 	constexpr_20 void replace(const size_t index, const TType& obj) {
 		if (!isASCII(obj))
@@ -493,18 +584,20 @@ public:
 		push(index, obj);
 	}
 
-	constexpr_20 void replace(const size_t index, const char8_t& obj) {
+#ifdef __cpp_char8_t
+	constexpr_20 void replace(const size_t index, const char8& obj) {
 		replace(index, static_cast<const char&>(obj));
 	}
+#endif
 
-	constexpr_20 void replace(const size_t index, const char16_t& obj) {
+	constexpr_20 void replace(const size_t index, const char16& obj) {
 		if (!isUCS2(obj))
 			throw Error::String::NonUCS2Character();
 		popAt(index);
 		push(index, obj);
 	}
 
-	constexpr_20 void replace(const size_t index, const char32_t& obj) {
+	constexpr_20 void replace(const size_t index, const char32& obj) {
 		if (!isUCS4(obj))
 			throw Error::String::NonUCS4Character();
 		popAt(index);
@@ -518,8 +611,14 @@ public:
 		push(index, std::move(obj));
 	}
 
-	constexpr_20 void replace(const size_t index, char8_t&& obj) {
+#ifdef __cpp_char8_t
+	constexpr_20 void replace(const size_t index, char8&& obj) {
 		replace(index, static_cast<char&&>(obj));
+	}
+#endif
+
+	constexpr_20 CString substr(const size_t inOffset, const size_t inCount = npos) const {
+		return CString{m_Container.substr(inOffset, inCount)};
 	}
 
 	constexpr_20 void clear() {
@@ -534,39 +633,59 @@ public:
 		m_Container.erase(m_Container.begin() + index);
 	}
 
+	constexpr_20 void eraseBefore(const size_t inPosition) {
+		m_Container.erase(m_Container.begin(), m_Container.begin() + inPosition);
+	}
+
+	constexpr_20 void eraseBefore(const size_t inPosition, const size_t inCount) {
+		m_Container.erase(m_Container.begin() + (inPosition - inCount), m_Container.begin() + inPosition);
+	}
+
+	constexpr_20 void eraseAfter(const size_t inPosition) {
+		m_Container.erase(inPosition);
+	}
+
+	constexpr_20 void eraseAfter(const size_t inPosition, const size_t inCount) {
+		m_Container.erase(inPosition, inCount);
+	}
+
 	constexpr_20 void erase(const TType* inArray) {
 		m_Container.erase(m_Container.find(inArray), std::strlen(inArray));
 	}
 
-	void erase(const char8_t* inArray) {
+#ifdef __cpp_char8_t
+	void erase(const char8* inArray) {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		erase(str);
 	}
+#endif
 
-	constexpr_20 void erase(const char16_t* inArray) {
-		m_Container.erase(find(inArray), std::char_traits<char16_t>::length(inArray) * sizeof(char16_t));
+	void erase(const char16* inArray) {
+		m_Container.erase(find(inArray), std::char_traits<char16>::length(inArray) * sizeof(char16));
 	}
 
-	constexpr_20 void erase(const char32_t* inArray) {
-		m_Container.erase(find(inArray), std::char_traits<char32_t>::length(inArray) * sizeof(char32_t));
+	void erase(const char32* inArray) {
+		m_Container.erase(find(inArray), std::char_traits<char32>::length(inArray) * sizeof(char32));
 	}
 
 	constexpr_20 void erase(const TType& obj) {
 		m_Container.erase(m_Container.find(obj), 1);
 	}
 
-	constexpr_20 void erase(const char8_t& obj) {
+#ifdef __cpp_char8_t
+	constexpr_20 void erase(const char8& obj) {
 		erase(reinterpret_cast<const char&>(obj));
 	}
+#endif
 
-	constexpr_20 void erase(const char16_t& obj) {
+	constexpr_20 void erase(const char16& obj) {
 		if (!isUCS2(obj))
 			return;
 		auto [bytes] = encodeUTF8(obj);
 		erase(bytes);
 	}
 
-	constexpr_20 void erase(const char32_t& obj) {
+	constexpr_20 void erase(const char32& obj) {
 		auto [bytes] = encodeUTF8(obj);
 		erase(bytes);
 	}
@@ -604,19 +723,112 @@ public:
 		m_Container.append(str);
 	}
 
-	void append(const char8_t* inArray) {
+	constexpr_20 void append(const TType* inArray, const size_t inCount) {
+		std::string str = {inArray, inCount};
+		removeInvalidUTF8(str);
+		m_Container.append(str);
+	}
+
+#ifdef __cpp_char8_t
+	void append(const char8* inArray) {
 		auto* str = reinterpret_cast<const char*>(inArray);
 		append(str);
 	}
 
-	void append(const char16_t* inArray) {
+	void append(const char8* inArray, const size_t inCount) {
+		auto* str = reinterpret_cast<const char*>(inArray);
+		append(str, inCount);
+	}
+#endif
+
+	void append(const char16* inArray) {
 		const CString str{inArray};
 		m_Container.append(str.m_Container);
 	}
 
-	void append(const char32_t* inArray) {
+	void append(const char16* inArray, const size_t inCount) {
+		const CString str{inArray, inCount};
+		m_Container.append(str.m_Container);
+	}
+
+	void append(const char32* inArray) {
 		const CString str{inArray};
 		m_Container.append(str.m_Container);
+	}
+
+	void append(const char32* inArray, const size_t inCount) {
+		const CString str{inArray, inCount};
+		m_Container.append(str.m_Container);
+	}
+
+	//TODO: default locale only does a-z to A-Z, but we cant rely on that for now
+
+	// Gets a lowercase version of this string
+	CString getLower() const {
+		CString otr = *this;
+		otr.toLower();
+		return otr;
+	}
+
+	// Transforms this string to lowercase
+	void toLower() {
+		if (isEmpty()) return;
+		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
+		[](char c) {
+			return c >= 'A' && c <= 'Z' ? static_cast<char>(c + ('a' - 'A')) : c;
+		});
+	}
+
+	// Gets an uppercase version of this string
+	CString getUpper() const {
+		CString otr = *this;
+		otr.toUpper();
+		return otr;
+	}
+
+	// Transforms this string to uppercase
+	void toUpper() {
+		if (isEmpty()) return;
+		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
+		[](char c) {
+			return c >= 'a' && c <= 'z' ? static_cast<char>(c - ('a' - 'A')) : c;
+		});
+	}
+
+	// Gets an uppercase version of this string that is capitalized
+	CString getCapitalized() const {
+		CString otr = *this;
+		otr.toCapitalized();
+		return otr;
+	}
+
+	// Capitalizes the string and lowercases the rest
+	// If the first character cannot be capitalized, it will return a lowercase string
+	void toCapitalized() {
+		if (isEmpty()) return;
+		toLower();
+		char& c = get(0);
+		c = c >= 'a' && c <= 'z' ? static_cast<char>(c - ('a' - 'A')) : c;
+	}
+
+	// Gets a version of this string with it's case flipped
+	CString getFlippedCase() const {
+		CString otr = *this;
+		otr.toFlippedCase();
+		return otr;
+	}
+
+	// Transforms this string to flipped case
+	void toFlippedCase() {
+		if (isEmpty()) return;
+		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
+		[](char c) {
+			if (c >= 'a' && c <= 'z')
+				return static_cast<char>(c - ('a' - 'A'));
+			if (c >= 'A' && c <= 'Z')
+				return static_cast<char>(c + ('a' - 'A'));
+			return c;
+		});
 	}
 
 	constexpr_20 operator TSubcontainerType<>() const noexcept {
@@ -640,18 +852,18 @@ public:
 		return *this;
 	}
 
-	constexpr_20 CString operator+(const CString& otr) const noexcept {
-		CString temp = *this;
-		temp += otr;
+	friend constexpr_20 CString operator+(const CString& fst, const CString& snd) noexcept {
+		CString temp = fst;
+		temp += snd;
 		return temp;
 	}
 
-	constexpr_20 bool operator==(const CString& otr) const noexcept {
-		return m_Container == otr.m_Container;
+	friend constexpr_20 bool operator==(const CString& fst, const CString& snd) noexcept {
+		return fst.m_Container == snd.m_Container;
 	}
 
-	constexpr_20 std::strong_ordering operator<=>(const CString& otr) const {
-		return m_Container <=> otr.m_Container;
+	friend constexpr_20 std::strong_ordering operator<=>(const CString& fst, const CString& snd) noexcept {
+		return fst.m_Container <=> snd.m_Container;
 	}
 
 protected:
@@ -679,7 +891,7 @@ private:
 
 	// Result of decode
 	struct DecodeResult {
-		char32_t cp;
+		char32 cp;
 		size_t length;
 		bool valid;
 	};
@@ -718,11 +930,11 @@ private:
 		return classifyLeadChar(c).length == 1;
 	}
 
-	constexpr static bool isUCS2(const char16_t c) noexcept {
+	constexpr static bool isUCS2(const char16 c) noexcept {
 		return classifyLeadChar16(c).length <= 2;
 	}
 
-	constexpr static bool isUCS4(const char32_t cp) noexcept {
+	constexpr static bool isUCS4(const char32 cp) noexcept {
 		return cp <= 0x10FFFF && (cp < 0xD800 || cp > 0xDFFF);
 	}
 
@@ -752,7 +964,7 @@ private:
 		s.resize(w);
 	}
 
-	static void appendUTF8(std::string& out, char32_t cp) {
+	static void appendUTF8(std::string& out, char32 cp) {
 		if (!isUCS4(cp)) cp = ReplacementChar;
 
 		if (cp < 0x80) {
@@ -772,7 +984,7 @@ private:
 		}
 	}
 
-	constexpr static char32_t ReplacementChar = 0xFFFD;
+	constexpr static char32 ReplacementChar = 0xFFFD;
 
 	// Decodes UTF8 into a UTF32 char, assumes std::string_view contains UTF8
 	// If non-UTF8 is present, it is replaced with 'ReplacementChar' and marked as invalid
@@ -790,7 +1002,7 @@ private:
 			return {.cp = b0, .length = 1, .valid = true};
 
 		// Keep the useful bits of the first byte (the rest just says the length).
-		char32_t cp = b0 & (0x7F >> length);
+		char32 cp = b0 & (0x7F >> length);
 
 		for (size_t k = 1; k < length; ++k) {
 			if (i + k >= str.size())
@@ -813,7 +1025,7 @@ private:
 		if (i >= s.size())
 			return {.cp = ReplacementChar, .length = 0, .valid = false};
 
-		const char16_t b0 = s[i];
+		const char16 b0 = s[i];
 		const auto info = classifyLeadChar16(b0);
 
 		// Invalid
@@ -829,13 +1041,13 @@ private:
 			return {.cp = ReplacementChar, .length = 1, .valid = false};
 
 		// First half and second half cannot fit together
-		const char16_t second = s[i + 1];
+		const char16 second = s[i + 1];
 		if (second < info.lo || second > info.hi)
 			return {.cp = ReplacementChar, .length = 1, .valid = false};
 
 		// Add the two halves together
-		const char32_t cp = 0x10000 + ((static_cast<char32_t>(b0) - 0xD800) << 10)
-									+ (static_cast<char32_t>(second) - 0xDC00);
+		const char32 cp = 0x10000 + ((static_cast<char32>(b0) - 0xD800) << 10)
+									+ (static_cast<char32>(second) - 0xDC00);
 
 		return {.cp = cp, .length = 2, .valid = true};
 	}
@@ -844,7 +1056,7 @@ private:
 		char bytes[5];
 	};
 
-	constexpr static EncodedChar encodeUTF8(const char32_t cp) noexcept {
+	constexpr static EncodedChar encodeUTF8(const char32 cp) noexcept {
 		if (cp < 0x80)
 			return {static_cast<char>(cp)};
 		if (cp < 0x800)
@@ -864,8 +1076,8 @@ private:
 			'\0'};
 	}
 
-	constexpr static EncodedChar encodeUTF8(const char16_t cp) noexcept {
-		return encodeUTF8(static_cast<char32_t>(cp));
+	constexpr static EncodedChar encodeUTF8(const char16 cp) noexcept {
+		return encodeUTF8(static_cast<char32>(cp));
 	}
 
 public:
@@ -875,32 +1087,38 @@ public:
 		return String::UTF8(m_Container.begin(), m_Container.end());
 	}
 
+	template <String::Endian Endian = String::Endian::NATIVE>
 	String::UTF16 toUTF16() const {
 		String::UTF16 str;
 		str.reserve(getSize());  // upper bound in code units
 		for (size_t i = 0; i < getSize();) {
 			const auto res = decodeUTF8(m_Container, i);
 			if (res.cp < 0x10000) {
-				str.push_back(static_cast<char16_t>(res.cp));
+				str.push_back(String::toEndian<Endian>(static_cast<char16>(res.cp)));
 			} else {
-				const char32_t v = res.cp - 0x10000;
-				str.push_back(static_cast<char16_t>(0xD800 + (v  >> 10)));
-				str.push_back(static_cast<char16_t>(0xDC00 + (v & 0x3FF)));
+				const char32 v = res.cp - 0x10000;
+				str.push_back(String::toEndian<Endian>(static_cast<char16>(0xD800 + (v  >> 10))));
+				str.push_back(String::toEndian<Endian>(static_cast<char16>(0xDC00 + (v & 0x3FF))));
 			}
 			i += res.length;
 		}
 		return str;
 	}
 
+	template <String::Endian Endian = String::Endian::NATIVE>
 	String::UTF32 toUTF32() const {
 		String::UTF32 str;
 		str.reserve(getSize());
 		for (size_t i = 0; i < getSize();) {
 			const auto res = decodeUTF8(m_Container, i);
-			str.push_back(res.cp);
+			str.push_back(String::toEndian<Endian>(res.cp));
 			i += res.length;
 		}
 		return str;
+	}
+
+	std::filesystem::path toPath() const {
+		return toUTF8();
 	}
 
 };
