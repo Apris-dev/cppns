@@ -38,5 +38,5 @@ bin/
 # vcpkg
 !scripts/example_vcpkg.json
 
-# Readme
-!README.md
+# Documentation
+!*.md
