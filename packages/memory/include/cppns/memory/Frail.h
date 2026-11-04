@@ -172,12 +172,12 @@ noexcept {
 	}
 
 #ifdef USING_CPPNS_ARCHIVE
-	friend CInputArchive& operator>>(CInputArchive& inArchive, TFrail& inValue) {
+	friend CIArchive& operator>>(CIArchive& inArchive, TFrail& inValue) {
 		inArchive >> inValue.m_ptr;
 		return inArchive;
 	}
 
-	friend COutputArchive& operator<<(COutputArchive& inArchive, const TFrail& inValue) {
+	friend COArchive& operator<<(COArchive& inArchive, const TFrail& inValue) {
 		inArchive << inValue.m_ptr;
 		return inArchive;
 	}

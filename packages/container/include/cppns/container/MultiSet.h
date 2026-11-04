@@ -1,7 +1,8 @@
 ﻿#pragma once
 
 #include <unordered_set>
-#include "Container.h"
+#include "SelfAssociativeContainer.h"
+#include "Utils.h"
 #include "cppns/util/InitializerList.h"
 
 #ifdef USING_CPPNS_ARCHIVE
@@ -12,6 +13,9 @@ template <typename TType>
 struct TMultiSet : TSelfAssociativeContainer<TMultiSet<TType>> {
 
 	using Super = TSelfAssociativeContainer<TMultiSet>;
+
+	template <typename TOtherType = TType>
+	using TSubcontainerType = Super::template TSubcontainerType<TOtherType>;
 
 	TMultiSet() = default;
 
@@ -26,7 +30,7 @@ struct TMultiSet : TSelfAssociativeContainer<TMultiSet<TType>> {
 		(m_Container.emplace(std::forward<TArgs>(args)), ...);
 	}
 
-	TMultiSet(const std::unordered_multiset<TType>& otr): m_Container(otr) {}
+	TMultiSet(const TSubcontainerType<>& otr): m_Container(otr) {}
 
 	[[nodiscard]] size_t getSize() const {
 		return m_Container.size();
@@ -79,7 +83,7 @@ struct TMultiSet : TSelfAssociativeContainer<TMultiSet<TType>> {
 		}
 	}
 
-	void resize(const size_t amt, std::function<TType()> func) {
+	void resize(const size_t amt, const std::function<TType()>& func) {
 		for (size_t i = getSize(); i < amt; ++i) {
 			m_Container.emplace(std::forward<TType>(func()));
 		}
@@ -128,7 +132,7 @@ struct TMultiSet : TSelfAssociativeContainer<TMultiSet<TType>> {
 
 	template <typename TOtherType>
 	requires sutil::is_equality_comparable_v<TType, TOtherType>
-	void pop(const TOtherType& obj) {
+	void erase(const TOtherType& obj) {
 		if constexpr (std::is_same_v<TType, TOtherType>) {
 			m_Container.erase(obj);
 		} else {
@@ -170,17 +174,20 @@ protected:
 	auto& getSubcontainer() { return m_Container; }
 	const auto& getSubcontainer() const { return m_Container; }
 
-	std::unordered_multiset<TType, TContainerHasher<TType>> m_Container;
+	Super::Traits::template SubcontainerTypeHasher<> m_Container;
 };
 
 template <typename TType>
 struct TContainerTraits<TMultiSet<TType>> {
 	using Type = TType;
-	using SubcontainerType = std::unordered_multiset<TType, TContainerHasher<TType>>;
-	using Iterator = typename SubcontainerType::iterator;
-	using ReverseIterator = typename SubcontainerType::iterator;
-	using ConstIterator = typename SubcontainerType::const_iterator;
-	using ConstReverseIterator = typename SubcontainerType::const_iterator;
+	template<typename TOtherType = TType>
+	using SubcontainerType = std::unordered_multiset<TOtherType>;
+	template<typename TOtherType = TType>
+	using SubcontainerTypeHasher = std::unordered_multiset<TOtherType, TContainerHasher<TOtherType>>;
+	using Iterator = typename SubcontainerTypeHasher<>::iterator;
+	using ReverseIterator = typename SubcontainerTypeHasher<>::iterator;
+	using ConstIterator = typename SubcontainerTypeHasher<>::const_iterator;
+	using ConstReverseIterator = typename SubcontainerTypeHasher<>::const_iterator;
 	constexpr static auto ContainerType = EContainerType::SELF_ASSOCIATIVE;
 	constexpr static bool bHasHashing = true;
 	constexpr static bool bIsForwardOnly = false;

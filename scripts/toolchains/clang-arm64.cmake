@@ -11,6 +11,8 @@ set(CMAKE_CXX_COMPILER_TARGET aarch64-linux-gnu)
 set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN /usr)
 set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN /usr)
 
+set(QEMU_LD_PREFIX "/usr/aarch64-linux-gnu/lib")
+
 # Requires qemu-user-static on debian
 set(CMAKE_CROSSCOMPILING_EMULATOR
         "qemu-aarch64-static;-L;/usr/aarch64-linux-gnu"

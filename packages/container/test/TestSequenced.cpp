@@ -32,10 +32,18 @@ void containerTest(const std::string& containerName, TSequenceContainer<TContain
 
 	SHUFFLE(vec, rng);
 
-	container.resize(10, [&](const size_t index) {
-		TType obj = TUnfurled<TType>::template create<SObject>(vec[index], containerName);
-		return obj;
-	});
+	if constexpr (TContainerTraits<TContainerType>::bIsLimitedSize) {
+		container.fill([&](const size_t index) {
+			TType obj = TUnfurled<TType>::template create<SObject>(vec[index], containerName);
+			return obj;
+		});
+	} else {
+		container.resize(10, [&](const size_t index) {
+			TType obj = TUnfurled<TType>::template create<SObject>(vec[index], containerName);
+			return obj;
+		});
+	}
+
 	assert(container.getSize() == 10);
 
 	const size_t size = container.getSize();
@@ -45,13 +53,14 @@ void containerTest(const std::string& containerName, TSequenceContainer<TContain
 		if (const auto object = dynamic_cast<const SObject*>(parent)) {
 			assert(containerName == object->name);
 		}
-		container.pop();
+		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
+			container.pop();
+		}
 	}
 	std::cout << std::endl;
 
-	container.clear();
-
 	if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
+		container.clear();
 		assert(container.isEmpty());
 	}
 }
@@ -236,6 +245,10 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 	{ std::cout << std::endl << "--------------------" << std::endl << #__VA_ARGS__ " Test" << std::endl; } \
 	{ __VA_ARGS__ container; containerTest(#__VA_ARGS__, container); transferTest(#__VA_ARGS__, container); appendTest(#__VA_ARGS__, container); }
 
+#define SINGLE_TEST_ARRAY(...) \
+	{ std::cout << std::endl << "--------------------" << std::endl << #__VA_ARGS__ " Test" << std::endl; } \
+	{ __VA_ARGS__ container; containerTest(#__VA_ARGS__, container); }
+
 #define DO_TEST(x) \
     std::cout << std::endl << std::endl << "******************** " #x " ********************" << std::endl << std::endl; \
 	SINGLE_TEST(x<Parent>) \
@@ -250,10 +263,10 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 
 #define DO_ARRAY_TEST(x) \
     std::cout << std::endl << std::endl << "******************** " #x " ********************" << std::endl << std::endl; \
-	SINGLE_TEST(x<Parent, 10>) \
-	SINGLE_TEST(x<TShared<Parent>, 10>) \
-	SINGLE_TEST(x<TUnique<Parent>, 10>) \
-	SINGLE_TEST(x<TUnique<Abstract>, 10>) \
+	SINGLE_TEST_ARRAY(x<Parent, 10>) \
+	SINGLE_TEST_ARRAY(x<TShared<Parent>, 10>) \
+	SINGLE_TEST_ARRAY(x<TUnique<Parent>, 10>) \
+	SINGLE_TEST_ARRAY(x<TUnique<Abstract>, 10>) \
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Constructor Test" << std::endl; } \
 	{ x<int, 3> container{0, 5, 10}; for (auto& i : container) { std::cout << i << std::endl; } } \
 	{ std::cout << std::endl << "--------------------" << std::endl << #x " Unique Constructor Test" << std::endl; } \

@@ -1,0 +1,1126 @@
+#pragma once
+
+#include <bit>
+
+#include "cppns/container/SequenceContainer.h"
+#include "cppns/util/ErrorHandling.h"
+
+#if USING_CXX23
+	#define STR_CONTAINS(c, x) c.contains(x)
+#else
+	#define STR_CONTAINS(c, x) c.find(x) != npos
+#endif
+
+namespace String {
+	using Generic = std::string;
+	using GenericView = std::string_view;
+	using UTF8 = std::u8string;
+	using UTF8View = std::u8string_view;
+	using UTF16 = std::u16string;
+	using UTF16View = std::u16string_view;
+	using UTF32 = std::u32string;
+	using UTF32View = std::u32string_view;
+
+	// Convert lowercase to cppns standard
+	enum class Endian : uint8 {
+#ifdef __cpp_lib_endian
+		LITTLE = static_cast<uint8>(std::endian::little),
+		BIG = static_cast<uint8>(std::endian::big),
+		NATIVE = static_cast<uint8>(std::endian::native)
+#else
+		LITTLE = 0,
+		BIG = 1,
+	#if USING_MSVC // Windows: assume little endian
+		NATIVE = LITTLE
+	#else
+		// GCC/Clang check for byte order macros, if they don't exist, assume little endian
+		#if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+			NATIVE = BIG
+		#else
+			NATIVE = LITTLE
+		#endif
+	#endif
+#endif
+	};
+
+	constexpr static char8 swapBytes(const char8 c) noexcept {
+		return c;
+	}
+
+	constexpr static char16 swapBytes(const char16 c) noexcept {
+		return static_cast<char16>((c << 8) | (c >> 8));
+	}
+
+	constexpr static char32 swapBytes(const char32 c) noexcept {
+		return ((c & 0x000000FFu) << 24) | ((c & 0x0000FF00u) << 8) |
+			   ((c & 0x00FF0000u) >> 8)  | ((c & 0xFF000000u) >> 24);
+	}
+
+	// Gives back the unit in the byte order we want, swapping only if the machine's own order is different.
+	template <Endian Endian, typename TType>
+	constexpr static TType toEndian(TType c) noexcept {
+		if constexpr (Endian == String::Endian::NATIVE)
+			return c;
+		else
+			return swapBytes(c);
+	}
+}
+
+namespace Error::String {
+	// Generally only throws for single char values
+	// Strings and Char arrays will automatically remove Invalid characters when added
+	CREATE_ERROR_TYPE(NonASCIICharacter, "Added Non-ASCII Character Exception", "Tried to Add Non-ASCII character to CString!", Error::Runtime);
+	CREATE_ERROR_TYPE(NonUCS2Character, "Added Non-UCS2 Character Exception", "Tried to Add Non-UCS2 character to CString!", Error::Runtime);
+	CREATE_ERROR_TYPE(NonUCS4Character, "Added Non-UCS4 Character Exception", "Tried to Add Non-UCS4 character to CString!", Error::Runtime);
+}
+
+template <>
+struct TContainerTraits<struct CString> {
+	template<typename TType = void>
+	using SubcontainerType = std::string;
+	using SubcontainerTypeView = std::string_view;
+	using Type = SubcontainerType<>::value_type;
+	using Iterator = SubcontainerType<>::iterator;
+	using ReverseIterator = SubcontainerType<>::reverse_iterator;
+	using ConstIterator = SubcontainerType<>::const_iterator;
+	using ConstReverseIterator = SubcontainerType<>::const_reverse_iterator;
+	constexpr static auto ContainerType = EContainerType::SEQUENCE;
+	constexpr static bool bIsContiguousMemory = true;
+	constexpr static bool bIsLimitedAccess = false;
+	constexpr static bool bIsForwardOnly = false;
+	constexpr static bool bIsLimitedSize = false;
+};
+
+// Provides Weak UTF8 guarantee
+// Non-UTF8 can still be added through direct data access like data() or get()
+// But is unlikely to actually happen
+struct CString : TSequenceContainer<CString> {
+protected:
+
+	friend struct SContainer;
+
+	auto& getSubcontainer() { return m_Container; }
+	const auto& getSubcontainer() const { return m_Container; }
+
+public:
+
+	using Super = TSequenceContainer;
+	using TSubcontainerTypeView = Traits::SubcontainerTypeView;
+	constexpr static auto npos = Traits::SubcontainerType<>::npos;
+
+	constexpr_20 CString() = default;
+
+	constexpr_20 CString(const TType* inArray): m_Container(inArray) {
+		removeInvalidUTF8(m_Container);
+	}
+
+	constexpr_20 CString(const TType* inArray, const size_t inCount): m_Container(inArray, inCount) {
+		removeInvalidUTF8(m_Container);
+	}
+
+#ifdef __cpp_char8_t
+	CString(const char8* inArray): CString(String::UTF8(inArray)) {}
+
+	CString(const char8* inArray, const size_t inCount): CString(String::UTF8(inArray, inCount)) {}
+#endif
+
+	CString(const char16* inArray): CString(String::UTF16(inArray)) {}
+
+	CString(const char16* inArray, const size_t inCount): CString(String::UTF16(inArray, inCount)) {}
+
+	CString(const char32* inArray): CString(String::UTF32(inArray)) {}
+
+	CString(const char32* inArray, const size_t inCount): CString(String::UTF32(inArray, inCount)) {}
+
+	constexpr_20 CString(const TType& inChar) {
+		if (!isASCII(inChar))
+			throw Error::String::NonASCIICharacter();
+		push(inChar);
+	}
+
+	constexpr_20 CString(const TSubcontainerType<>& otr): CString(TSubcontainerTypeView(otr)) {}
+
+	constexpr_20 CString(const TSubcontainerTypeView otr): m_Container(otr) {
+		removeInvalidUTF8(m_Container);
+	}
+
+	CString(const String::UTF8& otr): CString(String::UTF8View(otr)) {}
+
+	CString(const String::UTF8View otr) {
+		const std::string_view view(reinterpret_cast<const char*>(otr.data()), otr.size());
+		m_Container = view;
+		removeInvalidUTF8(m_Container);
+	}
+
+	CString(const String::UTF16& otr): CString(String::UTF16View(otr)) {}
+
+	constexpr_20 CString(const String::UTF16View otr) {
+		m_Container.reserve(otr.size());
+		for (size_t i = 0; i < otr.size();) {
+			const auto res = decodeUTF16(otr, i);
+			appendUTF8(m_Container, res.cp);
+			i += res.length;
+		}
+		removeInvalidUTF8(m_Container);
+	}
+
+	CString(const String::UTF32& otr): CString(String::UTF32View(otr)) {}
+
+	constexpr_20 CString(const String::UTF32View otr) {
+		m_Container.reserve(otr.size());
+		for (const char32 c : otr)
+			appendUTF8(m_Container, c);
+		removeInvalidUTF8(m_Container);
+	}
+
+	CString(const std::filesystem::path& path): CString(path.u8string()) {}
+
+	[[nodiscard]] constexpr_20 size_t getSize() const {
+		return m_Container.size();
+	}
+
+	[[nodiscard]] constexpr_20 bool isEmpty() const {
+		return m_Container.empty();
+	}
+
+	[[nodiscard]] constexpr_20 TType* data() { return m_Container.data(); }
+
+	[[nodiscard]] constexpr_20 const TType* data() const { return m_Container.data(); }
+
+	[[nodiscard]] constexpr_20 const TType* array() const { return m_Container.c_str(); }
+
+	[[nodiscard]] constexpr_20 TType& top() {
+		return m_Container.front();
+	}
+
+	[[nodiscard]] constexpr_20 const TType& top() const {
+		return m_Container.front();
+	}
+
+	[[nodiscard]] constexpr_20 TType& bottom() {
+		return m_Container.back();
+	}
+
+	[[nodiscard]] constexpr_20 const TType& bottom() const {
+		return m_Container.back();
+	}
+
+	[[nodiscard]] constexpr_20 Iterator begin() noexcept {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] constexpr_20 ConstIterator begin() const noexcept {
+		return m_Container.begin();
+	}
+
+	[[nodiscard]] constexpr_20 ReverseIterator rbegin() noexcept {
+		return m_Container.rbegin();
+	}
+
+	[[nodiscard]] constexpr_20 ConstReverseIterator rbegin() const noexcept {
+		return m_Container.rbegin();
+	}
+
+	[[nodiscard]] constexpr_20 Iterator end() noexcept {
+		return m_Container.end();
+	}
+
+	[[nodiscard]] constexpr_20 ConstIterator end() const noexcept {
+		return m_Container.end();
+	}
+
+	[[nodiscard]] constexpr_20 ReverseIterator rend() noexcept {
+		return m_Container.rend();
+	}
+
+	[[nodiscard]] constexpr_20 ConstReverseIterator rend() const noexcept {
+		return m_Container.rend();
+	}
+
+	[[nodiscard]] constexpr_20 bool isValid(const size_t index) const {
+		return index < getSize();
+	}
+
+	[[nodiscard]] constexpr_20 bool contains(const TType* inArray) const {
+		return STR_CONTAINS(m_Container, inArray);
+	}
+
+#ifdef __cpp_char8_t
+	[[nodiscard]] bool contains(const char8* inArray) const {
+		auto* str = reinterpret_cast<const char*>(inArray);
+		return STR_CONTAINS(m_Container, str);
+	}
+#endif
+
+	[[nodiscard]] bool contains(const char16* inArray) const {
+		const CString str{inArray};
+		return STR_CONTAINS(m_Container, str.m_Container);
+	}
+
+	[[nodiscard]] bool contains(const char32* inArray) const {
+		const CString str{inArray};
+		return STR_CONTAINS(m_Container, str.m_Container);
+	}
+
+	[[nodiscard]] constexpr_20 bool contains(const TType& obj) const {
+		return STR_CONTAINS(m_Container, obj);
+	}
+
+#ifdef __cpp_char8_t
+	[[nodiscard]] constexpr_20 bool contains(const char8& obj) const {
+		return STR_CONTAINS(m_Container, obj);
+	}
+#endif
+
+	[[nodiscard]] constexpr_20 bool contains(const char16& obj) const {
+		if (!isUCS2(obj))
+			return false;
+		auto [bytes] = encodeUTF8(obj);
+		return contains(bytes);
+	}
+
+	[[nodiscard]] constexpr_20 bool contains(const char32& obj) const {
+		auto [bytes] = encodeUTF8(obj);
+		return contains(bytes);
+	}
+
+	[[nodiscard]] bool contains(const std::function<bool(const TType&)>& inFunction) {
+		return CONTAINS_IF(m_Container, inFunction);
+	}
+
+	template <typename... TOtherType>
+	[[nodiscard]] constexpr_20 bool containsAll(const TOtherType*... inArrays) {
+		bool res = true;
+		((res &= contains(inArrays)), ...);
+		return res;
+	}
+
+	template <typename... TOtherType>
+	requires std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>
+	[[nodiscard]] constexpr_20 bool containsAll(const TOtherType&... obj) {
+		bool res = true;
+		((res &= contains(obj)), ...);
+		return res;
+	}
+
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
+	[[nodiscard]] constexpr_20 bool containsAll(const TFunc&... inFunctions) {
+		bool res = true;
+		((res &= contains(inFunctions)), ...);
+		return res;
+	}
+
+	template <typename... TOtherType>
+	[[nodiscard]] constexpr_20 bool containsOne(const TOtherType*... inArrays) {
+		bool res = false;
+		((res |= contains(inArrays)), ...);
+		return res;
+	}
+
+	template <typename... TOtherType,
+		std::enable_if_t<std::conjunction_v<sutil::is_equality_comparable<TType, TOtherType>...>, int> = 0
+	>
+	[[nodiscard]] constexpr_20 bool containsOne(const TOtherType&... obj) {
+		bool res = false;
+		((res |= contains(obj)), ...);
+		return res;
+	}
+
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
+	[[nodiscard]] constexpr_20 bool containsOne(const TFunc&... inFunctions) {
+		bool res = false;
+		((res |= contains(inFunctions)), ...);
+		return res;
+	}
+
+	[[nodiscard]] constexpr_20 size_t find(const TType* inArray) const {
+		return m_Container.find(inArray);
+	}
+
+#ifdef __cpp_char8_t
+	[[nodiscard]] size_t find(const char8* inArray) const {
+		auto* str = reinterpret_cast<const char*>(inArray);
+		return m_Container.find(str);
+	}
+#endif
+
+	[[nodiscard]] size_t find(const char16* inArray) const {
+		const CString str{inArray};
+		return m_Container.find(str.m_Container);
+	}
+
+	[[nodiscard]] size_t find(const char32* inArray) const {
+		const CString str{inArray};
+		return m_Container.find(str.m_Container);
+	}
+
+	[[nodiscard]] constexpr_20 size_t find(const TType& obj) const {
+		return m_Container.find(obj);
+	}
+
+#ifdef __cpp_char8_t
+	[[nodiscard]] constexpr_20 size_t find(const char8& obj) const {
+		return m_Container.find(obj);
+	}
+#endif
+
+	[[nodiscard]] constexpr_20 size_t find(const char16& obj) const {
+		if (!isUCS2(obj))
+			return 0;
+		auto [bytes] = encodeUTF8(obj);
+		return find(bytes);
+	}
+
+	[[nodiscard]] constexpr_20 size_t find(const char32& obj) const {
+		auto [bytes] = encodeUTF8(obj);
+		return find(bytes);
+	}
+
+	[[nodiscard]] size_t find(const std::function<bool(const TType&)>& inFunction) {
+		return DISTANCE_IF(m_Container, inFunction);
+	}
+
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
+	[[nodiscard]] constexpr_20 size_t findFirst(const TFunc&... inFunctions) {
+		auto func = [&](const auto& obb) {
+			bool res = false;
+			((res |= inFunctions(obb)), ...);
+			return res;
+		};
+
+		return find(func);
+	}
+
+	[[nodiscard]] constexpr_20 size_t findLast(const TType* inArray) const {
+		return m_Container.rfind(inArray);
+	}
+
+#ifdef __cpp_char8_t
+	[[nodiscard]] size_t findLast(const char8* inArray) const {
+		auto* str = reinterpret_cast<const char*>(inArray);
+		return m_Container.rfind(str);
+	}
+#endif
+
+	[[nodiscard]] size_t findLast(const char16* inArray) const {
+		const CString str{inArray};
+		return m_Container.rfind(str.m_Container);
+	}
+
+	[[nodiscard]] size_t findLast(const char32* inArray) const {
+		const CString str{inArray};
+		return m_Container.rfind(str.m_Container);
+	}
+
+	[[nodiscard]] constexpr_20 size_t findLast(const TType& obj) const {
+		return m_Container.rfind(obj);
+	}
+
+#ifdef __cpp_char8_t
+	[[nodiscard]] constexpr_20 size_t findLast(const char8& obj) const {
+		return m_Container.rfind(obj);
+	}
+#endif
+
+	[[nodiscard]] constexpr_20 size_t findLast(const char16& obj) const {
+		if (!isUCS2(obj))
+			return 0;
+		auto [bytes] = encodeUTF8(obj);
+		return findLast(bytes);
+	}
+
+	[[nodiscard]] constexpr_20 size_t findLast(const char32& obj) const {
+		auto [bytes] = encodeUTF8(obj);
+		return findLast(bytes);
+	}
+
+	template <typename... TFunc>
+	requires std::conjunction_v<std::is_invocable_r<bool, TFunc, const TType&>...>
+	[[nodiscard]] constexpr_20 size_t findLast(const TFunc&... inFunctions) {
+		auto func = [&](const auto& obb) {
+			bool res = false;
+			((res |= inFunctions(obb)), ...);
+			return res;
+		};
+
+		return DISTANCE_LAST_IF(m_Container, func);
+	}
+
+	[[nodiscard]] constexpr_20 TType& get(const size_t index) {
+		return m_Container[index];
+	}
+
+	[[nodiscard]] constexpr_20 const TType& get(const size_t index) const {
+		return m_Container[index];
+	}
+
+	constexpr_20 void resize(const size_t amt) {
+		m_Container.resize(amt);
+	}
+
+	constexpr_20 void resize(const size_t amt, const std::function<TType(size_t)>& func) {
+		const size_t previousSize = getSize();
+		m_Container.reserve(amt);
+		for (size_t i = previousSize; i < amt; ++i) {
+			m_Container.push_back(std::forward<TType>(func(i)));
+		}
+		removeInvalidUTF8(m_Container);
+	}
+
+	constexpr_20 void reserve(const size_t amt) {
+		m_Container.reserve(amt);
+	}
+
+	constexpr_20 TType& push() {
+		m_Container.push_back(TType());
+		return get(getSize() - 1);
+	}
+
+	constexpr_20 size_t push(const TType& obj) {
+		if (!isASCII(obj))
+			throw Error::String::NonASCIICharacter();
+		m_Container.push_back(obj);
+		return getSize() - 1;
+	}
+
+#ifdef __cpp_char8_t
+	constexpr_20 size_t push(const char8& obj) {
+		return push(static_cast<const char&>(obj));
+	}
+#endif
+
+	constexpr_20 size_t push(const char16& obj) {
+		if (!isUCS2(obj))
+			throw Error::String::NonUCS2Character();
+		auto [bytes] = encodeUTF8(obj);
+		m_Container.push_back(bytes[0]);
+		const size_t res = getSize() - 1;
+		if (bytes[1] != '\0')
+			m_Container.push_back(bytes[1]);
+		return res;
+	}
+
+	constexpr_20 size_t push(const char32& obj) {
+		if (!isUCS4(obj))
+			throw Error::String::NonUCS4Character();
+		auto [bytes] = encodeUTF8(obj);
+		m_Container.push_back(bytes[0]);
+		const size_t res = getSize() - 1;
+		if (bytes[1] != '\0')
+			m_Container.push_back(bytes[1]);
+		if (bytes[2] != '\0')
+			m_Container.push_back(bytes[2]);
+		if (bytes[3] != '\0')
+			m_Container.push_back(bytes[3]);
+		return res;
+	}
+
+	constexpr_20 size_t push(TType&& obj) {
+		if (!isASCII(obj))
+			throw Error::String::NonASCIICharacter();
+		m_Container.push_back(std::move(obj));
+		return getSize() - 1;
+	}
+
+#ifdef __cpp_char8_t
+	constexpr_20 size_t push(char8&& obj) {
+		return push(static_cast<char&&>(obj));
+	}
+#endif
+
+	constexpr_20 void push(const size_t index, const TType& obj) {
+		if (!isASCII(obj))
+			throw Error::String::NonASCIICharacter();
+		m_Container.insert(m_Container.begin() + index, obj);
+	}
+
+#ifdef __cpp_char8_t
+	constexpr_20 void push(const size_t index, const char8& obj) {
+		push(index, static_cast<const char&>(obj));
+	}
+#endif
+
+	constexpr_20 void push(const size_t index, const char16& obj) {
+		if (!isUCS2(obj))
+			throw Error::String::NonUCS2Character();
+		auto [bytes] = encodeUTF8(obj);
+		if (bytes[1] != '\0')
+			m_Container.insert(m_Container.begin() + index, bytes[1]);
+		m_Container.insert(m_Container.begin() + index, bytes[0]);
+	}
+
+	constexpr_20 void push(const size_t index, const char32& obj) {
+		if (!isUCS4(obj))
+			throw Error::String::NonUCS4Character();
+		auto [bytes] = encodeUTF8(obj);
+		if (bytes[3] != '\0')
+			m_Container.insert(m_Container.begin() + index, bytes[3]);
+		if (bytes[2] != '\0')
+			m_Container.insert(m_Container.begin() + index, bytes[2]);
+		if (bytes[1] != '\0')
+			m_Container.insert(m_Container.begin() + index, bytes[1]);
+		m_Container.insert(m_Container.begin() + index, bytes[0]);
+	}
+
+	constexpr_20 void push(const size_t index, TType&& obj) {
+		if (!isASCII(obj))
+			throw Error::String::NonASCIICharacter();
+		m_Container.insert(m_Container.begin() + index, std::move(obj));
+	}
+
+#ifdef __cpp_char8_t
+	constexpr_20 void push(const size_t index, char8&& obj) {
+		push(index, static_cast<char&&>(obj));
+	}
+#endif
+
+	constexpr_20 void replace(const size_t index, const TType& obj) {
+		if (!isASCII(obj))
+			throw Error::String::NonASCIICharacter();
+		popAt(index);
+		push(index, obj);
+	}
+
+#ifdef __cpp_char8_t
+	constexpr_20 void replace(const size_t index, const char8& obj) {
+		replace(index, static_cast<const char&>(obj));
+	}
+#endif
+
+	constexpr_20 void replace(const size_t index, const char16& obj) {
+		if (!isUCS2(obj))
+			throw Error::String::NonUCS2Character();
+		popAt(index);
+		push(index, obj);
+	}
+
+	constexpr_20 void replace(const size_t index, const char32& obj) {
+		if (!isUCS4(obj))
+			throw Error::String::NonUCS4Character();
+		popAt(index);
+		push(index, obj);
+	}
+
+	constexpr_20 void replace(const size_t index, TType&& obj) {
+		if (!isASCII(obj))
+			throw Error::String::NonASCIICharacter();
+		popAt(index);
+		push(index, std::move(obj));
+	}
+
+#ifdef __cpp_char8_t
+	constexpr_20 void replace(const size_t index, char8&& obj) {
+		replace(index, static_cast<char&&>(obj));
+	}
+#endif
+
+	constexpr_20 CString substr(const size_t inOffset, const size_t inCount = npos) const {
+		return CString{m_Container.substr(inOffset, inCount)};
+	}
+
+	constexpr_20 void clear() {
+		m_Container.clear();
+	}
+
+	constexpr_20 void pop() {
+		m_Container.pop_back();
+	}
+
+	constexpr_20 void popAt(const size_t index) {
+		m_Container.erase(m_Container.begin() + index);
+	}
+
+	constexpr_20 void eraseBefore(const size_t inPosition) {
+		m_Container.erase(m_Container.begin(), m_Container.begin() + inPosition);
+	}
+
+	constexpr_20 void eraseBefore(const size_t inPosition, const size_t inCount) {
+		m_Container.erase(m_Container.begin() + (inPosition - inCount), m_Container.begin() + inPosition);
+	}
+
+	constexpr_20 void eraseAfter(const size_t inPosition) {
+		m_Container.erase(inPosition);
+	}
+
+	constexpr_20 void eraseAfter(const size_t inPosition, const size_t inCount) {
+		m_Container.erase(inPosition, inCount);
+	}
+
+	constexpr_20 void erase(const TType* inArray) {
+		m_Container.erase(m_Container.find(inArray), std::strlen(inArray));
+	}
+
+#ifdef __cpp_char8_t
+	void erase(const char8* inArray) {
+		auto* str = reinterpret_cast<const char*>(inArray);
+		erase(str);
+	}
+#endif
+
+	void erase(const char16* inArray) {
+		m_Container.erase(find(inArray), std::char_traits<char16>::length(inArray) * sizeof(char16));
+	}
+
+	void erase(const char32* inArray) {
+		m_Container.erase(find(inArray), std::char_traits<char32>::length(inArray) * sizeof(char32));
+	}
+
+	constexpr_20 void erase(const TType& obj) {
+		m_Container.erase(m_Container.find(obj), 1);
+	}
+
+#ifdef __cpp_char8_t
+	constexpr_20 void erase(const char8& obj) {
+		erase(reinterpret_cast<const char&>(obj));
+	}
+#endif
+
+	constexpr_20 void erase(const char16& obj) {
+		if (!isUCS2(obj))
+			return;
+		auto [bytes] = encodeUTF8(obj);
+		erase(bytes);
+	}
+
+	constexpr_20 void erase(const char32& obj) {
+		auto [bytes] = encodeUTF8(obj);
+		erase(bytes);
+	}
+
+	constexpr_20 void sort() {
+		SORT(m_Container);
+	}
+
+	template <typename Func>
+	constexpr_20 void sort(Func&& func) {
+		SORT_F(m_Container, std::forward<Func>(func));
+	}
+
+	template <typename TOtherContainerType>
+	constexpr_20 void transfer(TSequenceContainer<TOtherContainerType>& otr, const size_t index) {
+		// Prefer move, but copy if not available
+		auto& obj = get(index);
+		otr.push(std::move(obj));
+		popAt(index);
+	}
+
+	template <typename TOtherContainerType>
+	constexpr_20 void append(const TSequenceContainer<TOtherContainerType>& otr) {
+#ifdef __cpp_lib_containers_ranges
+		m_Container.append_range(SContainer::getSubcontainer(otr));
+#else
+		m_Container.insert(m_Container.end(), SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
+#endif
+		removeInvalidUTF8(m_Container);
+	}
+
+	constexpr_20 void append(const TType* inArray) {
+		std::string str = inArray;
+		removeInvalidUTF8(str);
+		m_Container.append(str);
+	}
+
+	constexpr_20 void append(const TType* inArray, const size_t inCount) {
+		std::string str = {inArray, inCount};
+		removeInvalidUTF8(str);
+		m_Container.append(str);
+	}
+
+#ifdef __cpp_char8_t
+	void append(const char8* inArray) {
+		auto* str = reinterpret_cast<const char*>(inArray);
+		append(str);
+	}
+
+	void append(const char8* inArray, const size_t inCount) {
+		auto* str = reinterpret_cast<const char*>(inArray);
+		append(str, inCount);
+	}
+#endif
+
+	void append(const char16* inArray) {
+		const CString str{inArray};
+		m_Container.append(str.m_Container);
+	}
+
+	void append(const char16* inArray, const size_t inCount) {
+		const CString str{inArray, inCount};
+		m_Container.append(str.m_Container);
+	}
+
+	void append(const char32* inArray) {
+		const CString str{inArray};
+		m_Container.append(str.m_Container);
+	}
+
+	void append(const char32* inArray, const size_t inCount) {
+		const CString str{inArray, inCount};
+		m_Container.append(str.m_Container);
+	}
+
+	//TODO: default locale only does a-z to A-Z, but we cant rely on that for now
+
+	// Gets a lowercase version of this string
+	CString getLower() const {
+		CString otr = *this;
+		otr.toLower();
+		return otr;
+	}
+
+	// Transforms this string to lowercase
+	void toLower() {
+		if (isEmpty()) return;
+		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
+		[](char c) {
+			return c >= 'A' && c <= 'Z' ? static_cast<char>(c + ('a' - 'A')) : c;
+		});
+	}
+
+	// Gets an uppercase version of this string
+	CString getUpper() const {
+		CString otr = *this;
+		otr.toUpper();
+		return otr;
+	}
+
+	// Transforms this string to uppercase
+	void toUpper() {
+		if (isEmpty()) return;
+		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
+		[](char c) {
+			return c >= 'a' && c <= 'z' ? static_cast<char>(c - ('a' - 'A')) : c;
+		});
+	}
+
+	// Gets an uppercase version of this string that is capitalized
+	CString getCapitalized() const {
+		CString otr = *this;
+		otr.toCapitalized();
+		return otr;
+	}
+
+	// Capitalizes the string and lowercases the rest
+	// If the first character cannot be capitalized, it will return a lowercase string
+	void toCapitalized() {
+		if (isEmpty()) return;
+		toLower();
+		char& c = get(0);
+		c = c >= 'a' && c <= 'z' ? static_cast<char>(c - ('a' - 'A')) : c;
+	}
+
+	// Gets a version of this string with it's case flipped
+	CString getFlippedCase() const {
+		CString otr = *this;
+		otr.toFlippedCase();
+		return otr;
+	}
+
+	// Transforms this string to flipped case
+	void toFlippedCase() {
+		if (isEmpty()) return;
+		std::transform(m_Container.begin(), m_Container.end(), m_Container.begin(),
+		[](char c) {
+			if (c >= 'a' && c <= 'z')
+				return static_cast<char>(c - ('a' - 'A'));
+			if (c >= 'A' && c <= 'Z')
+				return static_cast<char>(c + ('a' - 'A'));
+			return c;
+		});
+	}
+
+	constexpr_20 operator TSubcontainerType<>() const noexcept {
+		return m_Container;
+	}
+
+	operator String::UTF8() const noexcept {
+		return toUTF8();
+	}
+
+	operator String::UTF16() const noexcept {
+		return toUTF16();
+	}
+
+	operator String::UTF32() const noexcept {
+		return toUTF32();
+	}
+
+	constexpr_20 CString& operator+=(const CString& otr) noexcept {
+		append(otr);
+		return *this;
+	}
+
+	friend constexpr_20 CString operator+(const CString& fst, const CString& snd) noexcept {
+		CString temp = fst;
+		temp += snd;
+		return temp;
+	}
+
+	friend constexpr_20 bool operator==(const CString& fst, const CString& snd) noexcept {
+		return fst.m_Container == snd.m_Container;
+	}
+
+	friend constexpr_20 std::strong_ordering operator<=>(const CString& fst, const CString& snd) noexcept {
+		return fst.m_Container <=> snd.m_Container;
+	}
+
+protected:
+	TSubcontainerType<> m_Container;
+
+private:
+
+	/*
+	 * Conversions
+	 * TODO: move away when doing numeric conversions
+	 */
+
+	// A lead char is when the first char in a codepoint
+	// In the case of ASCII, it is also the only char
+	// lo and hi are the ranges that are possible for the second byte
+	struct LeadCharInfo {
+		size_t length;
+		uint8 lo, hi;
+	};
+
+	struct LeadCharInfo16 {
+		size_t length;
+		uint16 lo, hi;
+	};
+
+	// Result of decode
+	struct DecodeResult {
+		char32 cp;
+		size_t length;
+		bool valid;
+	};
+
+	constexpr static LeadCharInfo classifyLeadChar(const uint8 b0) noexcept {
+		if (b0 < 0x80)
+			return {.length = 1, .lo = 0x80, .hi = 0xBF};
+		if (b0 < 0xC2)
+			return {.length = 0, .lo = 0, .hi = 0};
+		if (b0 <= 0xDF)
+			return {.length = 2, .lo = 0x80, .hi = 0xBF};
+		if (b0 == 0xE0)
+			return {.length = 3, .lo = 0xA0, .hi = 0xBF};
+		if (b0 == 0xED)
+			return {.length = 3, .lo = 0x80, .hi = 0x9F};
+		if (b0 <= 0xEF)
+			return {.length = 3, .lo = 0x80, .hi = 0xBF};
+		if (b0 == 0xF0)
+			return {.length = 4, .lo = 0x90, .hi = 0xBF};
+		if (b0 == 0xF4)
+			return {.length = 4, .lo = 0x80, .hi = 0x8F};
+		if (b0 <= 0xF3)
+			return {.length = 4, .lo = 0x80, .hi = 0xBF};
+		return {.length = 0, .lo = 0, .hi = 0};
+	}
+
+	constexpr static LeadCharInfo16 classifyLeadChar16(const uint16 b0) noexcept {
+		if (b0 < 0xD800 || b0 > 0xDFFF)
+			return {.length = 1, .lo = 0, .hi = 0};
+		if (b0 <= 0xDBFF)
+			return {.length = 2, .lo = 0xDC00, .hi = 0xDFFF};
+		return {.length = 0, .lo = 0, .hi = 0};
+	}
+
+	constexpr static bool isASCII(const char c) noexcept {
+		return classifyLeadChar(c).length == 1;
+	}
+
+	constexpr static bool isUCS2(const char16 c) noexcept {
+		return classifyLeadChar16(c).length <= 2;
+	}
+
+	constexpr static bool isUCS4(const char32 cp) noexcept {
+		return cp <= 0x10FFFF && (cp < 0xD800 || cp > 0xDFFF);
+	}
+
+	// Remove invalid UTF8
+	constexpr static void removeInvalidUTF8(std::string& s) noexcept {
+		const size_t n = s.size();
+		// where we read from and where the next good byte goes
+		size_t r = 0, w = 0;
+
+		while (r < n) {
+			const DecodeResult ch = decodeUTF8(s, r);
+
+			if (ch.valid) {
+				// Only copy if something was deleted
+				if (w != r) {
+					for (size_t k = 0; k < ch.length; ++k) {
+						s[w + k] = s[r + k];
+					}
+				}
+				w += ch.length;
+			}
+			// Continue reading past regardless of validity
+			r += ch.length;
+		}
+
+		// Cut off the leftover tail
+		s.resize(w);
+	}
+
+	static void appendUTF8(std::string& out, char32 cp) {
+		if (!isUCS4(cp)) cp = ReplacementChar;
+
+		if (cp < 0x80) {
+			out.push_back(static_cast<char>(cp));
+		} else if (cp < 0x800) {
+			out.push_back(static_cast<char>(0xC0 | (cp >> 6)));
+			out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+		} else if (cp < 0x10000) {
+			out.push_back(static_cast<char>(0xE0 | (cp >> 12)));
+			out.push_back(static_cast<char>(0x80 | ((cp >> 6) & 0x3F)));
+			out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+		} else {
+			out.push_back(static_cast<char>(0xF0 | (cp >> 18)));
+			out.push_back(static_cast<char>(0x80 | ((cp >> 12) & 0x3F)));
+			out.push_back(static_cast<char>(0x80 | ((cp >> 6) & 0x3F)));
+			out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+		}
+	}
+
+	constexpr static char32 ReplacementChar = 0xFFFD;
+
+	// Decodes UTF8 into a UTF32 char, assumes std::string_view contains UTF8
+	// If non-UTF8 is present, it is replaced with 'ReplacementChar' and marked as invalid
+	constexpr static DecodeResult decodeUTF8(const TSubcontainerTypeView str, const size_t i) {
+		if (i >= str.size())
+				return {.cp = ReplacementChar, .length = 0, .valid = false};
+
+		const auto b0 = static_cast<unsigned char>(str[i]);
+		const auto [length, lo, hi] = classifyLeadChar(b0);
+
+		if (length == 0)
+			return {.cp = ReplacementChar, .length = 1, .valid = false};
+
+		if (length == 1)
+			return {.cp = b0, .length = 1, .valid = true};
+
+		// Keep the useful bits of the first byte (the rest just says the length).
+		char32 cp = b0 & (0x7F >> length);
+
+		for (size_t k = 1; k < length; ++k) {
+			if (i + k >= str.size())
+				return {.cp = ReplacementChar, .length = k, .valid = false};
+
+			const auto b = static_cast<unsigned char>(str[i + k]);
+
+			if (!(k == 1 ? b >= lo && b <= hi : (b & 0xC0) == 0x80))
+				return {.cp = ReplacementChar, .length = k, .valid = false};
+
+			// Add this byte's 6 bits
+			cp = (cp << 6) | (b & 0x3F);
+		}
+
+		return {.cp = cp, .length = length, .valid = true};
+	}
+
+	// Decodes UTF16 into a UTF32 char
+	constexpr static DecodeResult decodeUTF16(const String::UTF16View s, const size_t i) noexcept {
+		if (i >= s.size())
+			return {.cp = ReplacementChar, .length = 0, .valid = false};
+
+		const char16 b0 = s[i];
+		const auto info = classifyLeadChar16(b0);
+
+		// Invalid
+		if (info.length == 0)
+			return {.cp = ReplacementChar, .length = 1, .valid = false};
+
+		// Codepoint fits inside the 2 bytes, ie: not surrogate
+		if (info.length == 1)
+			return {.cp = b0, .length = 1, .valid = true};
+
+		// First half with no second half
+		if (i + 1 >= s.size())
+			return {.cp = ReplacementChar, .length = 1, .valid = false};
+
+		// First half and second half cannot fit together
+		const char16 second = s[i + 1];
+		if (second < info.lo || second > info.hi)
+			return {.cp = ReplacementChar, .length = 1, .valid = false};
+
+		// Add the two halves together
+		const char32 cp = 0x10000 + ((static_cast<char32>(b0) - 0xD800) << 10)
+									+ (static_cast<char32>(second) - 0xDC00);
+
+		return {.cp = cp, .length = 2, .valid = true};
+	}
+
+	struct EncodedChar {
+		char bytes[5];
+	};
+
+	constexpr static EncodedChar encodeUTF8(const char32 cp) noexcept {
+		if (cp < 0x80)
+			return {static_cast<char>(cp)};
+		if (cp < 0x800)
+			return {static_cast<char>(0xC0 | (cp >> 6)),
+				static_cast<char>(0x80 | (cp & 0x3F)),
+				'\0'};
+		if (cp < 0x10000)
+			return {static_cast<char>(0xE0 | (cp >> 12)),
+				static_cast<char>(0x80 | ((cp >> 6) & 0x3F)),
+				static_cast<char>(0x80 | (cp & 0x3F)),
+				'\0'};
+
+		return {static_cast<char>(0xF0 | (cp >> 18)),
+			static_cast<char>(0x80 | ((cp >> 12) & 0x3F)),
+			static_cast<char>(0x80 | ((cp >> 6) & 0x3F)),
+			static_cast<char>(0x80 | (cp & 0x3F)),
+			'\0'};
+	}
+
+	constexpr static EncodedChar encodeUTF8(const char16 cp) noexcept {
+		return encodeUTF8(static_cast<char32>(cp));
+	}
+
+public:
+
+	// Since CString guarantees UTF8, the conversion is simple
+	String::UTF8 toUTF8() const {
+		return String::UTF8(m_Container.begin(), m_Container.end());
+	}
+
+	template <String::Endian Endian = String::Endian::NATIVE>
+	String::UTF16 toUTF16() const {
+		String::UTF16 str;
+		str.reserve(getSize());  // upper bound in code units
+		for (size_t i = 0; i < getSize();) {
+			const auto res = decodeUTF8(m_Container, i);
+			if (res.cp < 0x10000) {
+				str.push_back(String::toEndian<Endian>(static_cast<char16>(res.cp)));
+			} else {
+				const char32 v = res.cp - 0x10000;
+				str.push_back(String::toEndian<Endian>(static_cast<char16>(0xD800 + (v  >> 10))));
+				str.push_back(String::toEndian<Endian>(static_cast<char16>(0xDC00 + (v & 0x3FF))));
+			}
+			i += res.length;
+		}
+		return str;
+	}
+
+	template <String::Endian Endian = String::Endian::NATIVE>
+	String::UTF32 toUTF32() const {
+		String::UTF32 str;
+		str.reserve(getSize());
+		for (size_t i = 0; i < getSize();) {
+			const auto res = decodeUTF8(m_Container, i);
+			str.push_back(String::toEndian<Endian>(res.cp));
+			i += res.length;
+		}
+		return str;
+	}
+
+	std::filesystem::path toPath() const {
+		return toUTF8();
+	}
+
+};
+
+#undef STR_CONTAINS
