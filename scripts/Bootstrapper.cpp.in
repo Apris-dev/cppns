@@ -65,13 +65,12 @@ static string GetLastErrorMessage() {
 #endif
 }
 
-static path getExecutablePath() {
+static path getExecutablePathFromOS() {
 #if defined(_WIN32)
     wchar_t executablePathBuf[MAX_PATH];
-    const DWORD len = GetModuleFileNameW(nullptr, executablePathBuf, sizeof(executablePathBuf));
+    const DWORD len = GetModuleFileNameW(nullptr, executablePathBuf, MAX_PATH);
     if (len == 0) {
-        cerr << "-- Bootstrapper: GetModuleFileNameW failed, Error: " << GetLastErrorMessage() << endl;
-        throw std::runtime_error(GetLastErrorMessage());
+        throw runtime_error("GetModuleFileNameW failed, Error: " + GetLastErrorMessage());
     }
 
     wstring executablePathStr(executablePathBuf, len);
@@ -84,8 +83,7 @@ static path getExecutablePath() {
     char executablePathBuf[PATH_MAX];
     const ssize_t len = readlink("/proc/self/exe", executablePathBuf, PATH_MAX);
     if (len == -1) {
-        cerr << "-- Bootstrapper: readlink failed, Error: " << GetLastErrorMessage() << endl;
-        throw std::runtime_error(GetLastErrorMessage());
+        throw runtime_error("readlink(\"/proc/self/exe\") failed, Error: " + GetLastErrorMessage());
     }
 
     string executablePathStr(executablePathBuf, len);
@@ -103,8 +101,7 @@ static path getExecutablePath() {
     vector<char> executablePathBuf(executablePathSize);
     const ssize_t len = _NSGetExecutablePath(executablePathBuf.data(), &executablePathSize);
     if (len == -1) {
-        cerr << "-- Bootstrapper: _NSGetExecutablePath failed, Error: " << GetLastErrorMessage() << endl;
-        throw std::runtime_error(GetLastErrorMessage());
+        throw runtime_error("_NSGetExecutablePath failed, Error: " + GetLastErrorMessage());
     }
 
     string executablePathStr(executablePathBuf.data(), executablePathBuf.size());
@@ -114,6 +111,73 @@ static path getExecutablePath() {
 
     return executablePathStr;
 #endif
+}
+
+static path getExecutablePathFromArgv0(const char* argv0) {
+    // If argv0 is invalid we cannot continue
+    if (argv0 == nullptr || *argv0 == '\0')
+        throw runtime_error("argv[0] is empty");
+
+    const path candidate(argv0);
+    error_code ec;
+
+    // argv0 is a path, resolve any symlinks or other semantics and return an absolute path
+    if (candidate.has_parent_path()) {
+        const path resolved = canonical(candidate, ec);
+        if (ec)
+            throw runtime_error("Failed to canonicalize \"" + candidate.string() + "\"");
+        return resolved.parent_path();
+    }
+
+    // argv[0] is a bare name, we have to search PATH to resolve it.
+    if (const auto pathEnv = Path::getEnv("PATH")) {
+        const string& pathList = *pathEnv;
+        size_t start = 0;
+        while (start <= pathList.size()) {
+            const size_t end = pathList.find(PATH_LIST_SEPARATOR, start);
+            const string dir = pathList.substr(start, end == string::npos ? string::npos : end - start);
+
+            // Search the path and test if it + argv0 exists
+            // Then resolve symlinks or other semantics and return an absolute path
+            if (!dir.empty()) {
+                const path full = path(dir) / candidate;
+                if (exists(full, ec) && !ec) {
+                    const path resolved = canonical(full, ec);
+                    if (!ec) {
+                        return resolved.parent_path();
+                    }
+                }
+            }
+
+            if (end == string::npos) {
+                break;
+            }
+            // Move to the next entry
+            start = end + 1;
+        }
+    }
+
+    throw runtime_error("Could not resolve argv[0] \"" + candidate.string() + "\" via PATH");
+}
+
+static path getExecutablePath(const char* argv0) {
+    // Try the OS-specific lookup first
+    // Fall back to argv0 method if it fails (such as a chroot or qemu emulation).
+    try {
+        const path resolved = getExecutablePathFromOS();
+        if (!exists(resolved)) {
+            throw runtime_error("Resolved path does not exist: " + resolved.string());
+        }
+        return resolved;
+    } catch (const exception& e) {
+        cerr << "-- Bootstrapper: OS executable path lookup failed (" << e.what() << "), falling back to argv[0]: " << argv0 << endl;
+    }
+
+    const path resolved = getExecutablePathFromArgv0(argv0);
+    if (!exists(resolved)) {
+        throw runtime_error("argv[0] fallback resolved to a path that does not exist: " + resolved.string());
+    }
+    return resolved;
 }
 
 static void forEachFileInPath(const path& inPath, const function<void(const path&)>& inFunc) {
@@ -160,14 +224,14 @@ static void loadLibrary(const path& inFileName) {
     if (LoadLibraryW(inFileName.c_str()) == nullptr) {
         cerr << "-- Bootstrapper: LoadLibraryW failed, Error: " << GetLastErrorMessage() << endl;
         cerr << "Path: " << inFileName << endl;
-        throw std::runtime_error(GetLastErrorMessage());
+        throw runtime_error(GetLastErrorMessage());
     }
 #else
     if (dlopen(inFileName.c_str(), RTLD_NOW | RTLD_GLOBAL) == nullptr) {
         const char* message = dlerror();
         cerr << "-- Bootstrapper: dlopen failed, Error: " << message << endl;
         cerr << "Path: " << inFileName << endl;
-        throw std::runtime_error(message);
+        throw runtime_error(message);
     }
 #endif
 }
@@ -178,7 +242,7 @@ static mainfunc_t getMainFunc() {
 
     if (entrancePoint == nullptr) {
         cerr << "-- Bootstrapper: GetModuleHandleW failed, Error: " << GetLastErrorMessage() << endl;
-        throw std::runtime_error(GetLastErrorMessage());
+        throw runtime_error(GetLastErrorMessage());
     }
 
     return reinterpret_cast<mainfunc_t>(GetProcAddress(entrancePoint, ENTRANCE_POINT));
@@ -188,18 +252,21 @@ static mainfunc_t getMainFunc() {
     if (entrancePoint == nullptr) {
         const char* message = dlerror();
         cerr << "-- Bootstrapper: dlopen NOLOAD failed, Error: " << message << endl;
-        throw std::runtime_error(message);
+        throw runtime_error(message);
     }
 
     return reinterpret_cast<mainfunc_t>(dlsym(entrancePoint, ENTRANCE_POINT));
 #endif
 }
 
-int main() {
-
+int main(int argc, char** argv) {
     cout << "-- Bootstrapper: Started" << endl;
 
-    const path executablePath = getExecutablePath();
+    const path executablePath = getExecutablePath(argv[0]);
+
+    // Set the env var while loading modules
+    Path::setEnv(CPPNS_EXECUTABLE_PATH_ENV, executablePath.string().c_str());
+    cout << "-- Bootstrapper: Set " << CPPNS_EXECUTABLE_PATH_ENV << " for loading modules." << endl;
 
     forEachFileInPath(executablePath, [&](const path& inFileName) {
         if (inFileName.extension() == DYNAMIC_LIBRARY) {
@@ -214,6 +281,10 @@ int main() {
             }
         }
     });
+
+    // Clear the env var after loading modules to prevent it from leaking into any spawned processes
+    Path::clearEnv(CPPNS_EXECUTABLE_PATH_ENV);
+    cout << "-- Bootstrapper: Cleared " << CPPNS_EXECUTABLE_PATH_ENV << " before running main." << endl;
 
     const auto mainFunc = getMainFunc();
 
