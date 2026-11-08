@@ -9,6 +9,7 @@ struct SPrinter {
         ++count;
 
         std::cout << "TestLIB Library Loaded!" << count << std::endl;
+        std::cout << "TestLIB: gExecutablePath = " << gExecutablePath << std::endl;
         loaded = true;
         addModule("TestLib");
     }
