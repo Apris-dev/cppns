@@ -56,6 +56,22 @@ namespace Path {
         return std::string(value);
 #endif
     }
+
+    inline void setEnv(const char* name, const char* value) {
+#if USING_WINDOWS
+        _putenv_s(name, value);
+#else
+        setenv(name, value, 1);
+#endif
+    }
+
+    inline void clearEnv(const char* name) {
+#if USING_WINDOWS
+        _putenv_s(CPPNS_EXECUTABLE_PATH_ENV, "");
+#else
+        unsetenv(CPPNS_EXECUTABLE_PATH_ENV);
+#endif
+    }
 }
 
 //inline std::string gTempPath = std::filesystem::temp_directory_path().string();

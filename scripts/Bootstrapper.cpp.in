@@ -265,11 +265,7 @@ int main(int argc, char** argv) {
     const path executablePath = getExecutablePath(argv[0]);
 
     // Set the env var while loading modules
-#if defined(_WIN32)
-    _putenv_s(CPPNS_EXECUTABLE_PATH_ENV, executablePath.string().c_str());
-#else
-    setenv(CPPNS_EXECUTABLE_PATH_ENV, executablePath.c_str(), 1);
-#endif
+    Path::setEnv(CPPNS_EXECUTABLE_PATH_ENV, executablePath.string().c_str());
     cout << "-- Bootstrapper: Set " << CPPNS_EXECUTABLE_PATH_ENV << " for loading modules." << endl;
 
     forEachFileInPath(executablePath, [&](const path& inFileName) {
@@ -287,11 +283,7 @@ int main(int argc, char** argv) {
     });
 
     // Clear the env var after loading modules to prevent it from leaking into any spawned processes
-#if defined(_WIN32)
-    _putenv_s(CPPNS_EXECUTABLE_PATH_ENV, "");
-#else
-    unsetenv(CPPNS_EXECUTABLE_PATH_ENV);
-#endif
+    Path::clearEnv(CPPNS_EXECUTABLE_PATH_ENV);
     cout << "-- Bootstrapper: Cleared " << CPPNS_EXECUTABLE_PATH_ENV << " before running main." << endl;
 
     const auto mainFunc = getMainFunc();
