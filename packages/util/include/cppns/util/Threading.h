@@ -6,8 +6,6 @@
 #include <thread>
 #include <deque>
 
-#include "cppns/memory/Memory.h"
-
 // The worker is designed to work with threads to complete tasks, by itself it is not multithreaded but is thread safe
 class CWorker {
 
@@ -263,9 +261,9 @@ public:
 	 */
 
 	TThreadSafe() noexcept {
-		if constexpr (sstl::is_initializable_v<TType>) {
+		/*if constexpr (sstl::is_initializable_v<TType>) {
 			m_obj.init();
-		}
+		}*/
 	}
 
 	template <typename... TArgs>
@@ -275,9 +273,9 @@ public:
 	>
 	explicit TThreadSafe(TArgs&&... args) noexcept {
 		m_obj = TType{std::forward<TArgs>(args)...};
-		if constexpr (sstl::is_initializable_v<TType>) {
+		/*if constexpr (sstl::is_initializable_v<TType>) {
 			m_obj.init();
-		}
+		}*/
 	}
 
 	TThreadSafe(const TThreadSafe& otr) noexcept
@@ -358,19 +356,21 @@ public:
 	}
 
 	decltype(auto) operator->() noexcept(false) {
-		if constexpr (TUnfurled<std::remove_reference_t<TType>>::isManaged) {
+		return safe_lock(&m_obj, mtx);
+		/*if constexpr (TUnfurled<std::remove_reference_t<TType>>::isManaged) {
 			return safe_lock(m_obj.get(), mtx);
 		} else {
 			return safe_lock(&m_obj, mtx);
-		}
+		}*/
 	}
 
 	decltype(auto) operator->() const noexcept(false) {
-		if constexpr (TUnfurled<std::remove_reference_t<TType>>::isManaged) {
+		return safe_lock(&m_obj, mtx);
+		/*if constexpr (TUnfurled<std::remove_reference_t<TType>>::isManaged) {
 			return safe_lock(m_obj.get(), mtx);
 		} else {
 			return safe_lock(&m_obj, mtx);
-		}
+		}*/
 	}
 
 	friend bool operator<(const TThreadSafe& fst, const TThreadSafe& snd) noexcept {
