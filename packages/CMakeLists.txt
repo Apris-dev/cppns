@@ -5,6 +5,7 @@ set(PACKAGES
         memory
         container
         archive
+        io
         dependencyGraph
 )
 
