@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(cmake --version)",
+      "Bash(ninja --version)",
+      "Bash(cmake --list-presets:*)",
+      "Bash(cmake --preset:*)",
+      "Bash(cmake --build --preset:*)",
+      "Bash(ctest --preset:*)",
+
+      "Bash(wsl.exe -l -v)",
+      "Bash(wsl.exe -- bash -lc \"cmake --version && ninja --version\")",
+      "Bash(wsl.exe -- bash -lc \"cd /mnt/c/Repos/cppns && cmake --list-presets:*)",
+      "Bash(wsl.exe -- bash -lc \"cd /mnt/c/Repos/cppns && cmake --preset:*)",
+      "Bash(wsl.exe -- bash -lc \"cd /mnt/c/Repos/cppns && cmake --build --preset:*)",
+      "Bash(wsl.exe -- bash -lc \"cd /mnt/c/Repos/cppns && ctest --preset:*)",
+      "Bash(wsl.exe -- bash -lc \"cd /mnt/c/Repos/cppns && git status:*)",
+      "Bash(wsl.exe -- bash -lc \"cd /mnt/c/Repos/cppns && git diff:*)"
+    ]
+  }
+}

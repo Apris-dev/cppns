@@ -1,0 +1,6 @@
+# The root .gitignore ignores everything that isn't whitelisted by extension.
+# *.md files (CLAUDE.md, agents, skills) are already whitelisted; re-include the shared settings here.
+!settings.json
+
+# Personal overrides stay local
+settings.local.json
