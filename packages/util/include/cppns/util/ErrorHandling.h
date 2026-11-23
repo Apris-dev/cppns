@@ -4,7 +4,6 @@
 #include <sstream>
 #include <string>
 #include <format>
-#include <cassert>
 
 namespace Error {
 	template <typename TType>
@@ -23,16 +22,6 @@ namespace Error {
 		type(TArgs&&... args) : BaseClass(name, std::format(desc, std::forward<TArgs>(args)...)) {} \
 		/*explicit type(const std::string_view inMessage) : BaseClass(name, desc, inMessage) {} */ \
 	}
-
-// Undefine assert, because of header guards
-// If this is included cassert should not override our assert
-#ifdef assert
-	#undef assert
-#endif
-
-// Redefine assert with our own custom logic
-#define assert(cond, ...) \
-	if (!(cond)) Error::Assert(#cond, ##__VA_ARGS__)
 
 namespace Error {
 	class Runtime : public std::runtime_error {
@@ -58,41 +47,36 @@ namespace Error {
 			return s.str();
 		}
 	};
+}
 
-	class Assert {
-	public:
+namespace Assert {
+	static void True(const bool inAssertion, const std::string_view inMessage = "Undefined") {
+		if (!inAssertion)
+			throw Error::Runtime("Assertion Failure", std::format("Assertion failed. Reason: {}", inMessage));
+	}
 
-		Assert() {
-			const int error = errno;
-			errno = 0;
-			assertError("C++ Error", error);
-		}
-		explicit Assert(const std::string_view inAssertion) {
-			throw Runtime("Assertion Failure", std::format("Assertion {} failed", inAssertion));
-		}
-		Assert(const std::string_view inAssertion, const std::string_view inAssertionDescription) {
-			throw Runtime("Assertion Failure", std::format("Assertion {} failed. Reason: {}", inAssertion, inAssertionDescription));
-		}
-		explicit Assert(const int error) { assertError("Error", error); }
-		explicit Assert(FILE* inFile) {
-			if (inFile == nullptr) return;
-			if (const int error = ferror(inFile); error > 0) {
-				assertError("File Error", error);
-			}
-		}
+	static void False(const bool inAssertion, const std::string_view inMessage = "Undefined") {
+		if (inAssertion)
+			throw Error::Runtime("Assertion Failure", std::format("Assertion failed. Reason: {}", inMessage));
+	}
 
-	private:
-		static void assertError(std::string_view errorName, const int error) {
-			if (error <= 0) return;
+	static void NoError(const int error, const std::string_view inErrorName = "Error") {
+		if (error <= 0) return;
 #if USING_MSVC
-			char buffer[256];
-			strerror_s(buffer, sizeof(buffer), error);
-			std::string msg = buffer;
+		char buffer[256];
+		strerror_s(buffer, sizeof(buffer), error);
+		const std::string msg = buffer;
 #else
-			std::string msg = std::strerror(error);
+		const std::string msg = std::strerror(error);
 #endif
 
-			throw Runtime(errorName, msg);
+		throw Error::Runtime(inErrorName, msg);
+	}
+
+	static void FileOK(FILE* inFile) {
+		if (inFile == nullptr) return;
+		if (const int error = ferror(inFile); error > 0) {
+			NoError(error, "File Error");
 		}
-	};
+	}
 }

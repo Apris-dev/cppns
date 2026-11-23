@@ -1,6 +1,5 @@
 ﻿#include <iostream>
 #include <random>
-#include <cassert>
 
 #include "TestShared.h"
 #include "cppns/memory/Memory.h"
@@ -19,7 +18,7 @@ void containerTest(const std::string& containerName, TSelfAssociativeContainer<T
 	std::vector<size_t> vec;
 	for (size_t i = 0; i < 10; ++i) {
 		vec.push_back(i);
-		assert(vec[i] == i);
+		Assert::True(vec[i] == i);
 	}
 
 	std::random_device rd;
@@ -34,14 +33,14 @@ void containerTest(const std::string& containerName, TSelfAssociativeContainer<T
 		++i;
 		return object;
 	});
-	assert(container.getSize() == 10);
+	Assert::True(container.getSize() == 10);
 
 	const size_t size = container.getSize();
 	for (size_t v = 0; v < size; ++v) {
 		auto parent = sstl::getUnfurled(container.top());
 		parent->print();
 		if (const auto object = dynamic_cast<const SObject*>(parent)) {
-			assert(containerName == object->name);
+			Assert::True(containerName == object->name);
 		}
 		container.pop();
 	}
@@ -49,7 +48,7 @@ void containerTest(const std::string& containerName, TSelfAssociativeContainer<T
 
 	container.clear();
 
-	assert(container.isEmpty());
+	Assert::True(container.isEmpty());
 }
 
 template <typename TContainerType>
@@ -69,8 +68,8 @@ void transferTest(const std::string& containerName, TSelfAssociativeContainer<TC
 		std::cout << "to:" << std::endl;
 		for (const TType& obb : container) {sstl::getUnfurled(obb)->print();}
 
-		assert(from.getSize() == 1);
-		assert(sstl::getUnfurled(from.top())->id == 100);
+		Assert::True(from.getSize() == 1);
+		Assert::True(sstl::getUnfurled(from.top())->id == 100);
 
 		from.transfer(container, const_cast<TType&>(from.top()));
 
@@ -81,13 +80,13 @@ void transferTest(const std::string& containerName, TSelfAssociativeContainer<TC
 		for (const TType& obb : container) {sstl::getUnfurled(obb)->print();}
 		std::cout << std::endl;
 
-		assert(from.isEmpty());
-		assert(container.getSize() == 1);
-		assert(sstl::getUnfurled(container.top())->id == 100);
+		Assert::True(from.isEmpty());
+		Assert::True(container.getSize() == 1);
+		Assert::True(sstl::getUnfurled(container.top())->id == 100);
 
 		container.clear();
 
-		assert(container.isEmpty());
+		Assert::True(container.isEmpty());
 	}
 }
 
@@ -101,11 +100,11 @@ void appendTest(const std::string& containerName, TSelfAssociativeContainer<TCon
 			std::cout << "Set Append Test" << std::endl;
 
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)5, containerName));
-			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) Assert::True(sstl::getUnfurled(container.top())->id == 5);
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
-			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) Assert::True(sstl::getUnfurled(container.top())->id == 5);
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
-			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 1);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) Assert::True(sstl::getUnfurled(container.top())->id == 1);
 
 			TSet<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
@@ -117,11 +116,11 @@ void appendTest(const std::string& containerName, TSelfAssociativeContainer<TCon
 
 				for (auto& obb : from) {
 					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
+					Assert::True(CONTAINS(numbers, idd));
 					ERASE(numbers, idd);
 				}
 
-				assert(numbers.empty());
+				Assert::True(numbers.empty());
 			}
 
 			container.append(from);
@@ -133,56 +132,56 @@ void appendTest(const std::string& containerName, TSelfAssociativeContainer<TCon
 				TContainerType copyOf;
 				copyOf.append(container);
 
-				assert(sstl::getUnfurled(copyOf.top())->id == 1);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 1);
 				copyOf.pop();
 				for (const TType& obb : copyOf) {sstl::getUnfurled(obb)->print();}
-				assert(sstl::getUnfurled(copyOf.top())->id == 5);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 5);
 				copyOf.pop();
 				for (const TType& obb : copyOf) {sstl::getUnfurled(obb)->print();}
-				assert(sstl::getUnfurled(copyOf.top())->id == 8);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 8);
 				copyOf.pop();
 				for (const TType& obb : copyOf) {sstl::getUnfurled(obb)->print();}
-				assert(sstl::getUnfurled(copyOf.top())->id == 10);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 10);
 				copyOf.pop();
 				for (const TType& obb : copyOf) {sstl::getUnfurled(obb)->print();}
-				assert(sstl::getUnfurled(copyOf.top())->id == 50);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 50);
 				copyOf.pop();
 				for (const TType& obb : copyOf) {sstl::getUnfurled(obb)->print();}
-				assert(sstl::getUnfurled(copyOf.top())->id == 80);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 80);
 			} else {
 				std::vector numbers = {1, 5, 8, 10, 50, 80};
 
 				for (auto& obb : container) {
 					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
+					Assert::True(CONTAINS(numbers, idd));
 					ERASE(numbers, idd);
 				}
 
-				assert(numbers.empty());
+				Assert::True(numbers.empty());
 			}
 
 			container.clear();
 
-			assert(container.isEmpty());
+			Assert::True(container.isEmpty());
 		}
 
 		{
 			std::cout << "Priority Set Append Test" << std::endl;
 
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)5, containerName));
-			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) Assert::True(sstl::getUnfurled(container.top())->id == 5);
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
-			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 5);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) Assert::True(sstl::getUnfurled(container.top())->id == 5);
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
-			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) assert(sstl::getUnfurled(container.top())->id == 1);
+			if constexpr (!TContainerTraits<TContainerType>::bHasHashing) Assert::True(sstl::getUnfurled(container.top())->id == 1);
 
 			TPrioritySet<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
-			assert(sstl::getUnfurled(from.top())->id == 50);
+			Assert::True(sstl::getUnfurled(from.top())->id == 50);
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
-			assert(sstl::getUnfurled(from.top())->id == 50);
+			Assert::True(sstl::getUnfurled(from.top())->id == 50);
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
-			assert(sstl::getUnfurled(from.top())->id == 10);
+			Assert::True(sstl::getUnfurled(from.top())->id == 10);
 
 			container.append(from);
 
@@ -193,37 +192,37 @@ void appendTest(const std::string& containerName, TSelfAssociativeContainer<TCon
 				TContainerType copyOf;
 				copyOf.append(container);
 
-				assert(sstl::getUnfurled(copyOf.top())->id == 1);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 1);
 				copyOf.pop();
 				for (const TType& obb : copyOf) {sstl::getUnfurled(obb)->print();}
-				assert(sstl::getUnfurled(copyOf.top())->id == 5);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 5);
 				copyOf.pop();
 				for (const TType& obb : copyOf) {sstl::getUnfurled(obb)->print();}
-				assert(sstl::getUnfurled(copyOf.top())->id == 8);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 8);
 				copyOf.pop();
 				for (const TType& obb : copyOf) {sstl::getUnfurled(obb)->print();}
-				assert(sstl::getUnfurled(copyOf.top())->id == 10);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 10);
 				copyOf.pop();
 				for (const TType& obb : copyOf) {sstl::getUnfurled(obb)->print();}
-				assert(sstl::getUnfurled(copyOf.top())->id == 50);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 50);
 				copyOf.pop();
 				for (const TType& obb : copyOf) {sstl::getUnfurled(obb)->print();}
-				assert(sstl::getUnfurled(copyOf.top())->id == 80);
+				Assert::True(sstl::getUnfurled(copyOf.top())->id == 80);
 			} else {
 				std::vector numbers = {1, 5, 8, 10, 50, 80};
 
 				for (auto& obb : container) {
 					int idd = sstl::getUnfurled(obb)->id;
-					assert(CONTAINS(numbers, idd));
+					Assert::True(CONTAINS(numbers, idd));
 					ERASE(numbers, idd);
 				}
 
-				assert(numbers.empty());
+				Assert::True(numbers.empty());
 			}
 
 			container.clear();
 
-			assert(container.isEmpty());
+			Assert::True(container.isEmpty());
 		}
 	}
 }

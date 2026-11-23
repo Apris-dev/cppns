@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cassert>
-
 #include "PathArchive.h"
 #include "cppns/util/ErrorHandling.h"
 
@@ -76,7 +74,7 @@ public:
 			mFile = fopen(filePath.get().array(), mode);
 		#endif
 
-		Error::Assert{mFile};
+		Assert::FileOK(mFile);
 
 		if (!mFile)
 			throw Error::File::Open(filePath.get().array());
@@ -125,7 +123,7 @@ protected:
 			lines++;
 		}
 
-		Error::Assert{mFile};
+		Assert::FileOK(mFile);
 
 		seekFromStart(loc);
 
@@ -161,25 +159,25 @@ protected:
 
 	void seek(const long inOffset) const {
 		fseek(mFile, inOffset, SEEK_CUR);
-		Error::Assert{mFile};
+		Assert::FileOK(mFile);
 	}
 
 	void seekFromStart(long inOffset) const {
 		inOffset += mBomOffset;
 		fseek(mFile, inOffset, SEEK_SET);
-		Error::Assert{mFile};
+		Assert::FileOK(mFile);
 	}
 
 	void setStart() const {
 		rewind(mFile);
-		Error::Assert{mFile};
+		Assert::FileOK(mFile);
 		if (mBomOffset > 0)
 			seek(mBomOffset);
 	}
 
 	void seekFromEnd(const long inOffset) const {
 		fseek(mFile, inOffset, SEEK_END);
-		Error::Assert{mFile};
+		Assert::FileOK(mFile);
 	}
 
 	// Always use binary mode since they act the same on each platform
@@ -255,7 +253,7 @@ protected:
 		readValue.resize(BOM.getSize());
 
 		const size_t n = fread(readValue.data(), sizeof(readValue[0]), readValue.size(), mFile);
-		Error::Assert{mFile};
+		Assert::FileOK(mFile);
 
 		const long res = n == readValue.size() && memcmp(readValue.data(), BOM.data(), BOM.getSize()) == 0 ? BOM.getSize() : 0;
 
@@ -310,7 +308,7 @@ protected:
 
 		const File::LineEnding res = Super::template getLineEndingFromFile_Impl<String::Generic>();
 
-		Error::Assert{Super::mFile};
+		Assert::FileOK(Super::mFile);
 		Super::seekFromStart(loc);
 
 		return res;
@@ -318,13 +316,13 @@ protected:
 
 	virtual size_t write(const void* inValue, const size_t inElementSize, const size_t inCount) override {
 		const size_t res = fwrite(inValue, inElementSize, inCount, Super::mFile);
-		Error::Assert{Super::mFile};
+		Assert::FileOK(Super::mFile);
 		return res;
 	}
 
 	virtual size_t read(void* inValue, const size_t inElementSize, const size_t inCount) override {
 		const size_t res = fread(inValue, inElementSize, inCount, Super::mFile);
-		Error::Assert{Super::mFile};
+		Assert::FileOK(Super::mFile);
 		return res;
 	}
 
@@ -397,7 +395,7 @@ protected:
 			break;
 		}
 
-		Error::Assert{Super::mFile};
+		Assert::FileOK(Super::mFile);
 		Super::seekFromStart(loc);
 
 		return res;
@@ -482,7 +480,7 @@ protected:
 		TStringType str;
 		Super::template readUntilLE<Endian>(str);
 
-		Error::Assert{Super::mFile};
+		Assert::FileOK(Super::mFile);
 
 		outValue = CString{str};
 
@@ -492,7 +490,7 @@ protected:
 	template <typename TStringType>
 	size_t write_Impl(const TStringType& line) {
 		const size_t res = fwrite(line.data(), sizeof(typename TStringType::value_type), line.size(), Super::mFile);
-		Error::Assert{Super::mFile};
+		Assert::FileOK(Super::mFile);
 		return res;
 	}
 

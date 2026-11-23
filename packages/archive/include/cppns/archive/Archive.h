@@ -53,6 +53,10 @@ public:
 
 	virtual ~CIArchive() = default;
 
+	friend CIArchive& operator<<(CIArchive& inArchive, CIArchive& (*inManipulator)(CIArchive&)) {
+		return inManipulator(inArchive);
+	}
+
 	template <typename TType>
 	requires std::is_arithmetic_v<TType>
 	friend CIArchive& operator>>(CIArchive& inArchive, TType& inValue) {
@@ -183,6 +187,10 @@ protected:
 public:
 
 	virtual ~COArchive() = default;
+
+	friend COArchive& operator<<(COArchive& inArchive, COArchive& (*inManipulator)(COArchive&)) {
+		return inManipulator(inArchive);
+	}
 
 	template <typename TType>
 	requires std::is_arithmetic_v<TType>

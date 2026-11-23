@@ -307,7 +307,7 @@ private:
         // Exists and isn't a file
         ec.clear();
         if (std::filesystem::exists(p, ec))
-            throw new Error::Path::PathNotCreatable("Tried to create a directory with the same name as a file!");
+            throw Error::Path::PathNotCreatable("Tried to create a directory with the same name as a file!");
 
         // No permissions to create directories
         if (!canCreateIn(p.parent_path()))
@@ -326,7 +326,7 @@ private:
             return;
 
         // Directory could not be created and does not exist
-        throw new Error::Path::PathNotCreatable(ec.message());
+        throw Error::Path::PathNotCreatable(ec.message());
     }
 
     // Gets the true case for part in the directory.

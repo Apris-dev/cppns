@@ -1,44 +1,44 @@
-#include <iostream>
-
 #include "cppns/archive/FileArchive.h"
 #include "cppns/archive/HashArchive.h"
 #include "cppns/archive/PathArchive.h"
+
+#include "cppns/io/Printer.h"
 
 cppns_main() {
 
     // Print our working directory
     {
         CPathArchive path(".");
-        std::cout << (std::string)path << std::endl;
+        print << path << EOL;
 
         // Checks perms
-        std::cout << "Working directory permissions: ";
+        print << "Working directory permissions: ";
         Path::Permissions perms = path.getPermissions();
-        std::cout << (perms & Path::Permissions::READ ? "r" : "_");
-        std::cout << (perms & Path::Permissions::WRITE ? "w" : "_");
-        std::cout << (perms & Path::Permissions::EXECUTE ? "x" : "_") << std::endl;
+        print << (perms & Path::Permissions::READ ? "r" : "_");
+        print << (perms & Path::Permissions::WRITE ? "w" : "_");
+        print << (perms & Path::Permissions::EXECUTE ? "x" : "_") << EOL;
     }
 
     // Print root
     {
         CPathArchive path("/");
-        std::cout << (std::string)path << std::endl;
+        print << path << EOL;
 
         // Checks perms
-        std::cout << "Root directory permissions: ";
+        print << "Root directory permissions: ";
         Path::Permissions perms = path.getPermissions();
-        std::cout << (perms & Path::Permissions::READ ? "r" : "_");
-        std::cout << (perms & Path::Permissions::WRITE ? "w" : "_");
-        std::cout << (perms & Path::Permissions::EXECUTE ? "x" : "_") << std::endl;
+        print << (perms & Path::Permissions::READ ? "r" : "_");
+        print << (perms & Path::Permissions::WRITE ? "w" : "_");
+        print << (perms & Path::Permissions::EXECUTE ? "x" : "_") << EOL;
     }
 
     CPathArchive path("~");
 
     // Executable directory should have reliable permissions to test for
     Path::Permissions perms = path.getPermissions();
-    assert(perms & Path::Permissions::READ, "Working directory does not have read permissions");
-    assert(perms & Path::Permissions::WRITE, "Working directory does not have write permissions");
-    assert(perms & Path::Permissions::EXECUTE, "Working directory does not have execute permissions");
+    Assert::True(perms & Path::Permissions::READ, "Working directory does not have read permissions");
+    Assert::True(perms & Path::Permissions::WRITE, "Working directory does not have write permissions");
+    Assert::True(perms & Path::Permissions::EXECUTE, "Working directory does not have execute permissions");
 
     // Test to go up and down a directory
     {
@@ -50,24 +50,24 @@ cppns_main() {
         path << current1;
         path << current0;
 
-        std::cout << (std::string)fullPath << std::endl;
-        std::cout << (std::string)path.get() << std::endl;
+        print << fullPath << EOL;
+        print << path.get() << EOL;
 
-        assert(fullPath == path.get(), "Failed going up a directory and going back!");
+        Assert::True(fullPath == path.get(), "Failed going up a directory and going back!");
     }
 
-    assert(!path.get().isEmpty(), "Path is empty!");
+    Assert::True(!path.get().isEmpty(), "Path is empty!");
 
-    std::cout << "File Listing:" << std::endl;
+    print << "File Listing:" << EOL;
     for (auto files = path.list(); auto& file : files) {
-        std::cout << (std::string)file << std::endl;
+        print << file << EOL;
     }
-    std::cout << std::endl;
+    print << EOL;
 
     path << "input.dat";
 
-    std::cout << (std::string)path.get() << std::endl;
-    std::cout << (std::string)path.getFilename() << std::endl;
+    print << path.get() << EOL;
+    print << path.getFilename() << EOL;
 
     {
         CFileArchive<File::OpenType::BINARY_WRITE> fileArchive(path);
@@ -92,13 +92,13 @@ cppns_main() {
     CString str = path.get();
     str.toUpper();
 
-    assert(path.exists(), "Path does not exist!");
-    std::cout << (std::string)str << std::endl;
+    Assert::True(path.exists(), "Path does not exist!");
+    print << str << EOL;
 
     // Path should be corrected to the real case values
     CPathArchive path2 = str;
-    std::cout << (std::string)path2 << std::endl;
-    assert(path.get() == path2.get());
+    print << path2 << EOL;
+    Assert::True(path.get() == path2.get());
 
     {
         CFileArchive<File::OpenType::BINARY_READ> fileArchive(path);
@@ -112,15 +112,15 @@ cppns_main() {
         bool b;
         fileArchive >> b;
 
-        std::cout << v << std::endl;
-        std::cout << (std::string)s << std::endl;
-        std::cout << (std::string)s2 << std::endl;
-        std::cout << (b ? "true" : "false") << std::endl;
+        print << v << EOL;
+        print << s << EOL;
+        print << s2 << EOL;
+        print << (b ? "true" : "false") << EOL;
 
-        assert(v == 5, "Not all read values are correct!");
-        assert(s == "test" && s2 == "test200" && b == true, "Not all read values are correct!");
-        assert(s2 == "test200", "Not all read values are correct!");
-        assert(b == true, "Not all read values are correct!");
+        Assert::True(v == 5, "Not all read values are correct!");
+        Assert::True(s == "test" && s2 == "test200" && b == true, "Not all read values are correct!");
+        Assert::True(s2 == "test200", "Not all read values are correct!");
+        Assert::True(b == true, "Not all read values are correct!");
 
         CHashArchive hasher;
         hasher << v;
@@ -134,19 +134,19 @@ cppns_main() {
         hasher2 << s2;
         hasher2 << b;
 
-        std::cout << "Hash1: " << hasher.get() << std::endl;
-        std::cout << "Hash2: " << hasher2.get() << std::endl;
+        print << "Hash1: " << hasher.get() << EOL;
+        print << "Hash2: " << hasher2.get() << EOL;
 
-        assert(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
-        assert(hasher.get() == hasher2.get(), "Hashes should be equal!");
+        Assert::True(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
+        Assert::True(hasher.get() == hasher2.get(), "Hashes should be equal!");
     }
 
     path.previous();
 
     path << "input2.dat";
 
-    std::cout << (std::string)path.get() << std::endl;
-    std::cout << (std::string)path.getFilename() << std::endl;
+    print << path.get() << EOL;
+    print << path.getFilename() << EOL;
 
     {
         CFileArchive<File::OpenType::WRITE> fileArchive(path);
@@ -158,7 +158,7 @@ cppns_main() {
         fileArchive << true;
     }
 
-    assert(path.exists(), "Path does not exist!");
+    Assert::True(path.exists(), "Path does not exist!");
 
     {
         CFileArchive<File::OpenType::READ> fileArchive(path);
@@ -172,15 +172,15 @@ cppns_main() {
         bool b;
         fileArchive >> b;
 
-        std::cout << v << std::endl;
-        std::cout << (std::string)s << std::endl;
-        std::cout << (std::string)s2 << std::endl;
-        std::cout << (b ? "true" : "false") << std::endl;
+        print << v << EOL;
+        print << s << EOL;
+        print << s2 << EOL;
+        print << (b ? "true" : "false") << EOL;
 
-        assert(v == 5, "Not all read values are correct!");
-        assert(s == "test", "Not all read values are correct!");
-        assert(s2 == "test200", "Not all read values are correct!");
-        assert(b == true, "Not all read values are correct!");
+        Assert::True(v == 5, "Not all read values are correct!");
+        Assert::True(s == "test", "Not all read values are correct!");
+        Assert::True(s2 == "test200", "Not all read values are correct!");
+        Assert::True(b == true, "Not all read values are correct!");
 
         CHashArchive hasher;
         hasher << v;
@@ -194,19 +194,19 @@ cppns_main() {
         hasher2 << s2;
         hasher2 << b;
 
-        std::cout << "Hash1: " << hasher.get() << std::endl;
-        std::cout << "Hash2: " << hasher2.get() << std::endl;
+        print << "Hash1: " << hasher.get() << EOL;
+        print << "Hash2: " << hasher2.get() << EOL;
 
-        assert(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
-        assert(hasher.get() == hasher2.get(), "Hashes should be equal!");
+        Assert::True(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
+        Assert::True(hasher.get() == hasher2.get(), "Hashes should be equal!");
     }
 
     path.previous();
 
     path << "input3.dat";
 
-    std::cout << (std::string)path.get() << std::endl;
-    std::cout << (std::string)path.getFilename() << std::endl;
+    print << path.get() << EOL;
+    print << path.getFilename() << EOL;
 
     {
         CFileArchive<File::OpenType::WRITE, File::LineEnding::NATIVE, File::Format::UTF16LE> fileArchive(path);
@@ -218,7 +218,7 @@ cppns_main() {
         fileArchive << true;
     }
 
-    assert(path.exists(), "Path does not exist!");
+    Assert::True(path.exists(), "Path does not exist!");
 
     {
         CFileArchive<File::OpenType::READ> fileArchive(path);
@@ -232,15 +232,15 @@ cppns_main() {
         bool b;
         fileArchive >> b;
 
-        std::cout << v << std::endl;
-        std::cout << (std::string)s << std::endl;
-        std::cout << (std::string)s2 << std::endl;
-        std::cout << (b ? "true" : "false") << std::endl;
+        print << v << EOL;
+        print << s << EOL;
+        print << s2 << EOL;
+        print << (b ? "true" : "false") << EOL;
 
-        assert(v == 5, "Not all read values are correct!");
-        assert(s == "test", "Not all read values are correct!");
-        assert(s2 == "test200", "Not all read values are correct!");
-        assert(b == true, "Not all read values are correct!");
+        Assert::True(v == 5, "Not all read values are correct!");
+        Assert::True(s == "test", "Not all read values are correct!");
+        Assert::True(s2 == "test200", "Not all read values are correct!");
+        Assert::True(b == true, "Not all read values are correct!");
 
         CHashArchive hasher;
         hasher << v;
@@ -254,19 +254,19 @@ cppns_main() {
         hasher2 << s2;
         hasher2 << b;
 
-        std::cout << "Hash1: " << hasher.get() << std::endl;
-        std::cout << "Hash2: " << hasher2.get() << std::endl;
+        print << "Hash1: " << hasher.get() << EOL;
+        print << "Hash2: " << hasher2.get() << EOL;
 
-        assert(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
-        assert(hasher.get() == hasher2.get(), "Hashes should be equal!");
+        Assert::True(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
+        Assert::True(hasher.get() == hasher2.get(), "Hashes should be equal!");
     }
 
     path.previous();
 
     path << "input4.dat";
 
-    std::cout << (std::string)path.get() << std::endl;
-    std::cout << (std::string)path.getFilename() << std::endl;
+    print << path.get() << EOL;
+    print << path.getFilename() << EOL;
 
     {
         CFileArchive<File::OpenType::WRITE, File::LineEnding::NATIVE, File::Format::UTF32LE> fileArchive(path);
@@ -278,7 +278,7 @@ cppns_main() {
         fileArchive << true;
     }
 
-    assert(path.exists(), "Path does not exist!");
+    Assert::True(path.exists(), "Path does not exist!");
 
     {
         CFileArchive<File::OpenType::READ> fileArchive(path);
@@ -292,15 +292,15 @@ cppns_main() {
         bool b;
         fileArchive >> b;
 
-        std::cout << v << std::endl;
-        std::cout << (std::string)s << std::endl;
-        std::cout << (std::string)s2 << std::endl;
-        std::cout << (b ? "true" : "false") << std::endl;
+        print << v << EOL;
+        print << s << EOL;
+        print << s2 << EOL;
+        print << (b ? "true" : "false") << EOL;
 
-        assert(v == 5, "Not all read values are correct!");
-        assert(s == "test", "Not all read values are correct!");
-        assert(s2 == "test200", "Not all read values are correct!");
-        assert(b == true, "Not all read values are correct!");
+        Assert::True(v == 5, "Not all read values are correct!");
+        Assert::True(s == "test", "Not all read values are correct!");
+        Assert::True(s2 == "test200", "Not all read values are correct!");
+        Assert::True(b == true, "Not all read values are correct!");
 
         CHashArchive hasher;
         hasher << v;
@@ -314,19 +314,19 @@ cppns_main() {
         hasher2 << s2;
         hasher2 << b;
 
-        std::cout << "Hash1: " << hasher.get() << std::endl;
-        std::cout << "Hash2: " << hasher2.get() << std::endl;
+        print << "Hash1: " << hasher.get() << EOL;
+        print << "Hash2: " << hasher2.get() << EOL;
 
-        assert(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
-        assert(hasher.get() == hasher2.get(), "Hashes should be equal!");
+        Assert::True(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
+        Assert::True(hasher.get() == hasher2.get(), "Hashes should be equal!");
     }
 
     path.previous();
 
     path << "input5.dat";
 
-    std::cout << (std::string)path.get() << std::endl;
-    std::cout << (std::string)path.getFilename() << std::endl;
+    print << path.get() << EOL;
+    print << path.getFilename() << EOL;
 
     {
         CFileArchive<File::OpenType::WRITE, File::LineEnding::NATIVE, File::Format::UTF16BE> fileArchive(path);
@@ -338,7 +338,7 @@ cppns_main() {
         fileArchive << true;
     }
 
-    assert(path.exists(), "Path does not exist!");
+    Assert::True(path.exists(), "Path does not exist!");
 
     {
         CFileArchive<File::OpenType::READ> fileArchive(path);
@@ -352,15 +352,15 @@ cppns_main() {
         bool b;
         fileArchive >> b;
 
-        std::cout << v << std::endl;
-        std::cout << (std::string)s << std::endl;
-        std::cout << (std::string)s2 << std::endl;
-        std::cout << (b ? "true" : "false") << std::endl;
+        print << v << EOL;
+        print << s << EOL;
+        print << s2 << EOL;
+        print << (b ? "true" : "false") << EOL;
 
-        assert(v == 5, "Not all read values are correct!");
-        assert(s == "test", "Not all read values are correct!");
-        assert(s2 == "test200", "Not all read values are correct!");
-        assert(b == true, "Not all read values are correct!");
+        Assert::True(v == 5, "Not all read values are correct!");
+        Assert::True(s == "test", "Not all read values are correct!");
+        Assert::True(s2 == "test200", "Not all read values are correct!");
+        Assert::True(b == true, "Not all read values are correct!");
 
         CHashArchive hasher;
         hasher << v;
@@ -374,19 +374,19 @@ cppns_main() {
         hasher2 << s2;
         hasher2 << b;
 
-        std::cout << "Hash1: " << hasher.get() << std::endl;
-        std::cout << "Hash2: " << hasher2.get() << std::endl;
+        print << "Hash1: " << hasher.get() << EOL;
+        print << "Hash2: " << hasher2.get() << EOL;
 
-        assert(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
-        assert(hasher.get() == hasher2.get(), "Hashes should be equal!");
+        Assert::True(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
+        Assert::True(hasher.get() == hasher2.get(), "Hashes should be equal!");
     }
 
     path.previous();
 
     path << "input6.dat";
 
-    std::cout << (std::string)path.get() << std::endl;
-    std::cout << (std::string)path.getFilename() << std::endl;
+    print << path.get() << EOL;
+    print << path.getFilename() << EOL;
 
     {
         CFileArchive<File::OpenType::WRITE, File::LineEnding::NATIVE, File::Format::UTF32BE> fileArchive(path);
@@ -398,7 +398,7 @@ cppns_main() {
         fileArchive << true;
     }
 
-    assert(path.exists(), "Path does not exist!");
+    Assert::True(path.exists(), "Path does not exist!");
 
     {
         CFileArchive<File::OpenType::READ> fileArchive(path);
@@ -412,15 +412,15 @@ cppns_main() {
         bool b;
         fileArchive >> b;
 
-        std::cout << v << std::endl;
-        std::cout << (std::string)s << std::endl;
-        std::cout << (std::string)s2 << std::endl;
-        std::cout << (b ? "true" : "false") << std::endl;
+        print << v << EOL;
+        print << s << EOL;
+        print << s2 << EOL;
+        print << (b ? "true" : "false") << EOL;
 
-        assert(v == 5, "Not all read values are correct!");
-        assert(s == "test", "Not all read values are correct!");
-        assert(s2 == "test200", "Not all read values are correct!");
-        assert(b == true, "Not all read values are correct!");
+        Assert::True(v == 5, "Not all read values are correct!");
+        Assert::True(s == "test", "Not all read values are correct!");
+        Assert::True(s2 == "test200", "Not all read values are correct!");
+        Assert::True(b == true, "Not all read values are correct!");
 
         CHashArchive hasher;
         hasher << v;
@@ -434,11 +434,11 @@ cppns_main() {
         hasher2 << s2;
         hasher2 << b;
 
-        std::cout << "Hash1: " << hasher.get() << std::endl;
-        std::cout << "Hash2: " << hasher2.get() << std::endl;
+        print << "Hash1: " << hasher.get() << EOL;
+        print << "Hash2: " << hasher2.get() << EOL;
 
-        assert(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
-        assert(hasher.get() == hasher2.get(), "Hashes should be equal!");
+        Assert::True(hasher.get() != 0 && hasher2.get() != 0, "Hashes should not be zero!");
+        Assert::True(hasher.get() == hasher2.get(), "Hashes should be equal!");
     }
 
     return 0;

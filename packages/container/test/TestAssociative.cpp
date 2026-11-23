@@ -1,7 +1,5 @@
 ﻿#include <iostream>
 #include <random>
-#include <cassert>
-#include <cstdint>
 
 #include "TestShared.h"
 
@@ -69,7 +67,7 @@ void containerTest(const std::string& containerName, TAssociativeContainer<TCont
 	std::vector<size_t> vec;
 	for (size_t i = 0; i < 10; ++i) {
 		vec.push_back(i);
-		assert(vec[i] == i);
+		Assert::True(vec[i] == i);
 	}
 
 	std::random_device rd;
@@ -84,16 +82,16 @@ void containerTest(const std::string& containerName, TAssociativeContainer<TCont
 		++i;
 		return pair;
 	});
-	assert(container.getSize() == 10);
+	Assert::True(container.getSize() == 10);
 
 	const size_t size = container.getSize();
 	for (size_t v = 0; v < size; ++v) {
 		auto enm = static_cast<MapEnum>(v);
 		if (auto parent = sstl::getUnfurled(container.get(enm))) {
 			std::cout << "Key: " << enumToString(enm) << " ";
-			assert(v == parent->id);
+			Assert::True(v == parent->id);
 			if (const auto object = dynamic_cast<SObject*>(parent)) {
-				assert(containerName == object->name);
+				Assert::True(containerName == object->name);
 			}
 			parent->print();
 			container.pop(enm);
@@ -104,7 +102,7 @@ void containerTest(const std::string& containerName, TAssociativeContainer<TCont
 
 	container.clear();
 
-	assert(container.isEmpty());
+	Assert::True(container.isEmpty());
 }
 
 template <typename TContainerType>
@@ -130,8 +128,8 @@ void transferTest(const std::string& containerName, TAssociativeContainer<TConta
 			sstl::getUnfurled(obb.second())->print();
 		}
 
-		assert(from.getSize() == 1);
-		assert(sstl::getUnfurled(from.get(MapEnum::NONE))->id == 100);
+		Assert::True(from.getSize() == 1);
+		Assert::True(sstl::getUnfurled(from.get(MapEnum::NONE))->id == 100);
 
 		from.transfer(container, MapEnum::NONE);
 
@@ -148,13 +146,13 @@ void transferTest(const std::string& containerName, TAssociativeContainer<TConta
 		}
 		std::cout << std::endl;
 
-		assert(from.isEmpty());
-		assert(container.getSize() == 1);
-		assert(sstl::getUnfurled(container.get(MapEnum::NONE))->id == 100);
+		Assert::True(from.isEmpty());
+		Assert::True(container.getSize() == 1);
+		Assert::True(sstl::getUnfurled(container.get(MapEnum::NONE))->id == 100);
 
 		container.clear();
 
-		assert(container.isEmpty());
+		Assert::True(container.isEmpty());
 	}
 }
 
@@ -171,24 +169,24 @@ void appendTest(const std::string& containerName, TAssociativeContainer<TContain
 			container.push(MapEnum::THREE, TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(MapEnum::ONE, TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
-			assert(sstl::getUnfurled(container.get(MapEnum::TWO))->id == 5);
-			assert(sstl::getUnfurled(container.get(MapEnum::THREE))->id == 8);
-			assert(sstl::getUnfurled(container.get(MapEnum::ONE))->id == 1);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::TWO))->id == 5);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::THREE))->id == 8);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::ONE))->id == 1);
 
 			TMap<MapEnum, TType> from;
 			from.push(MapEnum::FIVE, TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 			from.push(MapEnum::SIX, TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(MapEnum::FOUR, TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 
-			assert(sstl::getUnfurled(from.get(MapEnum::FIVE))->id == 50);
-			assert(sstl::getUnfurled(from.get(MapEnum::SIX))->id == 80);
-			assert(sstl::getUnfurled(from.get(MapEnum::FOUR))->id == 10);
+			Assert::True(sstl::getUnfurled(from.get(MapEnum::FIVE))->id == 50);
+			Assert::True(sstl::getUnfurled(from.get(MapEnum::SIX))->id == 80);
+			Assert::True(sstl::getUnfurled(from.get(MapEnum::FOUR))->id == 10);
 
 			container.append(from);
 
-			assert(sstl::getUnfurled(container.get(MapEnum::FIVE))->id == 50);
-			assert(sstl::getUnfurled(container.get(MapEnum::SIX))->id == 80);
-			assert(sstl::getUnfurled(container.get(MapEnum::FOUR))->id == 10);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::FIVE))->id == 50);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::SIX))->id == 80);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::FOUR))->id == 10);
 
 			for (const auto& obb : container) {
 				std::cout << "Key: " << enumToString(obb.first()) << " ";
@@ -197,7 +195,7 @@ void appendTest(const std::string& containerName, TAssociativeContainer<TContain
 
 			container.clear();
 
-			assert(container.isEmpty());
+			Assert::True(container.isEmpty());
 		}
 
 		{
@@ -207,24 +205,24 @@ void appendTest(const std::string& containerName, TAssociativeContainer<TContain
 			container.push(MapEnum::THREE, TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(MapEnum::ONE, TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
-			assert(sstl::getUnfurled(container.get(MapEnum::TWO))->id == 5);
-			assert(sstl::getUnfurled(container.get(MapEnum::THREE))->id == 8);
-			assert(sstl::getUnfurled(container.get(MapEnum::ONE))->id == 1);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::TWO))->id == 5);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::THREE))->id == 8);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::ONE))->id == 1);
 
 			TPriorityMap<MapEnum, TType> from;
 			from.push(MapEnum::FIVE, TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 			from.push(MapEnum::SIX, TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(MapEnum::FOUR, TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 
-			assert(sstl::getUnfurled(from.get(MapEnum::FIVE))->id == 50);
-			assert(sstl::getUnfurled(from.get(MapEnum::SIX))->id == 80);
-			assert(sstl::getUnfurled(from.get(MapEnum::FOUR))->id == 10);
+			Assert::True(sstl::getUnfurled(from.get(MapEnum::FIVE))->id == 50);
+			Assert::True(sstl::getUnfurled(from.get(MapEnum::SIX))->id == 80);
+			Assert::True(sstl::getUnfurled(from.get(MapEnum::FOUR))->id == 10);
 
 			container.append(from);
 
-			assert(sstl::getUnfurled(container.get(MapEnum::FIVE))->id == 50);
-			assert(sstl::getUnfurled(container.get(MapEnum::SIX))->id == 80);
-			assert(sstl::getUnfurled(container.get(MapEnum::FOUR))->id == 10);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::FIVE))->id == 50);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::SIX))->id == 80);
+			Assert::True(sstl::getUnfurled(container.get(MapEnum::FOUR))->id == 10);
 
 			for (const auto& obb : container) {
 				std::cout << "Key: " << enumToString(obb.first()) << " ";
@@ -233,7 +231,7 @@ void appendTest(const std::string& containerName, TAssociativeContainer<TContain
 
 			container.clear();
 
-			assert(container.isEmpty());
+			Assert::True(container.isEmpty());
 		}
 	}
 }

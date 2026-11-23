@@ -1,6 +1,5 @@
 ﻿#include <iostream>
 #include <random>
-#include <cassert>
 
 #include "TestShared.h"
 #include "cppns/memory/Memory.h"
@@ -24,7 +23,7 @@ void containerTest(const std::string& containerName, TSequenceContainer<TContain
 	std::vector<size_t> vec;
 	for (size_t i = 0; i < 10; ++i) {
 		vec.push_back(i+500);
-		assert(vec[i] == i+500);
+		Assert::True(vec[i] == i+500);
 	}
 
 	std::random_device rd;
@@ -44,14 +43,14 @@ void containerTest(const std::string& containerName, TSequenceContainer<TContain
 		});
 	}
 
-	assert(container.getSize() == 10);
+	Assert::True(container.getSize() == 10);
 
 	const size_t size = container.getSize();
 	for (size_t i = 0; i < size; ++i) {
 		auto parent = sstl::getUnfurled(container.top());
 		parent->print();
 		if (const auto object = dynamic_cast<const SObject*>(parent)) {
-			assert(containerName == object->name);
+			Assert::True(containerName == object->name);
 		}
 		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
 			container.pop();
@@ -61,7 +60,7 @@ void containerTest(const std::string& containerName, TSequenceContainer<TContain
 
 	if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
 		container.clear();
-		assert(container.isEmpty());
+		Assert::True(container.isEmpty());
 	}
 }
 
@@ -83,8 +82,8 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		std::cout << "to:" << std::endl;
 		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-		assert(from.getSize() == 1);
-		assert(from.contains(100));
+		Assert::True(from.getSize() == 1);
+		Assert::True(from.contains(100));
 
 		from.transfer(container, 0);
 
@@ -95,16 +94,16 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 		std::cout << std::endl;
 
-		assert(from.isEmpty());
+		Assert::True(from.isEmpty());
 		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
-			assert(container.getSize() == 1);
+			Assert::True(container.getSize() == 1);
 		}
-		assert(container.contains(100));
+		Assert::True(container.contains(100));
 
 		container.clear();
 
 		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
-			assert(container.isEmpty());
+			Assert::True(container.isEmpty());
 		}
 	}
 
@@ -120,8 +119,8 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		std::cout << "to:" << std::endl;
 		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-		assert(from.getSize() == 1);
-		assert(from.contains(100));
+		Assert::True(from.getSize() == 1);
+		Assert::True(from.contains(100));
 
 		from.transfer(container, 0);
 
@@ -132,16 +131,16 @@ void transferTest(const std::string& containerName, TSequenceContainer<TContaine
 		for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 		std::cout << std::endl;
 
-		assert(from.isEmpty());
+		Assert::True(from.isEmpty());
 		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
-			assert(container.getSize() == 1);
+			Assert::True(container.getSize() == 1);
 		}
-		assert(container.contains(100));
+		Assert::True(container.contains(100));
 
 		container.clear();
 
 		if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
-			assert(container.isEmpty());
+			Assert::True(container.isEmpty());
 		}
 	}
 }
@@ -159,25 +158,25 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
-			assert(container.containsAll(1, 5, 8));
+			Assert::True(container.containsAll(1, 5, 8));
 
 			TVector<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 
-			assert(from.containsAll(10, 50, 80));
+			Assert::True(from.containsAll(10, 50, 80));
 
 			container.append(from);
 
 			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-			assert(container.containsAll(1, 5, 8, 10, 50, 80));
+			Assert::True(container.containsAll(1, 5, 8, 10, 50, 80));
 
 			container.clear();
 
 			if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
-				assert(container.isEmpty());
+				Assert::True(container.isEmpty());
 			}
 		}
 
@@ -188,25 +187,25 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
-			assert(container.containsAll(1, 5, 8));
+			Assert::True(container.containsAll(1, 5, 8));
 
 			TList<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 
-			assert(from.containsAll(10, 50, 80));
+			Assert::True(from.containsAll(10, 50, 80));
 
 			container.append(from);
 
 			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-			assert(container.containsAll(1, 5, 8, 10, 50, 80));
+			Assert::True(container.containsAll(1, 5, 8, 10, 50, 80));
 
 			container.clear();
 
 			if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
-				assert(container.isEmpty());
+				Assert::True(container.isEmpty());
 			}
 		}
 
@@ -217,25 +216,25 @@ void appendTest(const std::string& containerName, TSequenceContainer<TContainerT
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)8, containerName));
 			container.push(TUnfurled<TType>::template create<SObject>((size_t)1, containerName));
 
-			assert(container.containsAll(1, 5, 8));
+			Assert::True(container.containsAll(1, 5, 8));
 
 			TForwardList<TType> from;
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)10, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)80, containerName));
 			from.push(TUnfurled<TType>::template create<SObject>((size_t)50, containerName));
 
-			assert(from.containsAll(10, 50, 80));
+			Assert::True(from.containsAll(10, 50, 80));
 
 			container.append(from);
 
 			for (const TType& obb : container) { sstl::getUnfurled(obb)->print(); }
 
-			assert(container.containsAll(1, 5, 8, 10, 50, 80));
+			Assert::True(container.containsAll(1, 5, 8, 10, 50, 80));
 
 			container.clear();
 
 			if constexpr (!TContainerTraits<TContainerType>::bIsLimitedSize) {
-				assert(container.isEmpty());
+				Assert::True(container.isEmpty());
 			}
 		}
 	}
