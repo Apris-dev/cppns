@@ -9,8 +9,10 @@
 namespace String {
 	using Generic = std::string;
 	using GenericView = std::string_view;
+#ifdef __cpp_char8_t
 	using UTF8 = std::u8string;
 	using UTF8View = std::u8string_view;
+#endif
 	using UTF16 = std::u16string;
 	using UTF16View = std::u16string_view;
 	using UTF32 = std::u32string;
@@ -38,9 +40,11 @@ namespace String {
 #endif
 	};
 
+#ifdef __cpp_char8_t
 	constexpr static char8 swapBytes(const char8 c) noexcept {
 		return c;
 	}
+#endif
 
 	constexpr static char16 swapBytes(const char16 c) noexcept {
 		return static_cast<char16>((c << 8) | (c >> 8));
@@ -139,6 +143,7 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
+#ifdef __cpp_char8_t
 	CString(const String::UTF8& otr): CString(String::UTF8View(otr)) {}
 
 	CString(const String::UTF8View otr) {
@@ -146,6 +151,7 @@ public:
 		m_Container = view;
 		removeInvalidUTF8(m_Container);
 	}
+#endif
 
 	CString(const String::UTF16& otr): CString(String::UTF16View(otr)) {}
 
@@ -168,7 +174,11 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
+#ifdef __cpp_char8_t
 	CString(const std::filesystem::path& path): CString(path.u8string()) {}
+#else
+	CString(const std::filesystem::path& path): CString(path.string()) {}
+#endif
 
 	[[nodiscard]] constexpr_20 size_t getSize() const {
 		return m_Container.size();
@@ -838,9 +848,11 @@ public:
 		return m_Container;
 	}
 
+#ifdef __cpp_char8_t
 	operator String::UTF8() const noexcept {
 		return toUTF8();
 	}
+#endif
 
 	operator String::UTF16() const noexcept {
 		return toUTF16();
@@ -1085,10 +1097,16 @@ private:
 
 public:
 
+#ifdef __cpp_char8_t
 	// Since CString guarantees UTF8, the conversion is simple
 	String::UTF8 toUTF8() const {
 		return String::UTF8(m_Container.begin(), m_Container.end());
 	}
+#else
+	String::Generic toUTF8() const {
+		return m_Container;
+	}
+#endif
 
 	template <String::Endian Endian = String::Endian::NATIVE>
 	String::UTF16 toUTF16() const {

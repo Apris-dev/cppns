@@ -27,7 +27,9 @@ namespace Convert {
     MAKE_CONVERTER(unsigned char, const bool b, { return b ? 't' : 'f'; })
     MAKE_CONVERTER(signed char, const bool b, { return b ? 't' : 'f'; })
 
+#ifdef __cpp_char8_t
     MAKE_CONVERTER(char8, const bool b, { return b ? u8't' : u8'f'; })
+#endif
     MAKE_CONVERTER(char16, const bool b, { return b ? u't' : u'f'; })
     MAKE_CONVERTER(char32, const bool b, { return b ? U't' : U'f'; })
 
@@ -48,7 +50,9 @@ namespace Convert {
     MAKE_CONVERTER(long double, const bool b, { return b ? 1.0 : 0.0; })
 
     MAKE_CONVERTER(std::string, const bool b, { return b ? "true" : "false"; })
+#ifdef __cpp_char8_t
     MAKE_CONVERTER(std::u8string, const bool b, { return b ? u8"true" : u8"false"; })
+#endif
     MAKE_CONVERTER(std::u16string, const bool b, { return b ? u"true" : u"false"; })
     MAKE_CONVERTER(std::u32string, const bool b, { return b ? U"true" : U"false"; })
 }
@@ -60,7 +64,9 @@ namespace Convert {
     MAKE_CONVERTER(signed char, const char c, { return static_cast<signed char>(c); })
 
     // Char is narrower than other char types, so no data gets lost
+#ifdef __cpp_char8_t
     MAKE_CONVERTER(char8, const char c, { return static_cast<char8>(c); })
+#endif
     MAKE_CONVERTER(char16, const char c, { return static_cast<char16>(c); })
     MAKE_CONVERTER(char32, const char c, { return static_cast<char32>(c); })
 
@@ -81,7 +87,9 @@ namespace Convert {
     MAKE_CONVERTER(long double, const char c, { return c; })
 
     MAKE_CONVERTER(std::string, const char c, { return std::string{c}; })
+#ifdef __cpp_char8_t
     MAKE_CONVERTER(std::u8string, const char c, { return std::u8string{Convert::to<char8>(c)}; })
+#endif
     MAKE_CONVERTER(std::u16string, const char c, { return std::u16string{Convert::to<char16>(c)}; })
     MAKE_CONVERTER(std::u32string, const char c, { return std::u32string{Convert::to<char32>(c)}; })
 }
