@@ -111,41 +111,17 @@ namespace Convert {
 
 #undef CONVERT_TO_SIMPLE
 
-    template <typename TChar>
-    requires is_char_v<TChar>
-    std::string convert(TChar inType, Tag<std::string>) {
-        return std::string{Convert::to<char>(inType)};
-    }
-
-    template <typename TChar>
-    requires is_char_v<TChar>
-    std::wstring convert(TChar inType, Tag<std::wstring>) {
-        return std::wstring{Convert::to<wchar_t>(inType)};
-    }
-
-    template <typename TChar>
-    requires is_char_v<TChar>
-    std::u8string convert(TChar inType, Tag<std::u8string>) {
-        return std::u8string{Convert::to<char8>(inType)};
-    }
-
-    template <typename TChar>
-    requires is_char_v<TChar>
-    std::u16string convert(TChar inType, Tag<std::u16string>) {
-        return std::u16string{Convert::to<char16>(inType)};
-    }
-
-    template <typename TChar>
-    requires is_char_v<TChar>
-    std::u32string convert(TChar inType, Tag<std::u32string>) {
-        return std::u32string{Convert::to<char32>(inType)};
+    template <typename TChar, typename TOtherChar>
+    requires is_char_v<TChar> && is_char_v<TOtherChar>
+    std::basic_string<TOtherChar> convert(TChar inType, Tag<std::basic_string<TOtherChar>>) {
+        return std::basic_string<TOtherChar>{Convert::to<TOtherChar>(inType)};
     }
 }
 
 // Integer Conversions
 namespace Convert {
     template <typename TType>
-    constexpr bool is_integer_v = std::is_arithmetic_v<TType> && !std::is_same_v<std::remove_cv_t<TType>, bool> && !is_char_v<TType>;
+    constexpr bool is_integer_v = std::is_integral_v<TType> && !std::is_same_v<std::remove_cv_t<TType>, bool> && !is_char_v<TType>;
 
     template <typename TType>
     requires is_integer_v<TType>
@@ -209,6 +185,76 @@ namespace Convert {
 
     template <typename TType>
     requires is_integer_v<TType>
+    std::u32string convert(TType inType, Tag<std::u32string>) {
+        auto str = Convert::to<std::string>(inType);
+        return std::u32string{str.begin(), str.end()};
+    }
+}
+
+// Floating point Conversions
+namespace Convert {
+    template <typename TType>
+    requires std::is_floating_point_v<TType>
+    bool convert(TType inType, Tag<bool>) {
+        return inType != 0.f;
+    }
+
+#define CONVERT_TO_SIMPLE(type) \
+    template <typename TType> \
+    requires std::is_floating_point_v<TType> \
+    type convert(TType inType, Tag<type>) { \
+        return static_cast<type>(inType); \
+    }
+
+    CONVERT_TO_SIMPLE(char)
+    CONVERT_TO_SIMPLE(unsigned char)
+    CONVERT_TO_SIMPLE(signed char)
+    CONVERT_TO_SIMPLE(wchar_t)
+    CONVERT_TO_SIMPLE(char8)
+    CONVERT_TO_SIMPLE(char16)
+    CONVERT_TO_SIMPLE(char32)
+    CONVERT_TO_SIMPLE(unsigned short)
+    CONVERT_TO_SIMPLE(short)
+    CONVERT_TO_SIMPLE(unsigned int)
+    CONVERT_TO_SIMPLE(int)
+    CONVERT_TO_SIMPLE(unsigned long)
+    CONVERT_TO_SIMPLE(long)
+    CONVERT_TO_SIMPLE(unsigned long long)
+    CONVERT_TO_SIMPLE(long long)
+    CONVERT_TO_SIMPLE(float)
+    CONVERT_TO_SIMPLE(double)
+    CONVERT_TO_SIMPLE(long double)
+
+#undef CONVERT_TO_SIMPLE
+
+    template <typename TType>
+    requires std::is_floating_point_v<TType>
+    std::string convert(TType inType, Tag<std::string>) {
+        return std::to_string(inType);
+    }
+
+    template <typename TType>
+    requires std::is_floating_point_v<TType>
+    std::wstring convert(TType inType, Tag<std::wstring>) {
+        return std::to_wstring(inType);
+    }
+
+    template <typename TType>
+    requires std::is_floating_point_v<TType>
+    std::u8string convert(TType inType, Tag<std::u8string>) {
+        auto str = Convert::to<std::string>(inType);
+        return std::u8string{str.begin(), str.end()};
+    }
+
+    template <typename TType>
+    requires std::is_floating_point_v<TType>
+    std::u16string convert(TType inType, Tag<std::u16string>) {
+        auto str = Convert::to<std::string>(inType);
+        return std::u16string{str.begin(), str.end()};
+    }
+
+    template <typename TType>
+    requires std::is_floating_point_v<TType>
     std::u32string convert(TType inType, Tag<std::u32string>) {
         auto str = Convert::to<std::string>(inType);
         return std::u32string{str.begin(), str.end()};
