@@ -4,15 +4,7 @@
 #include "cppns/archive/HashArchive.h"
 #include "cppns/archive/PathArchive.h"
 
-#include "cppns/conversions/Conversion.h"
-
 cppns_main() {
-
-    char c = Convert::to<char>(false);
-    auto array = Convert::to<CString>(true);
-    auto array2 = Convert::to<CString>('c');
-
-    std::cout << (std::string)array << std::endl << (std::string)array2 << std::endl;
 
     // Print our working directory
     {
