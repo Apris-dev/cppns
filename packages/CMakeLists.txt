@@ -2,6 +2,7 @@ set(PACKAGES
         cppns
         util
         string
+        conversions
         memory
         container
         archive

@@ -3,13 +3,8 @@
 #include <bit>
 
 #include "cppns/container/SequenceContainer.h"
+#include "cppns/conversions/Conversion.h"
 #include "cppns/util/ErrorHandling.h"
-
-#if USING_CXX23
-	#define STR_CONTAINS(c, x) c.contains(x)
-#else
-	#define STR_CONTAINS(c, x) c.find(x) != npos
-#endif
 
 namespace String {
 	using Generic = std::string;
@@ -241,6 +236,12 @@ public:
 		return index < getSize();
 	}
 
+#if USING_CXX23
+	#define STR_CONTAINS(c, x) c.contains(x)
+#else
+	#define STR_CONTAINS(c, x) c.find(x) != npos
+#endif
+
 	[[nodiscard]] constexpr_20 bool contains(const TType* inArray) const {
 		return STR_CONTAINS(m_Container, inArray);
 	}
@@ -271,6 +272,8 @@ public:
 		return STR_CONTAINS(m_Container, obj);
 	}
 #endif
+
+#undef STR_CONTAINS
 
 	[[nodiscard]] constexpr_20 bool contains(const char16& obj) const {
 		if (!isUCS2(obj))
@@ -1123,4 +1126,10 @@ public:
 
 };
 
-#undef STR_CONTAINS
+namespace Convert {
+	template <typename TType>
+	requires is_convertible_v<std::string, TType>
+	CString convert(TType inType, Tag<CString>) {
+		return Convert::to<std::string>(inType);
+	}
+}

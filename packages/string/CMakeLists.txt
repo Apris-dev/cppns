@@ -4,3 +4,4 @@ add_interface_package(cppns-string
 
 link_package(INTERFACE cppns-util)
 link_package(INTERFACE cppns-container)
+link_package(INTERFACE cppns-conversions)
