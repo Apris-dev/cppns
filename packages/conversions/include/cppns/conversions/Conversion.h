@@ -1,3 +1,4 @@
+// ReSharper disable CppRedundantCastExpression
 #pragma once
 
 #include <type_traits>
@@ -82,20 +83,20 @@ namespace Convert {
     MAKE_CONVERTER(char32, const char c, { return static_cast<char32>(c); })
 
     MAKE_CONVERTER(unsigned short, const char c, { return static_cast<unsigned short>(c); })
-    MAKE_CONVERTER(short, const char c, { return c; })
+    MAKE_CONVERTER(short, const char c, { return static_cast<short>(c); })
 
     MAKE_CONVERTER(unsigned int, const char c, { return static_cast<unsigned int>(c); })
-    MAKE_CONVERTER(int, const char c, { return c; })
+    MAKE_CONVERTER(int, const char c, { return static_cast<int>(c); })
 
     MAKE_CONVERTER(unsigned long, const char c, { return static_cast<unsigned long>(c); })
-    MAKE_CONVERTER(long, const char c, { return c; })
+    MAKE_CONVERTER(long, const char c, { return static_cast<long>(c); })
 
     MAKE_CONVERTER(unsigned long long, const char c, { return static_cast<unsigned long long>(c); })
-    MAKE_CONVERTER(long long, const char c, { return c; })
+    MAKE_CONVERTER(long long, const char c, { return static_cast<long long>(c); })
 
-    MAKE_CONVERTER(float, const char c, { return c; })
-    MAKE_CONVERTER(double, const char c, { return c; })
-    MAKE_CONVERTER(long double, const char c, { return c; })
+    MAKE_CONVERTER(float, const char c, { return static_cast<float>(c); })
+    MAKE_CONVERTER(double, const char c, { return static_cast<double>(c); })
+    MAKE_CONVERTER(long double, const char c, { return static_cast<long double>(c); })
 
     MAKE_CONVERTER(std::string, const char c, { return std::string{c}; })
     MAKE_CONVERTER(std::wstring, const char c, { return std::wstring{Convert::to<wchar_t>(c)}; })
