@@ -30,13 +30,13 @@ static void runTest(const char* testName) {
     assert((Convert::to<float, TChar>(value) == 't'));
     assert((Convert::to<double, TChar>(value) == 't'));
     assert((Convert::to<long double, TChar>(value) == 't'));
-    /*assert((Convert::to<std::string, TChar>(value) == std::string{'t'}));
-    assert((Convert::to<std::wstring, TChar>(value) == std::wstring{L't'}));
+    assert((Convert::to<std::string, TChar>(value) == "t"));
+    assert((Convert::to<std::wstring, TChar>(value) == L"t"));
 #ifdef __cpp_char8_t
-    assert((Convert::to<std::u8string, TChar>(value) == std::u8string{u8't'}));
+    assert((Convert::to<std::u8string, TChar>(value) == u8"t"));
 #endif
-    assert((Convert::to<std::u16string, TChar>(value) == std::u16string{u't'}));
-    assert((Convert::to<std::u32string, TChar>(value) == std::u32string{U't'}));*/
+    assert((Convert::to<std::u16string, TChar>(value) == u"t"));
+    assert((Convert::to<std::u32string, TChar>(value) == U"t"));
 }
 
 template <typename TType>
@@ -162,9 +162,9 @@ cppns_main() {
         assert(Convert::to<std::u16string>('h') == u"h");
         assert(Convert::to<std::u32string>('h') == U"h");
 
-        //assert(Convert::to<std::string>(L'é') == "é");
+        assert(Convert::to<std::string>(L'é') == "é");
         assert(Convert::to<std::wstring>(L'é') == L"é");
-        //assert(Convert::to<std::u8string>(L'é') == u8"é");
+        assert(Convert::to<std::u8string>(L'é') == u8"é");
         assert(Convert::to<std::u16string>(L'é') == u"é");
         assert(Convert::to<std::u32string>(L'é') == U"é");
 
@@ -174,16 +174,16 @@ cppns_main() {
         assert(Convert::to<std::u16string>(u8'h') == u"h");
         assert(Convert::to<std::u32string>(u8'h') == U"h");
 
-        //assert(Convert::to<std::string>(u'é') == "é");
+        assert(Convert::to<std::string>(u'é') == "é");
         assert(Convert::to<std::wstring>(u'é') == L"é");
-        //assert(Convert::to<std::u8string>(u'é') == u8"é");
+        assert(Convert::to<std::u8string>(u'é') == u8"é");
         assert(Convert::to<std::u16string>(u'é') == u"é");
         assert(Convert::to<std::u32string>(u'é') == U"é");
 
-        //assert(Convert::to<std::string>(U'😀') == "😀");
-        //assert(Convert::to<std::wstring>(U'😀') == L"😀");
-        //assert(Convert::to<std::u8string>(U'😀') == u8"😀");
-        //assert(Convert::to<std::u16string>(U'😀') == u"😀");
+        assert(Convert::to<std::string>(U'😀') == "😀");
+        assert(Convert::to<std::wstring>(U'😀') == L"😀");
+        assert(Convert::to<std::u8string>(U'😀') == u8"😀");
+        assert(Convert::to<std::u16string>(U'😀') == u"😀");
         assert(Convert::to<std::u32string>(U'😀') == U"😀");
     }
 
