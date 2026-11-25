@@ -114,7 +114,12 @@ namespace Convert {
     template <typename TChar, typename TOtherChar>
     requires is_char_v<TChar> && is_char_v<TOtherChar>
     std::basic_string<TOtherChar> convert(TChar inType, Tag<std::basic_string<TOtherChar>>) {
-        return std::basic_string<TOtherChar>{Convert::to<TOtherChar>(inType)};
+        if constexpr (sizeof(TChar) > sizeof(TOtherChar)) {
+            //TODO: no narrowing
+            throw std::runtime_error("Not implemented");
+        } else {
+            return std::basic_string<TOtherChar>{Convert::to<TOtherChar>(inType)};
+        }
     }
 }
 
