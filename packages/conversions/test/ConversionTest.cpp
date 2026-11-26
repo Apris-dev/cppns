@@ -148,6 +148,43 @@ static void runStrTest(const char* testName) {
     assert(Convert::to<std::u32string>(value) == U"test");
 }
 
+template <typename TChar>
+requires Convert::is_char_v<TChar>
+static void runArrayTest(const char* testName) {
+    std::cout << "Began " << testName << " Tests" << std::endl;
+
+    auto numValue = Convert::to<std::basic_string<TChar>>("5");
+    auto value = Convert::to<std::basic_string<TChar>>("test");
+
+    assert(Convert::to<char>(numValue.c_str()) == '5');
+    assert(Convert::to<unsigned char>(numValue.c_str()) == '5');
+    assert(Convert::to<signed char>(numValue.c_str()) == '5');
+    assert(Convert::to<wchar_t>(numValue.c_str()) == L'5');
+#ifdef __cpp_char8_t
+    assert(Convert::to<char8>(numValue.c_str()) == u8'5');
+#endif
+    assert(Convert::to<char16>(numValue.c_str()) == u'5');
+    assert(Convert::to<char32>(numValue.c_str()) == U'5');
+    assert(Convert::to<unsigned short>(numValue.c_str()) == 5);
+    assert(Convert::to<short>(numValue.c_str()) == 5);
+    assert(Convert::to<unsigned int>(numValue.c_str()) == 5);
+    assert(Convert::to<int>(numValue.c_str()) == 5);
+    assert(Convert::to<unsigned long>(numValue.c_str()) == 5ul);
+    assert(Convert::to<long>(numValue.c_str()) == 5l);
+    assert(Convert::to<unsigned long long>(numValue.c_str()) == 5ull);
+    assert(Convert::to<long long>(numValue.c_str()) == 5ll);
+    assert(Convert::to<float>(numValue.c_str()) == 5.f);
+    assert(Convert::to<double>(numValue.c_str()) == 5.0);
+    assert(Convert::to<long double>(numValue.c_str()) == 5.0);
+    assert(Convert::to<std::string>(value.c_str()) == "test");
+    assert(Convert::to<std::wstring>(value.c_str()) == L"test");
+#ifdef __cpp_char8_t
+    assert(Convert::to<std::u8string>(value.c_str()) == u8"test");
+#endif
+    assert(Convert::to<std::u16string>(value.c_str()) == u"test");
+    assert(Convert::to<std::u32string>(value.c_str()) == U"test");
+}
+
 cppns_main() {
 
     std::cout << "Began Bool Tests" << std::endl;
@@ -243,6 +280,14 @@ cppns_main() {
 #endif
     runStrTest<char16>("std::u16string");
     runStrTest<char32>("std::u32string");
+
+    runArrayTest<char>("char*");
+    runArrayTest<wchar_t>("wchar_t*");
+#ifdef __cpp_char8_t
+    runArrayTest<char8>("char8*");
+#endif
+    runArrayTest<char16>("char16*");
+    runArrayTest<char32>("char32*");
 
     return 0;
 }

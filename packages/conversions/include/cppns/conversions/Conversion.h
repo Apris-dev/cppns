@@ -833,3 +833,12 @@ namespace Convert {
         return str;
     }
 }
+
+// Array Conversions
+namespace Convert {
+    template <typename TChar, typename TType>
+    requires is_convertible_v<TType, std::basic_string<TChar>>
+    constexpr TType convert(const TChar* inType, Tag<TType>) {
+        return Convert::to<TType>(std::basic_string<TChar>(inType));
+    }
+}
