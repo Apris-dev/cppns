@@ -111,6 +111,43 @@ static void runTest(const char* testName) {
     assert((Convert::to<std::u32string, TType>(value) == std::u32string{U"5.000000"}));
 }
 
+template <typename TChar>
+requires Convert::is_char_v<TChar>
+static void runStrTest(const char* testName) {
+    std::cout << "Began " << testName << " Tests" << std::endl;
+
+    auto numValue = Convert::to<std::basic_string<TChar>>(std::string("5"));
+    auto value = Convert::to<std::basic_string<TChar>>(std::string("test"));
+
+    assert(Convert::to<char>(numValue) == '5');
+    assert(Convert::to<unsigned char>(numValue) == '5');
+    assert(Convert::to<signed char>(numValue) == '5');
+    assert(Convert::to<wchar_t>(numValue) == L'5');
+#ifdef __cpp_char8_t
+    assert(Convert::to<char8>(numValue) == u8'5');
+#endif
+    assert(Convert::to<char16>(numValue) == u'5');
+    assert(Convert::to<char32>(numValue) == U'5');
+    assert(Convert::to<unsigned short>(numValue) == 5);
+    assert(Convert::to<short>(numValue) == 5);
+    assert(Convert::to<unsigned int>(numValue) == 5);
+    assert(Convert::to<int>(numValue) == 5);
+    assert(Convert::to<unsigned long>(numValue) == 5ul);
+    assert(Convert::to<long>(numValue) == 5l);
+    assert(Convert::to<unsigned long long>(numValue) == 5ull);
+    assert(Convert::to<long long>(numValue) == 5ll);
+    assert(Convert::to<float>(numValue) == 5.f);
+    assert(Convert::to<double>(numValue) == 5.0);
+    assert(Convert::to<long double>(numValue) == 5.0);
+    assert(Convert::to<std::string>(value) == "test");
+    assert(Convert::to<std::wstring>(value) == L"test");
+#ifdef __cpp_char8_t
+    assert(Convert::to<std::u8string>(value) == u8"test");
+#endif
+    assert(Convert::to<std::u16string>(value) == u"test");
+    assert(Convert::to<std::u32string>(value) == U"test");
+}
+
 cppns_main() {
 
     std::cout << "Began Bool Tests" << std::endl;
@@ -198,6 +235,14 @@ cppns_main() {
     runTest<float>("Float");
     runTest<double>("Double");
     runTest<long double>("LongDouble");
+
+    runStrTest<char>("std::string");
+    runStrTest<wchar_t>("std::wstring");
+#ifdef __cpp_char8_t
+    runStrTest<char8>("std::u8string");
+#endif
+    runStrTest<char16>("std::u16string");
+    runStrTest<char32>("std::u32string");
 
     return 0;
 }
