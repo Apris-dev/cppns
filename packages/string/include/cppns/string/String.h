@@ -117,60 +117,24 @@ public:
 		removeInvalidUTF8(m_Container);
 	}
 
-#ifdef __cpp_char8_t
-	CString(const char8* inArray): CString(String::UTF8(inArray)) {}
+	// Conversion Constructor
+	template <typename TType>
+	requires Convert::is_convertible_v<TSubcontainerType<>, TType>
+	CString(const TType& inType): m_Container(Convert::to<TSubcontainerType<>>(inType)) {
+		removeInvalidUTF8(m_Container);
+	}
 
+#ifdef __cpp_char8_t
 	CString(const char8* inArray, const size_t inCount): CString(String::UTF8(inArray, inCount)) {}
 #endif
 
-	CString(const char16* inArray): CString(String::UTF16(inArray)) {}
-
 	CString(const char16* inArray, const size_t inCount): CString(String::UTF16(inArray, inCount)) {}
 
-	CString(const char32* inArray): CString(String::UTF32(inArray)) {}
-
 	CString(const char32* inArray, const size_t inCount): CString(String::UTF32(inArray, inCount)) {}
-
-	constexpr_20 CString(const TType& inChar) {
-		if (!isASCII(inChar))
-			throw Error::String::NonASCIICharacter();
-		push(inChar);
-	}
 
 	constexpr_20 CString(const TSubcontainerType<>& otr): CString(TSubcontainerTypeView(otr)) {}
 
 	constexpr_20 CString(const TSubcontainerTypeView otr): m_Container(otr) {
-		removeInvalidUTF8(m_Container);
-	}
-
-#ifdef __cpp_char8_t
-	CString(const String::UTF8& otr): CString(String::UTF8View(otr)) {}
-
-	CString(const String::UTF8View otr) {
-		const std::string_view view(reinterpret_cast<const char*>(otr.data()), otr.size());
-		m_Container = view;
-		removeInvalidUTF8(m_Container);
-	}
-#endif
-
-	CString(const String::UTF16& otr): CString(String::UTF16View(otr)) {}
-
-	constexpr_20 CString(const String::UTF16View otr) {
-		m_Container.reserve(otr.size());
-		for (size_t i = 0; i < otr.size();) {
-			const auto res = decodeUTF16(otr, i);
-			appendUTF8(m_Container, res.cp);
-			i += res.length;
-		}
-		removeInvalidUTF8(m_Container);
-	}
-
-	CString(const String::UTF32& otr): CString(String::UTF32View(otr)) {}
-
-	constexpr_20 CString(const String::UTF32View otr) {
-		m_Container.reserve(otr.size());
-		for (const char32 c : otr)
-			appendUTF8(m_Container, c);
 		removeInvalidUTF8(m_Container);
 	}
 
