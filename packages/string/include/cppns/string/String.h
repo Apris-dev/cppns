@@ -870,9 +870,8 @@ private:
 public:
 
 #ifdef __cpp_char8_t
-	// Since CString guarantees UTF8, the conversion is simple
 	String::UTF8 toUTF8() const {
-		return String::UTF8(m_Container.begin(), m_Container.end());
+		return Convert::to<String::UTF8>(m_Container);
 	}
 #else
 	String::Generic toUTF8() const {
@@ -882,26 +881,12 @@ public:
 
 	template <Convert::utf::Endian endian = Convert::utf::Endian::NATIVE>
 	String::UTF16 toUTF16() const {
-		String::UTF16 str;
-		str.reserve(getSize());  // upper bound in code units
-		for (size_t i = 0; i < getSize();) {
-			const auto res = Convert::utf::decodeUTF<TType>(m_Container, i);
-			Convert::utf::appendUTF<String::UTF16::value_type>(str, res.cp, endian);
-			i += res.length;
-		}
-		return str;
+		return Convert::to<String::UTF16>(m_Container, endian);
 	}
 
 	template <Convert::utf::Endian endian = Convert::utf::Endian::NATIVE>
 	String::UTF32 toUTF32() const {
-		String::UTF32 str;
-		str.reserve(getSize());
-		for (size_t i = 0; i < getSize();) {
-			const auto res = Convert::utf::decodeUTF<TType>(m_Container, i);
-			Convert::utf::appendUTF<String::UTF32::value_type>(str, res.cp, endian);
-			i += res.length;
-		}
-		return str;
+		return Convert::to<String::UTF32>(m_Container, endian);
 	}
 
 	std::filesystem::path toPath() const {

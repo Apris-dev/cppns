@@ -700,6 +700,12 @@ namespace Convert {
     }
 
     template <typename To, typename TChar>
+    requires is_char_v<TChar> && is_convertible_v<To, std::basic_string_view<TChar>>
+    constexpr To convert(const std::basic_string<TChar>& inType, utf::Endian endian, Tag<To>) {
+        return convert(std::basic_string_view<TChar>{inType}, endian, Tag<To>{});
+    }
+
+    template <typename To, typename TChar>
     requires is_char_v<TChar> && is_char_v<To>
     constexpr To convert(const std::basic_string_view<TChar> inType, Tag<To>) {
         return Convert::to<To>(inType.at(0));
@@ -733,6 +739,24 @@ namespace Convert {
             for (size_t i = 0; i < inType.size();) {
                 const auto res = utf::decodeUTF(inType, i);
                 utf::appendUTF(str, res.cp);
+                i += res.length;
+            }
+            return str;
+        }
+    }
+
+    template <typename TChar, typename TOtherChar>
+    requires is_char_v<TChar> && is_char_v<TOtherChar>
+    constexpr std::basic_string<TOtherChar> convert(const std::basic_string_view<TChar> inType, utf::Endian endian, Tag<std::basic_string<TOtherChar>>) {
+        // Cant use the fast path if we need to switch endian
+        if constexpr (sizeof(TChar) == sizeof(TOtherChar) && endian == utf::Endian::NATIVE) {
+            return std::basic_string<TOtherChar>{inType.begin(), inType.end()};
+        } else {
+            std::basic_string<TOtherChar> str;
+            str.reserve(inType.size());
+            for (size_t i = 0; i < inType.size();) {
+                const auto res = utf::decodeUTF(inType, i);
+                utf::appendUTF(str, res.cp, endian);
                 i += res.length;
             }
             return str;
