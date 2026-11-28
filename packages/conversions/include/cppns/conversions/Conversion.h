@@ -90,29 +90,39 @@ namespace Convert::utf {
     #endif
 #endif
     };
-
-#ifdef __cpp_char8_t
-    constexpr static char8 swapBytes(const char8 c) noexcept {
+    
+    template <typename TChar>
+    constexpr static TChar swapBytes(const TChar c) noexcept {
         return c;
     }
+    
+    template <>
+    constexpr wchar_t swapBytes<wchar_t>(const wchar_t c) noexcept {
+#if USING_WINDOWS
+        return static_cast<char16>((c << 8) | (c >> 8));
+#else
+        return ((c & 0x000000FFu) << 24) | ((c & 0x0000FF00u) << 8) |
+               ((c & 0x00FF0000u) >> 8)  | ((c & 0xFF000000u) >> 24);
 #endif
+    }
 
-    constexpr static char16 swapBytes(const char16 c) noexcept {
+    template <>
+    constexpr char16 swapBytes<char16>(const char16 c) noexcept {
         return static_cast<char16>((c << 8) | (c >> 8));
     }
 
-    constexpr static char32 swapBytes(const char32 c) noexcept {
+    template <>
+    constexpr char32 swapBytes<char32>(const char32 c) noexcept {
         return ((c & 0x000000FFu) << 24) | ((c & 0x0000FF00u) << 8) |
                ((c & 0x00FF0000u) >> 8)  | ((c & 0xFF000000u) >> 24);
     }
 
     // Gives back the unit in the byte order we want, swapping only if the machine's own order is different.
-    template <Endian Endian, typename TType>
-    constexpr static TType toEndian(TType c) noexcept {
-        if constexpr (Endian == utf::Endian::NATIVE)
+    template <typename TType>
+    constexpr static TType toEndian(TType c, const Endian endian) noexcept {
+        if (endian == Endian::NATIVE)
             return c;
-        else
-            return swapBytes(c);
+        return swapBytes(c);
     }
 
 	constexpr static char32 ReplacementChar = 0xFFFD;
@@ -120,17 +130,13 @@ namespace Convert::utf {
     // A lead char is when the first char in a codepoint
     // In the case of ASCII, it is also the only char
     // lo and hi are the ranges that are possible for the second byte
+    template <typename TSize>
     struct LeadCharInfo {
         size_t length;
-        uint8 lo, hi;
+        TSize lo, hi;
     };
 
-    struct LeadCharInfo16 {
-        size_t length;
-        uint16 lo, hi;
-    };
-
-    constexpr static LeadCharInfo classifyLeadChar(const uint8 b0) noexcept {
+    constexpr static LeadCharInfo<uint8> classifyLeadChar(const uint8 b0) noexcept {
         if (b0 < 0x80)
             return {.length = 1, .lo = 0x80, .hi = 0xBF};
         if (b0 < 0xC2)
@@ -152,7 +158,7 @@ namespace Convert::utf {
         return {.length = 0, .lo = 0, .hi = 0};
     }
 
-    constexpr static LeadCharInfo16 classifyLeadChar16(const uint16 b0) noexcept {
+    constexpr static LeadCharInfo<uint16> classifyLeadChar16(const uint16 b0) noexcept {
         if (b0 < 0xD800 || b0 > 0xDFFF)
             return {.length = 1, .lo = 0, .hi = 0};
         if (b0 <= 0xDBFF)
@@ -171,45 +177,63 @@ namespace Convert::utf {
     constexpr static bool isUCS4(const char32 cp) noexcept {
         return cp <= 0x10FFFF && (cp < 0xD800 || cp > 0xDFFF);
     }
-
+    
 	template <typename TChar>
-	constexpr static void appendUTF8(std::basic_string<TChar>& out, char32 cp) {
-		if (!isUCS4(cp)) cp = ReplacementChar;
-
-		if (cp < 0x80) {
-			out.push_back(static_cast<TChar>(cp));
-		} else if (cp < 0x800) {
-			out.push_back(static_cast<TChar>(0xC0 | (cp >> 6)));
-			out.push_back(static_cast<TChar>(0x80 | (cp & 0x3F)));
-		} else if (cp < 0x10000) {
-			out.push_back(static_cast<TChar>(0xE0 | (cp >> 12)));
-			out.push_back(static_cast<TChar>(0x80 | ((cp >> 6) & 0x3F)));
-			out.push_back(static_cast<TChar>(0x80 | (cp & 0x3F)));
-		} else {
-			out.push_back(static_cast<TChar>(0xF0 | (cp >> 18)));
-			out.push_back(static_cast<TChar>(0x80 | ((cp >> 12) & 0x3F)));
-			out.push_back(static_cast<TChar>(0x80 | ((cp >> 6) & 0x3F)));
-			out.push_back(static_cast<TChar>(0x80 | (cp & 0x3F)));
-		}
-	}
-
-	template <typename TChar, Endian endian = Endian::NATIVE>
-	constexpr static void appendUTF16(std::basic_string<TChar>& out, char32 cp) {
-		if (!isUCS4(cp)) cp = ReplacementChar;
-
-		if (cp < 0x10000) {
-			out.push_back(toEndian<endian>(static_cast<TChar>(cp)));
-		} else {
-			cp -= 0x10000;
-			out.push_back(toEndian<endian>(static_cast<TChar>(0xD800 | (cp >> 10))));
-			out.push_back(toEndian<endian>(static_cast<TChar>(0xDC00 | (cp & 0x3FF))));
-		}
-	}
-
-    template <typename TChar, Endian endian = Endian::NATIVE>
-    constexpr static void appendUTF32(std::basic_string<TChar>& out, char32 cp) {
+    constexpr static void appendUTF(std::basic_string<TChar>& out, char32 cp, const Endian endian = Endian::NATIVE) {
         if (!isUCS4(cp)) cp = ReplacementChar;
-        out.push_back(toEndian<endian>(static_cast<TChar>(cp)));
+
+        if (cp < 0x80) {
+            out.push_back(static_cast<TChar>(cp));
+        } else if (cp < 0x800) {
+            out.push_back(static_cast<TChar>(0xC0 | (cp >> 6)));
+            out.push_back(static_cast<TChar>(0x80 | (cp & 0x3F)));
+        } else if (cp < 0x10000) {
+            out.push_back(static_cast<TChar>(0xE0 | (cp >> 12)));
+            out.push_back(static_cast<TChar>(0x80 | ((cp >> 6) & 0x3F)));
+            out.push_back(static_cast<TChar>(0x80 | (cp & 0x3F)));
+        } else {
+            out.push_back(static_cast<TChar>(0xF0 | (cp >> 18)));
+            out.push_back(static_cast<TChar>(0x80 | ((cp >> 12) & 0x3F)));
+            out.push_back(static_cast<TChar>(0x80 | ((cp >> 6) & 0x3F)));
+            out.push_back(static_cast<TChar>(0x80 | (cp & 0x3F)));
+        }
+    }
+    
+    template <>
+    constexpr void appendUTF<char16>(std::basic_string<char16>& out, char32 cp, const Endian endian) {
+        if (!isUCS4(cp)) cp = ReplacementChar;
+
+        if (cp < 0x10000) {
+            out.push_back(toEndian(static_cast<char16>(cp), endian));
+        } else {
+            cp -= 0x10000;
+            out.push_back(toEndian(static_cast<char16>(0xD800 | (cp >> 10)), endian));
+            out.push_back(toEndian(static_cast<char16>(0xDC00 | (cp & 0x3FF)), endian));
+        }
+    }
+    
+    template <>
+    constexpr void appendUTF<char32>(std::basic_string<char32>& out, char32 cp, const Endian endian) {
+        if (!isUCS4(cp)) cp = ReplacementChar;
+        out.push_back(toEndian(cp, endian));
+    }
+
+    template <>
+    constexpr void appendUTF<wchar_t>(std::basic_string<wchar_t>& out, char32 cp, const Endian endian) {
+#if USING_WINDOWS
+        if (!isUCS4(cp)) cp = ReplacementChar;
+
+        if (cp < 0x10000) {
+            out.push_back(toEndian(static_cast<char16>(cp), endian));
+        } else {
+            cp -= 0x10000;
+            out.push_back(toEndian(static_cast<char16>(0xD800 | (cp >> 10)), endian));
+            out.push_back(toEndian(static_cast<char16>(0xDC00 | (cp & 0x3FF)), endian));
+        }
+#else
+        if (!isUCS4(cp)) cp = ReplacementChar;
+        out.push_back(toEndian(cp, endian));
+#endif
     }
 
     // Result of decode
@@ -222,7 +246,7 @@ namespace Convert::utf {
     // Decodes UTF8 into a UTF32 char, assumes std::string_view contains UTF8
 	// If non-UTF8 is present, it is replaced with 'ReplacementChar' and marked as invalid
 	template <typename TChar>
-	constexpr static DecodeResult decodeUTF8(const std::basic_string_view<TChar> str, const size_t i) {
+	constexpr static DecodeResult decodeUTF(const std::basic_string_view<TChar> str, const size_t i) {
 		if (i >= str.size())
 				return {.cp = ReplacementChar, .length = 0, .valid = false};
 
@@ -255,12 +279,12 @@ namespace Convert::utf {
 	}
 
 	// Decodes UTF16 into a UTF32 char
-	template <typename TChar>
-	constexpr static DecodeResult decodeUTF16(const std::basic_string_view<TChar> s, const size_t i) noexcept {
+	template <>
+	constexpr DecodeResult decodeUTF<char16>(const std::basic_string_view<char16> s, const size_t i) {
 		if (i >= s.size())
 			return {.cp = ReplacementChar, .length = 0, .valid = false};
 
-		const TChar b0 = s[i];
+		const char16 b0 = s[i];
 		const auto info = classifyLeadChar16(b0);
 
 		// Invalid
@@ -276,7 +300,7 @@ namespace Convert::utf {
 			return {.cp = ReplacementChar, .length = 1, .valid = false};
 
 		// First half and second half cannot fit together
-		const TChar second = s[i + 1];
+		const char16 second = s[i + 1];
 		if (second < info.lo || second > info.hi)
 			return {.cp = ReplacementChar, .length = 1, .valid = false};
 
@@ -285,6 +309,61 @@ namespace Convert::utf {
 									+ (static_cast<char32>(second) - 0xDC00);
 
 		return {.cp = cp, .length = 2, .valid = true};
+	}
+
+    template <>
+    constexpr DecodeResult decodeUTF<char32>(const std::basic_string_view<char32> s, const size_t i) {
+        if (i >= s.size())
+            return {.cp = ReplacementChar, .length = 0, .valid = false};
+
+        const char32 cp = s[i];
+        if (!isUCS4(cp))
+            return {.cp = ReplacementChar, .length = 1, .valid = false};
+
+        return {.cp = cp, .length = 1, .valid = true};
+    }
+
+    template <>
+    constexpr DecodeResult decodeUTF<wchar_t>(const std::basic_string_view<wchar_t> s, const size_t i) {
+#if USING_WINDOWS
+	    if (i >= s.size())
+	        return {.cp = ReplacementChar, .length = 0, .valid = false};
+
+	    const char16 b0 = s[i];
+	    const auto info = classifyLeadChar16(b0);
+
+	    // Invalid
+	    if (info.length == 0)
+	        return {.cp = ReplacementChar, .length = 1, .valid = false};
+
+	    // Codepoint fits inside the 2 bytes, ie: not surrogate
+	    if (info.length == 1)
+	        return {.cp = b0, .length = 1, .valid = true};
+
+	    // First half with no second half
+	    if (i + 1 >= s.size())
+	        return {.cp = ReplacementChar, .length = 1, .valid = false};
+
+	    // First half and second half cannot fit together
+	    const char16 second = s[i + 1];
+	    if (second < info.lo || second > info.hi)
+	        return {.cp = ReplacementChar, .length = 1, .valid = false};
+
+	    // Add the two halves together
+	    const char32 cp = 0x10000 + ((static_cast<char32>(b0) - 0xD800) << 10)
+                                    + (static_cast<char32>(second) - 0xDC00);
+
+	    return {.cp = cp, .length = 2, .valid = true};
+#else
+	    if (i >= s.size())
+	        return {.cp = ReplacementChar, .length = 0, .valid = false};
+
+	    const char32 cp = s[i];
+	    if (!isUCS4(cp))
+	        return {.cp = ReplacementChar, .length = 1, .valid = false};
+
+	    return {.cp = cp, .length = 1, .valid = true};
+#endif
 	}
 }
 
@@ -362,7 +441,7 @@ namespace Convert {
     	std::string str;
     	str.reserve(sizeof(wchar_t));
     	const auto c = Convert::to<char32>(inType);
-    	utf::appendUTF8(str, c);
+    	utf::appendUTF(str, c);
     	return str;
     }
 
@@ -374,7 +453,7 @@ namespace Convert {
     	std::u8string str;
     	str.reserve(sizeof(wchar_t));
     	const auto c = Convert::to<char32>(inType);
-    	utf::appendUTF8(str, c);
+    	utf::appendUTF(str, c);
     	return str;
     }
 
@@ -385,7 +464,7 @@ namespace Convert {
         std::u16string str;
         str.reserve(sizeof(wchar_t) / sizeof(std::u16string::value_type));
         const auto c = Convert::to<char32>(inType);
-        utf::appendUTF16(str, c);
+        utf::appendUTF(str, c);
         return str;
 #endif
     }
@@ -398,7 +477,7 @@ namespace Convert {
         std::string str;
         str.reserve(sizeof(char16));
         const auto c = Convert::to<char32>(inType);
-        utf::appendUTF8(str, c);
+        utf::appendUTF(str, c);
         return str;
     }
 
@@ -410,7 +489,7 @@ namespace Convert {
         std::u8string str;
         str.reserve(sizeof(char16));
         const auto c = Convert::to<char32>(inType);
-        utf::appendUTF8(str, c);
+        utf::appendUTF(str, c);
         return str;
     }
 
@@ -426,7 +505,7 @@ namespace Convert {
         std::string str;
         str.reserve(sizeof(char32));
         const auto c = Convert::to<char32>(inType);
-        utf::appendUTF8(str, c);
+        utf::appendUTF(str, c);
         return str;
     }
 
@@ -435,7 +514,7 @@ namespace Convert {
         std::wstring str;
         str.reserve(sizeof(char32) / sizeof(std::wstring::value_type));
         const auto c = Convert::to<char32>(inType);
-        utf::appendUTF16(str, c);
+        utf::appendUTF(str, c);
         return str;
 #else
         return std::wstring{Convert::to<wchar_t>(inType)};
@@ -446,7 +525,7 @@ namespace Convert {
         std::u8string str;
         str.reserve(sizeof(char32));
         const auto c = Convert::to<char32>(inType);
-        utf::appendUTF8(str, c);
+        utf::appendUTF(str, c);
         return str;
     }
 
@@ -454,7 +533,7 @@ namespace Convert {
         std::u16string str;
         str.reserve(sizeof(char32) / sizeof(std::u16string::value_type));
         const auto c = Convert::to<char32>(inType);
-        utf::appendUTF16(str, c);
+        utf::appendUTF(str, c);
         return str;
     }
 
@@ -614,12 +693,6 @@ namespace Convert {
     constexpr bool convert(const std::u16string_view inType, Tag<bool>) { return inType == u"true"; }
     constexpr bool convert(const std::u32string_view inType, Tag<bool>) { return inType == U"true"; }
 
-    template <typename TChar>
-    requires is_char_v<TChar>
-    constexpr std::basic_string<TChar> convert(const std::basic_string_view<TChar> inType, Tag<std::basic_string<TChar>>) {
-        return std::basic_string<TChar>(inType.data(), inType.size());
-    }
-
     template <typename To, typename TChar>
     requires is_char_v<TChar> && is_convertible_v<To, std::basic_string_view<TChar>>
     constexpr To convert(const std::basic_string<TChar>& inType, Tag<To>) {
@@ -648,260 +721,22 @@ namespace Convert {
         return static_cast<long double>(to);
     }
 
-    constexpr std::wstring convert(const std::string_view inType, Tag<std::wstring>) {
-#if USING_WINDOWS
-        std::wstring str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF8(inType, i);
-            utf::appendUTF16(str, res.cp);
-            i += res.length;
+    template <typename TChar, typename TOtherChar>
+    requires is_char_v<TChar> && is_char_v<TOtherChar>
+    constexpr std::basic_string<TOtherChar> convert(const std::basic_string_view<TChar> inType, Tag<std::basic_string<TOtherChar>>) {
+        // Fast path: they use the same size char type it can be copied directly
+        if constexpr (sizeof(TChar) == sizeof(TOtherChar)) {
+            return std::basic_string<TOtherChar>{inType.begin(), inType.end()};
+        } else {
+            std::basic_string<TOtherChar> str;
+            str.reserve(inType.size());
+            for (size_t i = 0; i < inType.size();) {
+                const auto res = utf::decodeUTF(inType, i);
+                utf::appendUTF(str, res.cp);
+                i += res.length;
+            }
+            return str;
         }
-        return str;
-#else
-        std::wstring str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF8(inType, i);
-            str.push_back(res.cp);
-            i += res.length;
-        }
-        return str;
-#endif
-    }
-
-    constexpr std::u8string convert(const std::string_view inType, Tag<std::u8string>) {
-        return std::u8string{inType.begin(), inType.end()};
-    }
-
-    constexpr std::u16string convert(const std::string_view inType, Tag<std::u16string>) {
-        std::u16string str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF8(inType, i);
-            utf::appendUTF16(str, res.cp);
-            i += res.length;
-        }
-        return str;
-    }
-
-    constexpr std::u32string convert(const std::string_view inType, Tag<std::u32string>) {
-        std::u32string str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF8(inType, i);
-            str.push_back(res.cp);
-            i += res.length;
-        }
-        return str;
-    }
-
-    constexpr std::string convert(const std::wstring_view inType, Tag<std::string>) {
-#if USING_WINDOWS
-        std::string str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF16(inType, i);
-            utf::appendUTF8(str, res.cp);
-            i += res.length;
-        }
-        return str;
-#else
-        std::string str;
-        str.reserve(inType.size());
-        for (const auto& c : inType)
-            utf::appendUTF8(str, c);
-        return str;
-#endif
-    }
-
-    constexpr std::u8string convert(const std::wstring_view inType, Tag<std::u8string>) {
-#if USING_WINDOWS
-        std::u8string str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF16(inType, i);
-            utf::appendUTF8(str, res.cp);
-            i += res.length;
-        }
-        return str;
-#else
-        std::u8string str;
-        str.reserve(inType.size());
-        for (const auto& c : inType)
-            utf::appendUTF8(str, c);
-        return str;
-#endif
-    }
-
-    constexpr std::u16string convert(const std::wstring_view inType, Tag<std::u16string>) {
-#if USING_WINDOWS
-            return std::u16string{inType.begin(), inType.end()};
-#else
-        std::u16string str;
-        str.reserve(inType.size());
-        for (const auto& c : inType)
-            utf::appendUTF16(str, c);
-        return str;
-#endif
-    }
-
-    constexpr std::u32string convert(const std::wstring_view inType, Tag<std::u32string>) {
-#if USING_WINDOWS
-        std::u32string str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF16(inType, i);
-            str.push_back(res.cp);
-            i += res.length;
-        }
-        return str;
-#else
-        return std::u32string{inType.begin(), inType.end()};
-#endif
-    }
-
-    constexpr std::string convert(const std::u8string_view inType, Tag<std::string>) {
-        return std::string{inType.begin(), inType.end()};
-    }
-
-    constexpr std::wstring convert(const std::u8string_view inType, Tag<std::wstring>) {
-#if USING_WINDOWS
-        std::wstring str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF8(inType, i);
-            utf::appendUTF16(str, res.cp);
-            i += res.length;
-        }
-        return str;
-#else
-        std::wstring str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF8(inType, i);
-            str.push_back(res.cp);
-            i += res.length;
-        }
-        return str;
-#endif
-    }
-
-    constexpr std::u16string convert(const std::u8string_view inType, Tag<std::u16string>) {
-        std::u16string str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF8(inType, i);
-            utf::appendUTF16(str, res.cp);
-            i += res.length;
-        }
-        return str;
-    }
-
-    constexpr std::u32string convert(const std::u8string_view inType, Tag<std::u32string>) {
-        std::u32string str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF8(inType, i);
-            str.push_back(res.cp);
-            i += res.length;
-        }
-        return str;
-    }
-
-    constexpr std::string convert(const std::u16string_view inType, Tag<std::string>) {
-        std::string str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF16(inType, i);
-            utf::appendUTF8(str, res.cp);
-            i += res.length;
-        }
-        return str;
-    }
-
-    constexpr std::wstring convert(const std::u16string_view inType, Tag<std::wstring>) {
-#if USING_WINDOWS
-        std::wstring str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF16(inType, i);
-            utf::appendUTF16(str, res.cp);
-            i += res.length;
-        }
-        return str;
-#else
-        std::wstring str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF16(inType, i);
-            str.push_back(res.cp);
-            i += res.length;
-        }
-        return str;
-#endif
-    }
-
-    constexpr std::u8string convert(const std::u16string_view inType, Tag<std::u8string>) {
-        std::u8string str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF16(inType, i);
-            utf::appendUTF8(str, res.cp);
-            i += res.length;
-        }
-        return str;
-    }
-
-    constexpr std::u32string convert(const std::u16string_view inType, Tag<std::u32string>) {
-        std::u32string str;
-        str.reserve(inType.size());
-        for (size_t i = 0; i < inType.size();) {
-            const auto res = utf::decodeUTF16(inType, i);
-            str.push_back(res.cp);
-            i += res.length;
-        }
-        return str;
-    }
-
-    constexpr std::string convert(const std::u32string_view inType, Tag<std::string>) {
-        std::string str;
-        str.reserve(inType.size());
-        for (const char32 c : inType)
-            utf::appendUTF8(str, c);
-        return str;
-    }
-
-    constexpr std::wstring convert(const std::u32string_view inType, Tag<std::wstring>) {
-#if USING_WINDOWS
-        std::wstring str;
-        str.reserve(inType.size());
-        for (const char32 c : inType)
-            utf::appendUTF16(str, c);
-        return str;
-#else
-        std::wstring str;
-        str.reserve(inType.size());
-        for (const char32 c : inType)
-            str.push_back(c);
-        return str;
-#endif
-    }
-
-    constexpr std::u8string convert(const std::u32string_view inType, Tag<std::u8string>) {
-        std::u8string str;
-        str.reserve(inType.size());
-        for (const char32 c : inType)
-            utf::appendUTF8(str, c);
-        return str;
-    }
-
-    constexpr std::u16string convert(const std::u32string_view inType, Tag<std::u16string>) {
-        std::u16string str;
-        str.reserve(inType.size());
-        for (const char32 c : inType)
-            utf::appendUTF16(str, c);
-        return str;
     }
 }
 

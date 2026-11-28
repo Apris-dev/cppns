@@ -113,7 +113,7 @@ public:
 
 protected:
 
-	template <typename TStringType, String::Endian Endian = String::Endian::NATIVE>
+	template <typename TStringType, Convert::utf::Endian Endian = Convert::utf::Endian::NATIVE>
 	[[nodiscard]] size_t getLines_Impl() const {
 		TStringType str;
 		size_t lines = 0; // Initial Line
@@ -132,7 +132,7 @@ protected:
 		return lines;
 	}
 
-	template <typename TStringType, String::Endian Endian = String::Endian::NATIVE>
+	template <typename TStringType, Convert::utf::Endian Endian = Convert::utf::Endian::NATIVE>
 	File::LineEnding getLineEndingFromFile_Impl() const {
 		// Read the first line ending and assume other line endings are like that
 		TStringType str;
@@ -199,7 +199,7 @@ protected:
 		}
 	}
 
-	template <String::Endian Endian, typename CharT>
+	template <Convert::utf::Endian Endian, typename CharT>
 	size_t readUntil(std::basic_string<CharT>& out, CharT delim) const {
 		if (feof(mFile))
 			return EOF;
@@ -215,7 +215,7 @@ protected:
 
 			bytesRead += sizeof(c);
 
-			c = String::toEndian<Endian>(c);
+			c = Convert::utf::toEndian(c, Endian);
 
 			if (c == delim)
 				break;
@@ -226,7 +226,7 @@ protected:
 		return bytesRead;
 	}
 
-	template <String::Endian Endian, typename CharT>
+	template <Convert::utf::Endian Endian, typename CharT>
 	size_t readUntilLE(std::basic_string<CharT>& out) const {
 		const size_t res = readUntil<Endian>(out, static_cast<CharT>('\n'));
 
@@ -354,13 +354,13 @@ public:
 
 			switch (mFileFormat) {
 			case File::Format::UTF16LE:
-				return Super::template getLines_Impl<String::UTF16, String::Endian::LITTLE>();
+				return Super::template getLines_Impl<String::UTF16, Convert::utf::Endian::LITTLE>();
 			case File::Format::UTF16BE:
-				return Super::template getLines_Impl<String::UTF16, String::Endian::BIG>();
+				return Super::template getLines_Impl<String::UTF16, Convert::utf::Endian::BIG>();
 			case File::Format::UTF32LE:
-				return Super::template getLines_Impl<String::UTF32, String::Endian::LITTLE>();
+				return Super::template getLines_Impl<String::UTF32, Convert::utf::Endian::LITTLE>();
 			case File::Format::UTF32BE:
-				return Super::template getLines_Impl<String::UTF32, String::Endian::BIG>();
+				return Super::template getLines_Impl<String::UTF32, Convert::utf::Endian::BIG>();
 			default:
 				return Super::template getLines_Impl<String::Generic>();
 			}
@@ -383,14 +383,14 @@ protected:
 
 		switch (mFileFormat) {
 		case File::Format::UTF16LE:
-			res = Super::template getLineEndingFromFile_Impl<String::UTF16, String::Endian::LITTLE>();
+			res = Super::template getLineEndingFromFile_Impl<String::UTF16, Convert::utf::Endian::LITTLE>();
 		case File::Format::UTF16BE:
-			res = Super::template getLineEndingFromFile_Impl<String::UTF16, String::Endian::BIG>();
+			res = Super::template getLineEndingFromFile_Impl<String::UTF16, Convert::utf::Endian::BIG>();
 			break;
 		case File::Format::UTF32LE:
-			res = Super::template getLineEndingFromFile_Impl<String::UTF32, String::Endian::LITTLE>();
+			res = Super::template getLineEndingFromFile_Impl<String::UTF32, Convert::utf::Endian::LITTLE>();
 		case File::Format::UTF32BE:
-			res = Super::template getLineEndingFromFile_Impl<String::UTF32, String::Endian::BIG>();
+			res = Super::template getLineEndingFromFile_Impl<String::UTF32, Convert::utf::Endian::BIG>();
 			break;
 		default:
 			res = Super::template getLineEndingFromFile_Impl<String::Generic>();
@@ -448,13 +448,13 @@ protected:
 	virtual size_t read(CString& outValue) override {
 		switch (mFileFormat) {
 		case File::Format::UTF16LE:
-			return read_Impl<String::UTF16, String::Endian::LITTLE>(outValue);
+			return read_Impl<String::UTF16, Convert::utf::Endian::LITTLE>(outValue);
 		case File::Format::UTF16BE:
-			return read_Impl<String::UTF16, String::Endian::BIG>(outValue);
+			return read_Impl<String::UTF16, Convert::utf::Endian::BIG>(outValue);
 		case File::Format::UTF32LE:
-			return read_Impl<String::UTF32, String::Endian::LITTLE>(outValue);
+			return read_Impl<String::UTF32, Convert::utf::Endian::LITTLE>(outValue);
 		case File::Format::UTF32BE:
-			return read_Impl<String::UTF32, String::Endian::BIG>(outValue);
+			return read_Impl<String::UTF32, Convert::utf::Endian::BIG>(outValue);
 		default:
 			return read_Impl<String::Generic>(outValue);
 		}
@@ -465,19 +465,19 @@ protected:
 
 		switch (mFileFormat) {
 		case File::Format::UTF16LE:
-			return write_Impl<String::UTF16>(str.toUTF16<String::Endian::LITTLE>());
+			return write_Impl<String::UTF16>(str.toUTF16<Convert::utf::Endian::LITTLE>());
 		case File::Format::UTF16BE:
-			return write_Impl<String::UTF16>(str.toUTF16<String::Endian::BIG>());
+			return write_Impl<String::UTF16>(str.toUTF16<Convert::utf::Endian::BIG>());
 		case File::Format::UTF32LE:
-			return write_Impl<String::UTF32>(str.toUTF32<String::Endian::LITTLE>());
+			return write_Impl<String::UTF32>(str.toUTF32<Convert::utf::Endian::LITTLE>());
 		case File::Format::UTF32BE:
-			return write_Impl<String::UTF32>(str.toUTF32<String::Endian::BIG>());
+			return write_Impl<String::UTF32>(str.toUTF32<Convert::utf::Endian::BIG>());
 		default:
 			return write_Impl<String::Generic>(str);
 		}
 	}
 
-	template <typename TStringType, String::Endian Endian = String::Endian::NATIVE>
+	template <typename TStringType, Convert::utf::Endian Endian = Convert::utf::Endian::NATIVE>
 	size_t read_Impl(CString& outValue) {
 		TStringType str;
 		Super::template readUntilLE<Endian>(str);
@@ -497,7 +497,7 @@ protected:
 	}
 
 	File::Format mFileFormat = TFormat;
-	String::Endian mEndian = String::Endian::NATIVE;
+	Convert::utf::Endian mEndian = Convert::utf::Endian::NATIVE;
 
 };
 

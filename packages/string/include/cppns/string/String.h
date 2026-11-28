@@ -822,7 +822,7 @@ private:
 		size_t r = 0, w = 0;
 
 		while (r < n) {
-			const Convert::utf::DecodeResult ch = Convert::utf::decodeUTF8<TType>(s, r);
+			const Convert::utf::DecodeResult ch = Convert::utf::decodeUTF<TType>(s, r);
 
 			if (ch.valid) {
 				// Only copy if something was deleted
@@ -885,8 +885,8 @@ public:
 		String::UTF16 str;
 		str.reserve(getSize());  // upper bound in code units
 		for (size_t i = 0; i < getSize();) {
-			const auto res = Convert::utf::decodeUTF8<TType>(m_Container, i);
-			Convert::utf::appendUTF16<String::UTF16::value_type, endian>(str, res.cp);
+			const auto res = Convert::utf::decodeUTF<TType>(m_Container, i);
+			Convert::utf::appendUTF<String::UTF16::value_type>(str, res.cp, endian);
 			i += res.length;
 		}
 		return str;
@@ -897,8 +897,8 @@ public:
 		String::UTF32 str;
 		str.reserve(getSize());
 		for (size_t i = 0; i < getSize();) {
-			const auto res = Convert::utf::decodeUTF8<TType>(m_Container, i);
-			Convert::utf::appendUTF32<String::UTF32::value_type, endian>(str, res.cp);
+			const auto res = Convert::utf::decodeUTF<TType>(m_Container, i);
+			Convert::utf::appendUTF<String::UTF32::value_type>(str, res.cp, endian);
 			i += res.length;
 		}
 		return str;
