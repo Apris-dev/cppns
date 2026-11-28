@@ -447,35 +447,45 @@ protected:
 		}
 	}
 
-	virtual size_t read(CString& outValue) override {
+	virtual void read(CString& outValue) override {
 		switch (mFileFormat) {
 		case File::Format::UTF16LE:
-			return read_Impl<String::UTF16, UTF::Endian::LITTLE>(outValue);
+			read_Impl<String::UTF16, UTF::Endian::LITTLE>(outValue);
+			break;
 		case File::Format::UTF16BE:
-			return read_Impl<String::UTF16, UTF::Endian::BIG>(outValue);
+			read_Impl<String::UTF16, UTF::Endian::BIG>(outValue);
+			break;
 		case File::Format::UTF32LE:
-			return read_Impl<String::UTF32, UTF::Endian::LITTLE>(outValue);
+			read_Impl<String::UTF32, UTF::Endian::LITTLE>(outValue);
+			break;
 		case File::Format::UTF32BE:
-			return read_Impl<String::UTF32, UTF::Endian::BIG>(outValue);
+			read_Impl<String::UTF32, UTF::Endian::BIG>(outValue);
+			break;
 		default:
-			return read_Impl<String::Generic>(outValue);
+			read_Impl<String::Generic>(outValue);
+			break;
 		}
 	}
 
-	virtual size_t write(const CString& inValue) override {
+	virtual void write(const CString& inValue) override {
 		const CString str = Super::isEmpty() ? inValue : File::getLineEndingString(Super::lineEndings) + inValue;
 
 		switch (mFileFormat) {
 		case File::Format::UTF16LE:
-			return write_Impl<String::UTF16>(str.toUTF16<UTF::Endian::LITTLE>());
+			write_Impl<String::UTF16>(str.toUTF16<UTF::Endian::LITTLE>());
+			break;
 		case File::Format::UTF16BE:
-			return write_Impl<String::UTF16>(str.toUTF16<UTF::Endian::BIG>());
+			write_Impl<String::UTF16>(str.toUTF16<UTF::Endian::BIG>());
+			break;
 		case File::Format::UTF32LE:
-			return write_Impl<String::UTF32>(str.toUTF32<UTF::Endian::LITTLE>());
+			write_Impl<String::UTF32>(str.toUTF32<UTF::Endian::LITTLE>());
+			break;
 		case File::Format::UTF32BE:
-			return write_Impl<String::UTF32>(str.toUTF32<UTF::Endian::BIG>());
+			write_Impl<String::UTF32>(str.toUTF32<UTF::Endian::BIG>());
+			break;
 		default:
-			return write_Impl<String::Generic>(str);
+			write_Impl<String::Generic>(str);
+			break;
 		}
 	}
 

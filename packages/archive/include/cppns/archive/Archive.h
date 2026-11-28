@@ -365,95 +365,43 @@ protected:
 
 class CBinaryArchive : public CBinaryIArchive, public CBinaryOArchive {};
 
-class CSIArchive : public CIArchive {
+class CSIArchive {
+
+public:
+
+	virtual ~CSIArchive() = default;
+
+	template <typename TType>
+	requires Convert::is_convertible_v<TType, CString>
+	friend CSIArchive& operator>>(CSIArchive& inArchive, TType& v) {
+		CString str;
+		inArchive.read(str);
+		v = Convert::to<TType>(str);
+		return inArchive;
+	}
 
 protected:
 
-	// Inherit string read but don't override
-	using CIArchive::read;
-
-#define MAKE_READ(x) \
-	virtual size_t read(x& inValue) final override { \
-		CString str; \
-		const size_t loc = read(str); \
-		inValue = Convert::to<x>(str); \
-		return loc; \
-	}
-
-	/*
-	 * Integral Types
-	 */
-
-	MAKE_READ(bool)
-	MAKE_READ(char)
-
-	MAKE_READ(unsigned char)
-	MAKE_READ(signed char)
-
-	MAKE_READ(unsigned short)
-	MAKE_READ(signed short)
-
-	MAKE_READ(unsigned int)
-	MAKE_READ(signed int)
-
-	MAKE_READ(unsigned long)
-	MAKE_READ(signed long)
-
-	MAKE_READ(unsigned long long)
-	MAKE_READ(signed long long)
-
-	/*
-	 * Floating Point Types
-	 */
-
-	MAKE_READ(float)
-	MAKE_READ(double)
-#undef MAKE_READ
+	virtual void read(CString& inValue) = 0;
 
 };
 
-class CSOArchive : public COArchive {
+class CSOArchive {
+
+public:
+
+	virtual ~CSOArchive() = default;
+
+	template <typename TType>
+	requires Convert::is_convertible_v<CString, TType>
+	friend CSOArchive& operator<<(CSOArchive& inArchive, const TType& v) {
+		inArchive.write(Convert::to<CString>(v));
+		return inArchive;
+	}
 
 protected:
 
-	// Inherit string write but don't override
-	using COArchive::write;
-
-#define MAKE_WRITE(x) \
-	virtual size_t write(const x& inValue) final override { \
-		return write(Convert::to<CString>(inValue)); \
-	}
-
-	/*
-	 * Integral Types
-	 */
-
-	MAKE_WRITE(bool)
-	MAKE_WRITE(char)
-
-	MAKE_WRITE(unsigned char)
-	MAKE_WRITE(signed char)
-
-	MAKE_WRITE(unsigned short)
-	MAKE_WRITE(signed short)
-
-	MAKE_WRITE(unsigned int)
-	MAKE_WRITE(signed int)
-
-	MAKE_WRITE(unsigned long)
-	MAKE_WRITE(signed long)
-
-	MAKE_WRITE(unsigned long long)
-	MAKE_WRITE(signed long long)
-
-	/*
-	 * Floating Point Types
-	 */
-
-	MAKE_WRITE(float)
-	MAKE_WRITE(double)
-	MAKE_WRITE(long double)
-#undef MAKE_WRITE
+	virtual void write(const CString& inValue) = 0;
 
 };
 

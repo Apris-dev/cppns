@@ -163,20 +163,19 @@ public:
 protected:
 
     // Takes the last component off the path and gives it back
-    virtual size_t read(CString& outValue) override {
+    virtual void read(CString& outValue) override {
         outValue = top();
         previous();
-        return 0;
     }
 
     // Appends 'inValue' to the path, creating directories as needed.
     // Throws Error::Path::PathNotCreatable if a file is in the way or a directory can't be created.
     // Throws Error::Path::PermissionDenied if this process may not create entries in the parent directory.
     // On failure the stored path is unchanged (directories created before the failure stay, like mkdir -p).
-    virtual size_t write(const CString& inValue) override {
+    virtual void write(const CString& inValue) override {
         // If in value is empty, we don't need to write anything
         if (inValue.isEmpty())
-            return 0;
+            return;
 
         // Replace windows separators with the standard separator
         String::UTF8 in = inValue.toUTF8();
@@ -213,7 +212,6 @@ protected:
             built /= "";
 
         m_Path = built;
-        return 0;
     }
 
 private:
