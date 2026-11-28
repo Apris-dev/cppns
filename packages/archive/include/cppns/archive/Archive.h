@@ -10,44 +10,11 @@ class CIArchive {
 
 protected:
 
-#define MAKE_READ(x) \
-	virtual size_t read(x& inValue) = 0;
+	virtual size_t read(void* inValue, const size_t inElementSize) {
+		return read(inValue, inElementSize, 1);
+	}
 
-	/*
-	 * Integral Types
-	 */
-
-	MAKE_READ(bool)
-	MAKE_READ(char)
-
-	MAKE_READ(unsigned char)
-	MAKE_READ(signed char)
-
-	MAKE_READ(unsigned short)
-	MAKE_READ(signed short)
-
-	MAKE_READ(unsigned int)
-	MAKE_READ(signed int)
-
-	MAKE_READ(unsigned long)
-	MAKE_READ(signed long)
-
-	MAKE_READ(unsigned long long)
-	MAKE_READ(signed long long)
-
-	/*
-	 * Floating Point Types
-	 */
-
-	MAKE_READ(float)
-	MAKE_READ(double)
-#undef MAKE_READ
-
-	/*
-	 * Strings
-	 */
-
-	virtual size_t read(CString& inValue) = 0;
+	virtual size_t read(void* inValue, size_t inElementSize, size_t inCount) = 0;
 
 public:
 
@@ -56,7 +23,7 @@ public:
 	template <typename TType>
 	requires std::is_arithmetic_v<TType>
 	friend CIArchive& operator>>(CIArchive& inArchive, TType& inValue) {
-		inArchive.read(inValue);
+		inArchive.read(&inValue, sizeof(inValue));
 		return inArchive;
 	}
 
@@ -79,7 +46,11 @@ public:
 	}
 
 	friend CIArchive& operator>>(CIArchive& inArchive, CString& inValue) {
-		inArchive.read(inValue);
+		inValue.clear();
+		CString::TType c;
+		while (inArchive.read(&c, sizeof(c)) != 0 && c != '\0') {
+			inValue += c;
+		}
 		return inArchive;
 	}
 
@@ -138,47 +109,11 @@ class COArchive {
 
 protected:
 
-#define MAKE_WRITE(x) \
-	virtual size_t write(const x& inValue) = 0;
+	virtual size_t write(const void* inValue, const size_t inElementSize) {
+		return write(inValue, inElementSize, 1);
+	}
 
-	/*
-	 * Integral Types
-	 */
-
-	MAKE_WRITE(bool)
-	MAKE_WRITE(char)
-
-	MAKE_WRITE(unsigned char)
-	MAKE_WRITE(signed char)
-
-	MAKE_WRITE(unsigned short)
-	MAKE_WRITE(signed short)
-
-	MAKE_WRITE(unsigned int)
-	MAKE_WRITE(signed int)
-
-	MAKE_WRITE(unsigned long)
-	MAKE_WRITE(signed long)
-
-	MAKE_WRITE(unsigned long long)
-	MAKE_WRITE(signed long long)
-
-	/*
-	 * Floating Point Types
-	 */
-
-	MAKE_WRITE(float)
-	MAKE_WRITE(double)
-	MAKE_WRITE(long double)
-#undef MAKE_WRITE
-
-	/*
-	 * Strings
-	 */
-
-	virtual size_t write(const char* inValue) { return write(CString(inValue)); }
-
-	virtual size_t write(const CString& inValue) = 0;
+	virtual size_t write(const void* inValue, size_t inElementSize, size_t inCount) = 0;
 
 public:
 
@@ -187,7 +122,7 @@ public:
 	template <typename TType>
 	requires std::is_arithmetic_v<TType>
 	friend COArchive& operator<<(COArchive& inArchive, const TType& inValue) {
-		inArchive.write(inValue);
+		inArchive.write(&inValue, sizeof(inValue));
 		return inArchive;
 	}
 
@@ -211,7 +146,9 @@ public:
 	}
 	
 	friend COArchive& operator<<(COArchive& inArchive, const CString& inValue) {
-		inArchive.write(inValue);
+		inArchive.write(inValue.data(), sizeof(CString::TType), inValue.getSize());
+		constexpr static char terminator = '\0';
+		inArchive.write(&terminator, sizeof(terminator));
 		return inArchive;
 	}
 
@@ -250,120 +187,7 @@ public:
 	}
 };
 
-class CBinaryIArchive : public CIArchive {
-
-protected:
-
-	virtual size_t read(void* inValue, const size_t inElementSize) {
-		return read(inValue, inElementSize, 1);
-	}
-
-	virtual size_t read(void* inValue, size_t inElementSize, size_t inCount) = 0;
-
-#define MAKE_READ(x) \
-	virtual size_t read(x& inValue) final override { return read(&inValue, sizeof(inValue)); }
-
-	/*
-	 * Integral Types
-	 */
-
-	MAKE_READ(bool)
-	MAKE_READ(char)
-
-	MAKE_READ(unsigned char)
-	MAKE_READ(signed char)
-
-	MAKE_READ(unsigned short)
-	MAKE_READ(signed short)
-
-	MAKE_READ(unsigned int)
-	MAKE_READ(signed int)
-
-	MAKE_READ(unsigned long)
-	MAKE_READ(signed long)
-
-	MAKE_READ(unsigned long long)
-	MAKE_READ(signed long long)
-
-	/*
-	 * Floating Point Types
-	 */
-
-	MAKE_READ(float)
-	MAKE_READ(double)
-#undef MAKE_READ
-
-	/*
-	 * Strings
-	 */
-
-	virtual size_t read(CString& inValue) final override {
-		inValue.clear();
-		CString::TType c;
-		while (read(&c, sizeof(c)) != 0 && c != '\0') {
-			inValue += c;
-		}
-		return inValue.getSize() * sizeof(c);
-	}
-};
-
-class CBinaryOArchive : public COArchive {
-
-protected:
-
-	virtual size_t write(const void* inValue, const size_t inElementSize) {
-		return write(inValue, inElementSize, 1);
-	}
-
-	virtual size_t write(const void* inValue, size_t inElementSize, size_t inCount) = 0;
-
-#define MAKE_WRITE(x) \
-	virtual size_t write(const x& inValue) final override { return write(&inValue, sizeof(inValue)); }
-
-	/*
-	 * Integral Types
-	 */
-
-	MAKE_WRITE(bool)
-	MAKE_WRITE(char)
-
-	MAKE_WRITE(unsigned char)
-	MAKE_WRITE(signed char)
-
-	MAKE_WRITE(unsigned short)
-	MAKE_WRITE(signed short)
-
-	MAKE_WRITE(unsigned int)
-	MAKE_WRITE(signed int)
-
-	MAKE_WRITE(unsigned long)
-	MAKE_WRITE(signed long)
-
-	MAKE_WRITE(unsigned long long)
-	MAKE_WRITE(signed long long)
-
-	/*
-	 * Floating Point Types
-	 */
-
-	MAKE_WRITE(float)
-	MAKE_WRITE(double)
-	MAKE_WRITE(long double)
-#undef MAKE_WRITE
-
-	/*
-	 * Strings
-	 */
-
-	virtual size_t write(const CString& inValue) final override {
-		write(inValue.data(), sizeof(CString::TType), inValue.getSize());
-		constexpr static char terminator = '\0';
-		write(&terminator, sizeof(terminator));
-		return inValue.getSize() * sizeof(CString::TType);
-	}
-};
-
-class CBinaryArchive : public CBinaryIArchive, public CBinaryOArchive {};
+class CArchive : public CIArchive, public COArchive {};
 
 class CSIArchive {
 

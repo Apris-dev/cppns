@@ -277,7 +277,7 @@ template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnd
 #else
 template <File::OpenType TOpenType, File::LineEnding TLineEnding = File::LineEnding::LF>
 #endif
-class CBinaryFileArchive : public CBaseFileArchive<TOpenType>, public CBinaryArchive {
+class CBinaryFileArchive : public CBaseFileArchive<TOpenType>, public CArchive {
 
 public:
 

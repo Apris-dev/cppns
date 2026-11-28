@@ -8,7 +8,7 @@
 
 #include "Archive.h"
 
-class CHashArchive : public CBinaryOArchive {
+class CHashArchive : public COArchive {
 
 public:
 
