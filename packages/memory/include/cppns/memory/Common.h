@@ -14,28 +14,14 @@ namespace sstl {
 	template <typename TType>
 	struct is_initializable : std::bool_constant<is_initializable_v<TType>> {};
 #else
-	#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
-		template <typename TType>
-		concept is_initializable_v =
-		requires(TType& obj) {
-			obj.init();
-		};
-
-		template <typename TType>
-		struct is_initializable : std::bool_constant<is_initializable_v<TType>> {};
-	#else
-		template <typename, typename>
-		struct is_initializable : std::false_type {};
-
-		template <typename TType>
-		struct is_initializable<
-			std::void_t<decltype(std::declval<TType&>().init())>,
-			TType
-		> : std::true_type {};
+	template <typename TType>
+			concept is_initializable_v =
+			requires(TType& obj) {
+		obj.init();
+			};
 
 	template <typename TType>
-	constexpr bool is_initializable_v = is_initializable<void, TType>::value;
-	#endif
+	struct is_initializable : std::bool_constant<is_initializable_v<TType>> {};
 #endif
 
 #ifndef MEMORY_DESTROY
@@ -45,28 +31,14 @@ namespace sstl {
 	template <typename TType>
 	struct is_destroyable : std::bool_constant<is_destroyable_v<TType>> {};
 #else
-	#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
-		template <typename TType>
-		concept is_destroyable_v =
-		requires(TType& obj) {
-			obj.destroy();
-		};
+	template <typename TType>
+			concept is_destroyable_v =
+			requires(TType& obj) {
+		obj.destroy();
+			};
 
-		template <typename TType>
-		struct is_destroyable : std::bool_constant<is_destroyable_v<TType>> {};
-	#else
-		template <typename, typename = void>
-		struct is_destroyable : std::false_type {};
-
-		template <typename TType>
-		struct is_destroyable<
-			std::void_t<decltype(std::declval<TType&>().destroy())>,
-			TType
-		> : std::true_type {};
-
-		template <typename TType>
-		constexpr bool is_destroyable_v = is_destroyable<TType>::value;
-	#endif
+	template <typename TType>
+	struct is_destroyable : std::bool_constant<is_destroyable_v<TType>> {};
 #endif
 
 #ifndef MEMORY_RELEASE
@@ -76,27 +48,14 @@ namespace sstl {
 	template <typename TType>
 	struct is_releasable : std::bool_constant<is_releasable_v<TType>> {};
 #else
-	#if defined(__cpp_concepts) && __cpp_concepts >= 201907L
-		template <typename TType>
-		concept is_releasable =
-		requires(TType& obj) {
-			obj.release();
-		};
+	template <typename TType>
+			concept is_releasable =
+			requires(TType& obj) {
+		obj.release();
+			};
 
-		template <typename TType>
-		constexpr bool is_releasable_v = is_releasable<TType>;
-
-	#else
-		template <typename, typename = void>
-		struct is_releasable : std::false_type {};
-
-		template <typename TType>
-		struct is_releasable<TType, std::void_t<decltype(std::declval<TType&>().release())>>
-			: std::true_type {};
-
-		template <typename TType>
-		constexpr bool is_releasable_v = is_releasable<TType>::value;
-	#endif
+	template <typename TType>
+	constexpr bool is_releasable_v = is_releasable<TType>;
 #endif
 
 	template <typename TType>

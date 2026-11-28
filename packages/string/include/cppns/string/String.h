@@ -109,28 +109,12 @@ public:
 
 	constexpr_20 CString() = default;
 
-	constexpr_20 CString(const TType* inArray): m_Container(inArray) {
-		removeInvalidUTF8(m_Container);
-	}
-
-	constexpr_20 CString(const TType* inArray, const size_t inCount): m_Container(inArray, inCount) {
-		removeInvalidUTF8(m_Container);
-	}
-
 	// Conversion Constructor
-	template <typename TType>
-	requires Convert::is_convertible_v<TSubcontainerType<>, TType>
-	CString(const TType& inType): m_Container(Convert::to<TSubcontainerType<>>(inType)) {
+	template <typename... TArgs>
+	requires Convert::is_convertible_v<TSubcontainerType<>, TArgs...>
+	constexpr_20 CString(TArgs... inType): m_Container(Convert::to<TSubcontainerType<>>(std::forward<TArgs>(inType)...)) {
 		removeInvalidUTF8(m_Container);
 	}
-
-#ifdef __cpp_char8_t
-	CString(const char8* inArray, const size_t inCount): CString(String::UTF8(inArray, inCount)) {}
-#endif
-
-	CString(const char16* inArray, const size_t inCount): CString(String::UTF16(inArray, inCount)) {}
-
-	CString(const char32* inArray, const size_t inCount): CString(String::UTF32(inArray, inCount)) {}
 
 	constexpr_20 CString(const TSubcontainerType<>& otr): CString(TSubcontainerTypeView(otr)) {}
 

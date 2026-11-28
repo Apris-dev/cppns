@@ -11,25 +11,23 @@
 namespace Convert {
     template<typename To> struct Tag {};
 
-    template<typename To, typename From, typename = void>
-    struct is_convertible : std::bool_constant<std::is_same_v<To, From>> {};
+    template<typename To, typename From, typename... TFromArgs>
+    concept is_convertible_v = (std::is_same_v<To, From> && sizeof...(TFromArgs) == 0) ||
+    requires(From from, TFromArgs... args) {
+        convert(from, args..., Tag<To>{});
+    };
 
-    template<typename To, typename From>
-    struct is_convertible<To, From, std::void_t<decltype(convert(std::declval<From>(), Tag<To>{}))>> : std::true_type {};
-
-    template<typename To, typename From>
-    constexpr bool is_convertible_v = is_convertible<To, From>::value;
-
-    template<typename To, typename From>
-    requires is_convertible_v<To, From>
-    constexpr To to(From f) {
-        if constexpr (std::is_same_v<To, From>) {
-            return f;
+    template<typename To, typename From, typename... TFromArgs>
+    requires is_convertible_v<To, From, TFromArgs...>
+    constexpr To to(const From& from, TFromArgs... fromArgs) {
+        if constexpr (std::is_same_v<To, From> && sizeof...(TFromArgs) <= 0) {
+            return from;
         } else {
-            return convert(f, Tag<To>{});
+            return convert(from, std::forward<TFromArgs>(fromArgs)..., Tag<To>{});
         }
     }
 }
+
 
 // Bool Convertersions
 namespace Convert {
@@ -840,5 +838,11 @@ namespace Convert {
     requires is_convertible_v<TType, std::basic_string<TChar>>
     constexpr TType convert(const TChar* inType, Tag<TType>) {
         return Convert::to<TType>(std::basic_string<TChar>(inType));
+    }
+
+    template <typename TChar, typename TType>
+    requires is_convertible_v<TType, std::basic_string<TChar>>
+    constexpr TType convert(const TChar* inType, const size_t inCount, Tag<TType>) {
+        return Convert::to<TType>(std::basic_string<TChar>(inType, inCount));
     }
 }
