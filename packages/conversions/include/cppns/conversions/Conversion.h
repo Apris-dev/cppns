@@ -68,11 +68,109 @@ namespace Convert {
 }
 
 namespace Convert::utf {
-	constexpr static bool isUCS4(const char32 cp) noexcept {
-		return cp <= 0x10FFFF && (cp < 0xD800 || cp > 0xDFFF);
-	}
+
+    // Convert lowercase to cppns standard
+    enum class Endian : uint8 {
+#ifdef __cpp_lib_endian
+        LITTLE = static_cast<uint8>(std::endian::little),
+        BIG = static_cast<uint8>(std::endian::big),
+        NATIVE = static_cast<uint8>(std::endian::native)
+#else
+        LITTLE = 0,
+        BIG = 1,
+    #if USING_MSVC // Windows: assume little endian
+        NATIVE = LITTLE
+    #else
+        // GCC/Clang check for byte order macros, if they don't exist, assume little endian
+        #if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+            NATIVE = BIG
+        #else
+            NATIVE = LITTLE
+        #endif
+    #endif
+#endif
+    };
+
+#ifdef __cpp_char8_t
+    constexpr static char8 swapBytes(const char8 c) noexcept {
+        return c;
+    }
+#endif
+
+    constexpr static char16 swapBytes(const char16 c) noexcept {
+        return static_cast<char16>((c << 8) | (c >> 8));
+    }
+
+    constexpr static char32 swapBytes(const char32 c) noexcept {
+        return ((c & 0x000000FFu) << 24) | ((c & 0x0000FF00u) << 8) |
+               ((c & 0x00FF0000u) >> 8)  | ((c & 0xFF000000u) >> 24);
+    }
+
+    // Gives back the unit in the byte order we want, swapping only if the machine's own order is different.
+    template <Endian Endian, typename TType>
+    constexpr static TType toEndian(TType c) noexcept {
+        if constexpr (Endian == utf::Endian::NATIVE)
+            return c;
+        else
+            return swapBytes(c);
+    }
 
 	constexpr static char32 ReplacementChar = 0xFFFD;
+
+    // A lead char is when the first char in a codepoint
+    // In the case of ASCII, it is also the only char
+    // lo and hi are the ranges that are possible for the second byte
+    struct LeadCharInfo {
+        size_t length;
+        uint8 lo, hi;
+    };
+
+    struct LeadCharInfo16 {
+        size_t length;
+        uint16 lo, hi;
+    };
+
+    constexpr static LeadCharInfo classifyLeadChar(const uint8 b0) noexcept {
+        if (b0 < 0x80)
+            return {.length = 1, .lo = 0x80, .hi = 0xBF};
+        if (b0 < 0xC2)
+            return {.length = 0, .lo = 0, .hi = 0};
+        if (b0 <= 0xDF)
+            return {.length = 2, .lo = 0x80, .hi = 0xBF};
+        if (b0 == 0xE0)
+            return {.length = 3, .lo = 0xA0, .hi = 0xBF};
+        if (b0 == 0xED)
+            return {.length = 3, .lo = 0x80, .hi = 0x9F};
+        if (b0 <= 0xEF)
+            return {.length = 3, .lo = 0x80, .hi = 0xBF};
+        if (b0 == 0xF0)
+            return {.length = 4, .lo = 0x90, .hi = 0xBF};
+        if (b0 == 0xF4)
+            return {.length = 4, .lo = 0x80, .hi = 0x8F};
+        if (b0 <= 0xF3)
+            return {.length = 4, .lo = 0x80, .hi = 0xBF};
+        return {.length = 0, .lo = 0, .hi = 0};
+    }
+
+    constexpr static LeadCharInfo16 classifyLeadChar16(const uint16 b0) noexcept {
+        if (b0 < 0xD800 || b0 > 0xDFFF)
+            return {.length = 1, .lo = 0, .hi = 0};
+        if (b0 <= 0xDBFF)
+            return {.length = 2, .lo = 0xDC00, .hi = 0xDFFF};
+        return {.length = 0, .lo = 0, .hi = 0};
+    }
+
+    constexpr static bool isASCII(const char c) noexcept {
+        return classifyLeadChar(c).length == 1;
+    }
+
+    constexpr static bool isUCS2(const char16 c) noexcept {
+        return classifyLeadChar16(c).length <= 2;
+    }
+
+    constexpr static bool isUCS4(const char32 cp) noexcept {
+        return cp <= 0x10FFFF && (cp < 0xD800 || cp > 0xDFFF);
+    }
 
 	template <typename TChar>
 	constexpr static void appendUTF8(std::basic_string<TChar>& out, char32 cp) {
@@ -95,61 +193,24 @@ namespace Convert::utf {
 		}
 	}
 
-	template <typename TChar>
+	template <typename TChar, Endian endian = Endian::NATIVE>
 	constexpr static void appendUTF16(std::basic_string<TChar>& out, char32 cp) {
 		if (!isUCS4(cp)) cp = ReplacementChar;
 
 		if (cp < 0x10000) {
-			out.push_back(static_cast<TChar>(cp));
+			out.push_back(toEndian<endian>(static_cast<TChar>(cp)));
 		} else {
 			cp -= 0x10000;
-			out.push_back(static_cast<TChar>(0xD800 | (cp >> 10)));
-			out.push_back(static_cast<TChar>(0xDC00 | (cp & 0x3FF)));
+			out.push_back(toEndian<endian>(static_cast<TChar>(0xD800 | (cp >> 10))));
+			out.push_back(toEndian<endian>(static_cast<TChar>(0xDC00 | (cp & 0x3FF))));
 		}
 	}
 
-    // A lead char is when the first char in a codepoint
-    // In the case of ASCII, it is also the only char
-    // lo and hi are the ranges that are possible for the second byte
-    struct LeadCharInfo {
-	    size_t length;
-	    uint8 lo, hi;
-	};
-
-    struct LeadCharInfo16 {
-        size_t length;
-        uint16 lo, hi;
-    };
-
-    constexpr static LeadCharInfo classifyLeadChar(const uint8 b0) noexcept {
-	    if (b0 < 0x80)
-	        return {.length = 1, .lo = 0x80, .hi = 0xBF};
-	    if (b0 < 0xC2)
-	        return {.length = 0, .lo = 0, .hi = 0};
-	    if (b0 <= 0xDF)
-	        return {.length = 2, .lo = 0x80, .hi = 0xBF};
-	    if (b0 == 0xE0)
-	        return {.length = 3, .lo = 0xA0, .hi = 0xBF};
-	    if (b0 == 0xED)
-	        return {.length = 3, .lo = 0x80, .hi = 0x9F};
-	    if (b0 <= 0xEF)
-	        return {.length = 3, .lo = 0x80, .hi = 0xBF};
-	    if (b0 == 0xF0)
-	        return {.length = 4, .lo = 0x90, .hi = 0xBF};
-	    if (b0 == 0xF4)
-	        return {.length = 4, .lo = 0x80, .hi = 0x8F};
-	    if (b0 <= 0xF3)
-	        return {.length = 4, .lo = 0x80, .hi = 0xBF};
-	    return {.length = 0, .lo = 0, .hi = 0};
-	}
-
-    constexpr static LeadCharInfo16 classifyLeadChar16(const uint16 b0) noexcept {
-	    if (b0 < 0xD800 || b0 > 0xDFFF)
-	        return {.length = 1, .lo = 0, .hi = 0};
-	    if (b0 <= 0xDBFF)
-	        return {.length = 2, .lo = 0xDC00, .hi = 0xDFFF};
-	    return {.length = 0, .lo = 0, .hi = 0};
-	}
+    template <typename TChar, Endian endian = Endian::NATIVE>
+    constexpr static void appendUTF32(std::basic_string<TChar>& out, char32 cp) {
+        if (!isUCS4(cp)) cp = ReplacementChar;
+        out.push_back(toEndian<endian>(static_cast<TChar>(cp)));
+    }
 
     // Result of decode
     struct DecodeResult {
