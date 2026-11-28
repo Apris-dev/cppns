@@ -376,7 +376,7 @@ protected:
 	virtual size_t read(x& inValue) final override { \
 		CString str; \
 		const size_t loc = read(str); \
-		fast_float::from_chars(str.data(), str.data() + str.getSize(), inValue); \
+		inValue = Convert::to<x>(str); \
 		return loc; \
 	}
 

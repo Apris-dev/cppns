@@ -815,7 +815,22 @@ public:
 		return *this;
 	}
 
+	template <typename TChar>
+	requires Convert::is_char_v<TChar>
+	constexpr_20 CString& operator+=(const TChar& otr) noexcept {
+		push(otr);
+		return *this;
+	}
+
 	friend constexpr_20 CString operator+(const CString& fst, const CString& snd) noexcept {
+		CString temp = fst;
+		temp += snd;
+		return temp;
+	}
+
+	template <typename TChar>
+	requires Convert::is_char_v<TChar>
+	friend constexpr_20 CString operator+(const CString& fst, const TChar& snd) noexcept {
 		CString temp = fst;
 		temp += snd;
 		return temp;
@@ -827,6 +842,14 @@ public:
 
 	friend constexpr_20 std::strong_ordering operator<=>(const CString& fst, const CString& snd) noexcept {
 		return fst.m_Container <=> snd.m_Container;
+	}
+
+	friend constexpr_20 bool operator==(const CString& fst, const TType* snd) noexcept {
+		return fst.m_Container == snd;
+	}
+
+	friend constexpr_20 std::strong_ordering operator<=>(const CString& fst, const TType* snd) noexcept {
+		return fst.m_Container <=> snd;
 	}
 
 protected:
@@ -1092,10 +1115,17 @@ public:
 
 };
 
+	// template deduction doesnt use implicit constructors
 namespace Convert {
-	template <typename TType>
-	requires is_convertible_v<std::string, TType>
-	CString convert(TType inType, Tag<CString>) {
+	template <typename TCString, typename TType>
+	requires std::is_same_v<std::remove_cvref_t<TCString>, CString> && is_convertible_v<std::string, TType>
+	TCString convert(const TType& inType, Tag<TCString>) {
 		return Convert::to<std::string>(inType);
+	}
+
+	template <typename TCString, typename TType>
+	requires std::is_same_v<std::remove_cvref_t<TCString>, CString> && is_convertible_v<TType, std::string>
+	TType convert(const TCString& inType, Tag<TType>) {
+		return Convert::to<TType>(static_cast<std::string>(inType));
 	}
 }
