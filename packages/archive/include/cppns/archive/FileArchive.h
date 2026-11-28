@@ -379,16 +379,18 @@ protected:
 		Super::seekFromStart(0);
 
 		// Read the first line ending and assume other line endings are like that
-		File::LineEnding res = TLineEnding;
+		File::LineEnding res;
 
 		switch (mFileFormat) {
 		case File::Format::UTF16LE:
 			res = Super::template getLineEndingFromFile_Impl<String::UTF16, UTF::Endian::LITTLE>();
+			break;
 		case File::Format::UTF16BE:
 			res = Super::template getLineEndingFromFile_Impl<String::UTF16, UTF::Endian::BIG>();
 			break;
 		case File::Format::UTF32LE:
 			res = Super::template getLineEndingFromFile_Impl<String::UTF32, UTF::Endian::LITTLE>();
+			break;
 		case File::Format::UTF32BE:
 			res = Super::template getLineEndingFromFile_Impl<String::UTF32, UTF::Endian::BIG>();
 			break;

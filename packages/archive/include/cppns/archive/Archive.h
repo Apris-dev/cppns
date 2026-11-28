@@ -384,17 +384,7 @@ protected:
 	 * Integral Types
 	 */
 
-	virtual size_t read(bool& inValue) final override {
-		CString str;
-		const size_t loc = read(str);
-		if (str == "true") {
-			inValue = true;
-		} else {
-			inValue = false;
-		}
-		return loc;
-	}
-
+	MAKE_READ(bool)
 	MAKE_READ(char)
 
 	MAKE_READ(unsigned char)
@@ -431,17 +421,14 @@ protected:
 
 #define MAKE_WRITE(x) \
 	virtual size_t write(const x& inValue) final override { \
-		return write(CString(std::to_string(inValue))); \
+		return write(Convert::to<CString>(inValue)); \
 	}
 
 	/*
 	 * Integral Types
 	 */
 
-	virtual size_t write(const bool& inValue) final override { \
-		return write(inValue ? "true" : "false"); \
-	}
-
+	MAKE_WRITE(bool)
 	MAKE_WRITE(char)
 
 	MAKE_WRITE(unsigned char)
