@@ -11,10 +11,10 @@
 namespace Convert {
     template<typename To> struct Tag {};
 
-    template<typename To, typename From, typename... TFromArgs>
-    concept is_convertible_v = (std::is_same_v<To, From> && sizeof...(TFromArgs) == 0) ||
-    requires(From from, TFromArgs... args) {
-        convert(from, args..., Tag<To>{});
+    template<typename To, typename... TArgs>
+    concept is_convertible_v = (sizeof...(TArgs) == 1 && (std::is_same_v<To, TArgs> && ...)) ||
+    requires(TArgs... args) {
+        convert(args..., Tag<To>{});
     };
 
     template<typename To, typename From, typename... TFromArgs>
