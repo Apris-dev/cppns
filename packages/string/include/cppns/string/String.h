@@ -67,13 +67,13 @@ public:
 	template <typename... TArgs>
 	requires Convert::is_convertible_v<TSubcontainerType<>, TArgs...>
 	constexpr_20 CString(TArgs... inType): m_Container(Convert::to<TSubcontainerType<>>(std::forward<TArgs>(inType)...)) {
-		removeInvalidUTF8(m_Container);
+		UTF::removeInvalidUTF8(m_Container);
 	}
 
 	constexpr_20 CString(const TSubcontainerType<>& otr): CString(TSubcontainerTypeView(otr)) {}
 
 	constexpr_20 CString(const TSubcontainerTypeView otr): m_Container(otr) {
-		removeInvalidUTF8(m_Container);
+		UTF::removeInvalidUTF8(m_Container);
 	}
 
 #ifdef __cpp_char8_t
@@ -188,14 +188,14 @@ public:
 #undef STR_CONTAINS
 
 	[[nodiscard]] constexpr_20 bool contains(const char16& obj) const {
-		if (!Convert::utf::isUCS2(obj))
+		if (!UTF::isUCS2(obj))
 			return false;
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		return contains(bytes);
 	}
 
 	[[nodiscard]] constexpr_20 bool contains(const char32& obj) const {
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		return contains(bytes);
 	}
 
@@ -282,14 +282,14 @@ public:
 #endif
 
 	[[nodiscard]] constexpr_20 size_t find(const char16& obj) const {
-		if (!Convert::utf::isUCS2(obj))
+		if (!UTF::isUCS2(obj))
 			return 0;
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		return find(bytes);
 	}
 
 	[[nodiscard]] constexpr_20 size_t find(const char32& obj) const {
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		return find(bytes);
 	}
 
@@ -341,14 +341,14 @@ public:
 #endif
 
 	[[nodiscard]] constexpr_20 size_t findLast(const char16& obj) const {
-		if (!Convert::utf::isUCS2(obj))
+		if (!UTF::isUCS2(obj))
 			return 0;
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		return findLast(bytes);
 	}
 
 	[[nodiscard]] constexpr_20 size_t findLast(const char32& obj) const {
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		return findLast(bytes);
 	}
 
@@ -382,7 +382,7 @@ public:
 		for (size_t i = previousSize; i < amt; ++i) {
 			m_Container.push_back(std::forward<TType>(func(i)));
 		}
-		removeInvalidUTF8(m_Container);
+		UTF::removeInvalidUTF8(m_Container);
 	}
 
 	constexpr_20 void reserve(const size_t amt) {
@@ -395,7 +395,7 @@ public:
 	}
 
 	constexpr_20 size_t push(const TType& obj) {
-		if (!Convert::utf::isASCII(obj))
+		if (!UTF::isASCII(obj))
 			throw Error::String::NonASCIICharacter();
 		m_Container.push_back(obj);
 		return getSize() - 1;
@@ -408,9 +408,9 @@ public:
 #endif
 
 	constexpr_20 size_t push(const char16& obj) {
-		if (!Convert::utf::isUCS2(obj))
+		if (!UTF::isUCS2(obj))
 			throw Error::String::NonUCS2Character();
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		m_Container.push_back(bytes[0]);
 		const size_t res = getSize() - 1;
 		if (bytes[1] != '\0')
@@ -419,9 +419,9 @@ public:
 	}
 
 	constexpr_20 size_t push(const char32& obj) {
-		if (!Convert::utf::isUCS4(obj))
+		if (!UTF::isUCS4(obj))
 			throw Error::String::NonUCS4Character();
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		m_Container.push_back(bytes[0]);
 		const size_t res = getSize() - 1;
 		if (bytes[1] != '\0')
@@ -434,7 +434,7 @@ public:
 	}
 
 	constexpr_20 size_t push(TType&& obj) {
-		if (!Convert::utf::isASCII(obj))
+		if (!UTF::isASCII(obj))
 			throw Error::String::NonASCIICharacter();
 		m_Container.push_back(std::move(obj));
 		return getSize() - 1;
@@ -447,7 +447,7 @@ public:
 #endif
 
 	constexpr_20 void push(const size_t index, const TType& obj) {
-		if (!Convert::utf::isASCII(obj))
+		if (!UTF::isASCII(obj))
 			throw Error::String::NonASCIICharacter();
 		m_Container.insert(m_Container.begin() + index, obj);
 	}
@@ -459,18 +459,18 @@ public:
 #endif
 
 	constexpr_20 void push(const size_t index, const char16& obj) {
-		if (!Convert::utf::isUCS2(obj))
+		if (!UTF::isUCS2(obj))
 			throw Error::String::NonUCS2Character();
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		if (bytes[1] != '\0')
 			m_Container.insert(m_Container.begin() + index, bytes[1]);
 		m_Container.insert(m_Container.begin() + index, bytes[0]);
 	}
 
 	constexpr_20 void push(const size_t index, const char32& obj) {
-		if (!Convert::utf::isUCS4(obj))
+		if (!UTF::isUCS4(obj))
 			throw Error::String::NonUCS4Character();
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		if (bytes[3] != '\0')
 			m_Container.insert(m_Container.begin() + index, bytes[3]);
 		if (bytes[2] != '\0')
@@ -481,7 +481,7 @@ public:
 	}
 
 	constexpr_20 void push(const size_t index, TType&& obj) {
-		if (!Convert::utf::isASCII(obj))
+		if (!UTF::isASCII(obj))
 			throw Error::String::NonASCIICharacter();
 		m_Container.insert(m_Container.begin() + index, std::move(obj));
 	}
@@ -493,7 +493,7 @@ public:
 #endif
 
 	constexpr_20 void replace(const size_t index, const TType& obj) {
-		if (!Convert::utf::isASCII(obj))
+		if (!UTF::isASCII(obj))
 			throw Error::String::NonASCIICharacter();
 		popAt(index);
 		push(index, obj);
@@ -506,21 +506,21 @@ public:
 #endif
 
 	constexpr_20 void replace(const size_t index, const char16& obj) {
-		if (!Convert::utf::isUCS2(obj))
+		if (!UTF::isUCS2(obj))
 			throw Error::String::NonUCS2Character();
 		popAt(index);
 		push(index, obj);
 	}
 
 	constexpr_20 void replace(const size_t index, const char32& obj) {
-		if (!Convert::utf::isUCS4(obj))
+		if (!UTF::isUCS4(obj))
 			throw Error::String::NonUCS4Character();
 		popAt(index);
 		push(index, obj);
 	}
 
 	constexpr_20 void replace(const size_t index, TType&& obj) {
-		if (!Convert::utf::isASCII(obj))
+		if (!UTF::isASCII(obj))
 			throw Error::String::NonASCIICharacter();
 		popAt(index);
 		push(index, std::move(obj));
@@ -594,14 +594,14 @@ public:
 #endif
 
 	constexpr_20 void erase(const char16& obj) {
-		if (!Convert::utf::isUCS2(obj))
+		if (!UTF::isUCS2(obj))
 			return;
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		erase(bytes);
 	}
 
 	constexpr_20 void erase(const char32& obj) {
-		auto [bytes] = encodeUTF8(obj);
+		auto [bytes] = UTF::encodeUTF8(obj);
 		erase(bytes);
 	}
 
@@ -629,18 +629,18 @@ public:
 #else
 		m_Container.insert(m_Container.end(), SContainer::getSubcontainer(otr).begin(), SContainer::getSubcontainer(otr).end());
 #endif
-		removeInvalidUTF8(m_Container);
+		UTF::removeInvalidUTF8(m_Container);
 	}
 
 	constexpr_20 void append(const TType* inArray) {
 		std::string str = inArray;
-		removeInvalidUTF8(str);
+		UTF::removeInvalidUTF8(str);
 		m_Container.append(str);
 	}
 
 	constexpr_20 void append(const TType* inArray, const size_t inCount) {
 		std::string str = {inArray, inCount};
-		removeInvalidUTF8(str);
+		UTF::removeInvalidUTF8(str);
 		m_Container.append(str);
 	}
 
@@ -808,65 +808,6 @@ public:
 
 protected:
 	TSubcontainerType<> m_Container;
-
-private:
-
-	/*
-	 * Conversions
-	 */
-
-	// Remove invalid UTF8
-	constexpr static void removeInvalidUTF8(std::string& s) noexcept {
-		const size_t n = s.size();
-		// where we read from and where the next good byte goes
-		size_t r = 0, w = 0;
-
-		while (r < n) {
-			const Convert::utf::DecodeResult ch = Convert::utf::decodeUTF<TType>(s, r);
-
-			if (ch.valid) {
-				// Only copy if something was deleted
-				if (w != r)
-					for (size_t k = 0; k < ch.length; ++k)
-						s[w + k] = s[r + k];
-				w += ch.length;
-			}
-			// Continue reading past regardless of validity
-			r += ch.length;
-		}
-
-		// Cut off the leftover tail
-		s.resize(w);
-	}
-
-	struct EncodedChar {
-		char bytes[5];
-	};
-
-	constexpr static EncodedChar encodeUTF8(const char32 cp) noexcept {
-		if (cp < 0x80)
-			return {static_cast<char>(cp)};
-		if (cp < 0x800)
-			return {static_cast<char>(0xC0 | (cp >> 6)),
-				static_cast<char>(0x80 | (cp & 0x3F)),
-				'\0'};
-		if (cp < 0x10000)
-			return {static_cast<char>(0xE0 | (cp >> 12)),
-				static_cast<char>(0x80 | ((cp >> 6) & 0x3F)),
-				static_cast<char>(0x80 | (cp & 0x3F)),
-				'\0'};
-
-		return {static_cast<char>(0xF0 | (cp >> 18)),
-			static_cast<char>(0x80 | ((cp >> 12) & 0x3F)),
-			static_cast<char>(0x80 | ((cp >> 6) & 0x3F)),
-			static_cast<char>(0x80 | (cp & 0x3F)),
-			'\0'};
-	}
-
-	constexpr static EncodedChar encodeUTF8(const char16 cp) noexcept {
-		return encodeUTF8(static_cast<char32>(cp));
-	}
-
 public:
 
 #ifdef __cpp_char8_t
@@ -879,12 +820,12 @@ public:
 	}
 #endif
 
-	template <Convert::utf::Endian endian = Convert::utf::Endian::NATIVE>
+	template <UTF::Endian endian = UTF::Endian::NATIVE>
 	String::UTF16 toUTF16() const {
 		return Convert::to<String::UTF16>(m_Container, endian);
 	}
 
-	template <Convert::utf::Endian endian = Convert::utf::Endian::NATIVE>
+	template <UTF::Endian endian = UTF::Endian::NATIVE>
 	String::UTF32 toUTF32() const {
 		return Convert::to<String::UTF32>(m_Container, endian);
 	}
