@@ -29,7 +29,7 @@ namespace Convert {
 }
 
 
-// Bool Convertersions
+// Bool Conversions
 namespace Convert {
     MAKE_CONVERTER(char, const bool x, { return x ? 't' : 'f'; })
     MAKE_CONVERTER(unsigned char, const bool x, { return x ? 't' : 'f'; })
@@ -161,7 +161,7 @@ namespace Convert::utf {
     // Decodes UTF8 into a UTF32 char, assumes std::string_view contains UTF8
 	// If non-UTF8 is present, it is replaced with 'ReplacementChar' and marked as invalid
 	template <typename TChar>
-	constexpr static DecodeResult decodeUTF8(const std::basic_string<TChar>& str, const size_t i) {
+	constexpr static DecodeResult decodeUTF8(const std::basic_string_view<TChar> str, const size_t i) {
 		if (i >= str.size())
 				return {.cp = ReplacementChar, .length = 0, .valid = false};
 
@@ -195,7 +195,7 @@ namespace Convert::utf {
 
 	// Decodes UTF16 into a UTF32 char
 	template <typename TChar>
-	constexpr static DecodeResult decodeUTF16(const std::basic_string<TChar>& s, const size_t i) noexcept {
+	constexpr static DecodeResult decodeUTF16(const std::basic_string_view<TChar> s, const size_t i) noexcept {
 		if (i >= s.size())
 			return {.cp = ReplacementChar, .length = 0, .valid = false};
 
@@ -547,35 +547,47 @@ namespace Convert {
 
 // String Conversions
 namespace Convert {
-    constexpr bool convert(const std::string& inType, Tag<bool>) { return inType == "true"; }
-    constexpr bool convert(const std::wstring& inType, Tag<bool>) { return inType == L"true"; }
-    constexpr bool convert(const std::u8string& inType, Tag<bool>) { return inType == u8"true"; }
-    constexpr bool convert(const std::u16string& inType, Tag<bool>) { return inType == u"true"; }
-    constexpr bool convert(const std::u32string& inType, Tag<bool>) { return inType == U"true"; }
+    constexpr bool convert(const std::string_view inType, Tag<bool>) { return inType == "true"; }
+    constexpr bool convert(const std::wstring_view inType, Tag<bool>) { return inType == L"true"; }
+    constexpr bool convert(const std::u8string_view inType, Tag<bool>) { return inType == u8"true"; }
+    constexpr bool convert(const std::u16string_view inType, Tag<bool>) { return inType == u"true"; }
+    constexpr bool convert(const std::u32string_view inType, Tag<bool>) { return inType == U"true"; }
+
+    template <typename TChar>
+    requires is_char_v<TChar>
+    constexpr std::basic_string<TChar> convert(const std::basic_string_view<TChar> inType, Tag<std::basic_string<TChar>>) {
+        return std::basic_string<TChar>(inType.data(), inType.size());
+    }
+
+    template <typename To, typename TChar>
+    requires is_char_v<TChar> && is_convertible_v<To, std::basic_string_view<TChar>>
+    constexpr To convert(const std::basic_string<TChar>& inType, Tag<To>) {
+        return convert(std::basic_string_view<TChar>{inType}, Tag<To>{});
+    }
 
     template <typename To, typename TChar>
     requires is_char_v<TChar> && is_char_v<To>
-    constexpr To convert(const std::basic_string<TChar>& inType, Tag<To>) {
+    constexpr To convert(const std::basic_string_view<TChar> inType, Tag<To>) {
         return Convert::to<To>(inType.at(0));
     }
 
     template <typename To, typename TChar>
     requires fast_float::is_supported_char_type<TChar>::value && (fast_float::is_supported_integer_type<To>::value || fast_float::is_supported_float_type<To>::value) && (!is_char_v<To>) && (!std::is_same_v<To, bool>)
-    constexpr To convert(const std::basic_string<TChar>& inType, Tag<To>) {
+    constexpr To convert(const std::basic_string_view<TChar> inType, Tag<To>) {
         To to;
         fast_float::from_chars<To>(inType.data(), inType.data() + inType.size(), to);
         return to;
     }
 
     template <typename TChar>
-    constexpr long double convert(const std::basic_string<TChar>& inType, Tag<long double>) {
+    constexpr long double convert(const std::basic_string_view<TChar> inType, Tag<long double>) {
         double to;
         fast_float::from_chars(inType.data(), inType.data() + inType.size(), to);
         // Probably lose precision but it shouldn't matter much
         return static_cast<long double>(to);
     }
 
-    constexpr std::wstring convert(const std::string& inType, Tag<std::wstring>) {
+    constexpr std::wstring convert(const std::string_view inType, Tag<std::wstring>) {
 #if USING_WINDOWS
         std::wstring str;
         str.reserve(inType.size());
@@ -597,11 +609,11 @@ namespace Convert {
 #endif
     }
 
-    constexpr std::u8string convert(const std::string& inType, Tag<std::u8string>) {
+    constexpr std::u8string convert(const std::string_view inType, Tag<std::u8string>) {
         return std::u8string{inType.begin(), inType.end()};
     }
 
-    constexpr std::u16string convert(const std::string& inType, Tag<std::u16string>) {
+    constexpr std::u16string convert(const std::string_view inType, Tag<std::u16string>) {
         std::u16string str;
         str.reserve(inType.size());
         for (size_t i = 0; i < inType.size();) {
@@ -612,7 +624,7 @@ namespace Convert {
         return str;
     }
 
-    constexpr std::u32string convert(const std::string& inType, Tag<std::u32string>) {
+    constexpr std::u32string convert(const std::string_view inType, Tag<std::u32string>) {
         std::u32string str;
         str.reserve(inType.size());
         for (size_t i = 0; i < inType.size();) {
@@ -623,7 +635,7 @@ namespace Convert {
         return str;
     }
 
-    constexpr std::string convert(const std::wstring& inType, Tag<std::string>) {
+    constexpr std::string convert(const std::wstring_view inType, Tag<std::string>) {
 #if USING_WINDOWS
         std::string str;
         str.reserve(inType.size());
@@ -642,7 +654,7 @@ namespace Convert {
 #endif
     }
 
-    constexpr std::u8string convert(const std::wstring& inType, Tag<std::u8string>) {
+    constexpr std::u8string convert(const std::wstring_view inType, Tag<std::u8string>) {
 #if USING_WINDOWS
         std::u8string str;
         str.reserve(inType.size());
@@ -661,7 +673,7 @@ namespace Convert {
 #endif
     }
 
-    constexpr std::u16string convert(const std::wstring& inType, Tag<std::u16string>) {
+    constexpr std::u16string convert(const std::wstring_view inType, Tag<std::u16string>) {
 #if USING_WINDOWS
             return std::u16string{inType.begin(), inType.end()};
 #else
@@ -673,7 +685,7 @@ namespace Convert {
 #endif
     }
 
-    constexpr std::u32string convert(const std::wstring& inType, Tag<std::u32string>) {
+    constexpr std::u32string convert(const std::wstring_view inType, Tag<std::u32string>) {
 #if USING_WINDOWS
         std::u32string str;
         str.reserve(inType.size());
@@ -688,11 +700,11 @@ namespace Convert {
 #endif
     }
 
-    constexpr std::string convert(const std::u8string& inType, Tag<std::string>) {
+    constexpr std::string convert(const std::u8string_view inType, Tag<std::string>) {
         return std::string{inType.begin(), inType.end()};
     }
 
-    constexpr std::wstring convert(const std::u8string& inType, Tag<std::wstring>) {
+    constexpr std::wstring convert(const std::u8string_view inType, Tag<std::wstring>) {
 #if USING_WINDOWS
         std::wstring str;
         str.reserve(inType.size());
@@ -714,7 +726,7 @@ namespace Convert {
 #endif
     }
 
-    constexpr std::u16string convert(const std::u8string& inType, Tag<std::u16string>) {
+    constexpr std::u16string convert(const std::u8string_view inType, Tag<std::u16string>) {
         std::u16string str;
         str.reserve(inType.size());
         for (size_t i = 0; i < inType.size();) {
@@ -725,7 +737,7 @@ namespace Convert {
         return str;
     }
 
-    constexpr std::u32string convert(const std::u8string& inType, Tag<std::u32string>) {
+    constexpr std::u32string convert(const std::u8string_view inType, Tag<std::u32string>) {
         std::u32string str;
         str.reserve(inType.size());
         for (size_t i = 0; i < inType.size();) {
@@ -736,7 +748,7 @@ namespace Convert {
         return str;
     }
 
-    constexpr std::string convert(const std::u16string& inType, Tag<std::string>) {
+    constexpr std::string convert(const std::u16string_view inType, Tag<std::string>) {
         std::string str;
         str.reserve(inType.size());
         for (size_t i = 0; i < inType.size();) {
@@ -747,7 +759,7 @@ namespace Convert {
         return str;
     }
 
-    constexpr std::wstring convert(const std::u16string& inType, Tag<std::wstring>) {
+    constexpr std::wstring convert(const std::u16string_view inType, Tag<std::wstring>) {
 #if USING_WINDOWS
         std::wstring str;
         str.reserve(inType.size());
@@ -769,7 +781,7 @@ namespace Convert {
 #endif
     }
 
-    constexpr std::u8string convert(const std::u16string& inType, Tag<std::u8string>) {
+    constexpr std::u8string convert(const std::u16string_view inType, Tag<std::u8string>) {
         std::u8string str;
         str.reserve(inType.size());
         for (size_t i = 0; i < inType.size();) {
@@ -780,7 +792,7 @@ namespace Convert {
         return str;
     }
 
-    constexpr std::u32string convert(const std::u16string& inType, Tag<std::u32string>) {
+    constexpr std::u32string convert(const std::u16string_view inType, Tag<std::u32string>) {
         std::u32string str;
         str.reserve(inType.size());
         for (size_t i = 0; i < inType.size();) {
@@ -791,7 +803,7 @@ namespace Convert {
         return str;
     }
 
-    constexpr std::string convert(const std::u32string& inType, Tag<std::string>) {
+    constexpr std::string convert(const std::u32string_view inType, Tag<std::string>) {
         std::string str;
         str.reserve(inType.size());
         for (const char32 c : inType)
@@ -799,7 +811,7 @@ namespace Convert {
         return str;
     }
 
-    constexpr std::wstring convert(const std::u32string& inType, Tag<std::wstring>) {
+    constexpr std::wstring convert(const std::u32string_view inType, Tag<std::wstring>) {
 #if USING_WINDOWS
         std::wstring str;
         str.reserve(inType.size());
@@ -815,7 +827,7 @@ namespace Convert {
 #endif
     }
 
-    constexpr std::u8string convert(const std::u32string& inType, Tag<std::u8string>) {
+    constexpr std::u8string convert(const std::u32string_view inType, Tag<std::u8string>) {
         std::u8string str;
         str.reserve(inType.size());
         for (const char32 c : inType)
@@ -823,7 +835,7 @@ namespace Convert {
         return str;
     }
 
-    constexpr std::u16string convert(const std::u32string& inType, Tag<std::u16string>) {
+    constexpr std::u16string convert(const std::u32string_view inType, Tag<std::u16string>) {
         std::u16string str;
         str.reserve(inType.size());
         for (const char32 c : inType)
@@ -835,14 +847,14 @@ namespace Convert {
 // Array Conversions
 namespace Convert {
     template <typename TChar, typename TType>
-    requires is_convertible_v<TType, std::basic_string<TChar>>
+    requires is_char_v<TChar> && is_convertible_v<TType, std::basic_string_view<TChar>>
     constexpr TType convert(const TChar* inType, Tag<TType>) {
-        return Convert::to<TType>(std::basic_string<TChar>(inType));
+        return Convert::to<TType>(std::basic_string_view<TChar>(inType));
     }
 
     template <typename TChar, typename TType>
-    requires is_convertible_v<TType, std::basic_string<TChar>>
+    requires is_char_v<TChar> && is_convertible_v<TType, std::basic_string_view<TChar>>
     constexpr TType convert(const TChar* inType, const size_t inCount, Tag<TType>) {
-        return Convert::to<TType>(std::basic_string<TChar>(inType, inCount));
+        return Convert::to<TType>(std::basic_string_view<TChar>(inType, inCount));
     }
 }
